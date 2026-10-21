@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isPostgresAvailable, q } from "@/lib/db";
+import { isPostgresAvailable, pool, q } from "@/lib/db";
 import { store } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +7,17 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const pg = await isPostgresAvailable();
   const dbUrlSet = Boolean(process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("kaam_local_dev_only"));
+
+  let connectionError: string | null = null;
+  if (!pg && dbUrlSet) {
+    try {
+      const client = await pool().connect();
+      await client.query("SELECT 1");
+      client.release();
+    } catch (err) {
+      connectionError = err instanceof Error ? err.message : String(err);
+    }
+  }
 
   let counts = { jobs: 0, users: 0, bids: 0 };
   if (pg) {
@@ -34,6 +45,7 @@ export async function GET() {
     postgresAvailable: pg,
     storageMode: pg ? "production_postgres" : "in_memory_fallback",
     databaseUrlConfigured: dbUrlSet,
+    connectionError,
     supportEmailConfigured: Boolean(process.env.SUPPORT_EMAIL),
     counts,
     message: pg
