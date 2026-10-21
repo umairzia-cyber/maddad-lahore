@@ -49,12 +49,22 @@
   --info: #7cc4ff;
   --info-soft: rgba(124, 196, 255, 0.11);
 
+  /* Emerald trustworthy brand colors (Local Lahore service) */
+  --emerald-800: #065f46;
+  --emerald-700: #047857;
+  --emerald-600: #059669;
+  --emerald-500: #10b981;
+  --emerald-400: #34d399;
+  --emerald-300: #6ee7b7;
+  --emerald-soft: rgba(16, 185, 129, 0.12);
+  --emerald-btn: linear-gradient(180deg, #059669 0%, #047857 100%);
+
   /* Metallic gradients */
   --metal-plate: linear-gradient(160deg, #202432 0%, #161922 46%, #12141c 100%);
   --metal-plate-hi: linear-gradient(160deg, #2b3040 0%, #1c202b 50%, #151822 100%);
   --metal-edge: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02) 40%, rgba(255, 255, 255, 0.05));
   --metal-btn: linear-gradient(180deg, #2f3545 0%, #222735 100%);
-  --violet-btn: linear-gradient(180deg, #8b5cf6 0%, #6d28d9 100%);
+  --violet-btn: linear-gradient(180deg, #059669 0%, #047857 100%);
 
   /* Type */
   --font-sans: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
@@ -670,14 +680,14 @@ a:hover {
   transform: none;
 }
 .btn-primary {
-  background: var(--violet-btn);
-  border-color: rgba(196, 181, 253, 0.55);
-  color: var(--text-on-violet);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 8px 20px -8px var(--violet-glow);
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
+  border-color: rgba(52, 211, 153, 0.45);
+  color: #ffffff;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 6px 18px -4px rgba(5, 150, 105, 0.45);
 }
 .btn-primary:hover {
-  background: linear-gradient(180deg, #9b72f8 0%, #7432e0 100%);
-  border-color: rgba(221, 214, 254, 0.7);
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  border-color: rgba(110, 231, 183, 0.6);
   color: #fff;
 }
 .btn-secondary {
@@ -2055,3 +2065,231 @@ dialog.dialog::backdrop {
     background: Canvas;
   }
 }
+
+/* ===================================================================== */
+/* 17. Maddad Lahore — RTL & Urdu Layout Rules                           */
+/* ===================================================================== */
+[dir="rtl"] {
+  font-family: var(--font-urdu), "Noto Sans Arabic", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  text-align: right;
+  line-height: 1.7;
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] .hero-title {
+  line-height: 1.45;
+  font-family: var(--font-urdu), "Noto Sans Arabic", system-ui, sans-serif;
+}
+
+[dir="rtl"] .hero-actions,
+[dir="rtl"] .row,
+[dir="rtl"] .header-actions {
+  flex-direction: row;
+}
+
+[dir="rtl"] .brand-title {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="number"],
+[dir="rtl"] .font-mono,
+[dir="rtl"] .meta-number {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Language switch badge */
+.lang-switcher-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid var(--emerald-500);
+  color: var(--emerald-300);
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.lang-switcher-btn:hover {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: var(--emerald-400);
+  color: #fff;
+}
+
+/* Large Service Choices (Plumbing & Electrical) */
+.service-choices-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-4);
+  margin-block: var(--s-6);
+}
+@media (min-width: 640px) {
+  .service-choices-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.service-choice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  padding: 20px 22px;
+  background: var(--ink-1);
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  text-decoration: none;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.service-choice-card:hover {
+  border-color: var(--emerald-500);
+  background: var(--graphite-1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -6px rgba(5, 150, 105, 0.25);
+}
+.service-choice-card.selected {
+  border-color: var(--emerald-400);
+  background: rgba(5, 150, 105, 0.1);
+  box-shadow: 0 0 0 1px var(--emerald-400);
+}
+.service-choice-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--graphite-2);
+  color: var(--emerald-400);
+  border: 1px solid var(--line-strong);
+}
+.service-choice-card.electrical .service-choice-icon {
+  color: var(--amber-400);
+}
+
+/* Problem quick-chips */
+.problem-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+.problem-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--ink-1);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.problem-chip-btn:hover {
+  border-color: var(--emerald-500);
+  color: var(--text);
+  background: var(--graphite-1);
+}
+.problem-chip-btn.active {
+  border-color: var(--emerald-400);
+  background: rgba(16, 185, 129, 0.14);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Step cards for How It Works */
+.steps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-4);
+  margin-block: var(--s-6);
+}
+@media (min-width: 768px) {
+  .steps-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+.step-card {
+  padding: 22px;
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  position: relative;
+}
+.step-number-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--emerald-700);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+/* Trust Safeguards Grid */
+.trust-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s-3);
+  margin-block: var(--s-4);
+}
+@media (min-width: 640px) {
+  .trust-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.trust-item-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+}
+
+/* Quote Comparison Cards */
+.quotes-comparison-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+.quote-card {
+  background: var(--ink-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.quote-card:hover {
+  border-color: var(--line-strong);
+}
+.quote-price-tag {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--emerald-300);
+}
+

@@ -46,6 +46,7 @@ import { NotificationsView } from "./maddad/NotificationsView";
 import { switchDemoUserAction, logoutAction } from "@/app/actions";
 import { ModerationView } from "./maddad/ModerationView";
 import { SettingsView } from "./maddad/SettingsView";
+import { I18nProvider, useI18n } from "./maddad/I18nContext";
 
 export interface UnifiedAppProps {
   currentUser: AppUser | null;
@@ -89,7 +90,7 @@ function resolveInitialTab(view?: string | null, user?: AppUser | null): TabType
   return "marketplace";
 }
 
-export default function UnifiedMaddadApp({
+function UnifiedAppContent({
   currentUser,
   initialView,
   initialPublicJobs,
@@ -105,9 +106,11 @@ export default function UnifiedMaddadApp({
   areas,
   categories,
 }: UnifiedAppProps) {
+  const { t, locale, toggleLocale } = useI18n();
   const [activeTab, setActiveTab] = useState<TabType>(() =>
     resolveInitialTab(initialView, currentUser),
   );
+  const [preselectedCategory, setPreselectedCategory] = useState<"plumbing" | "electrical" | null>(null);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [activeJobModal, setActiveJobModal] = useState<PublicJobItem | null>(null);
 
@@ -276,7 +279,10 @@ export default function UnifiedMaddadApp({
               user={currentUser}
               realOpenCount={realCount}
               sampleCount={sampleCount}
-              onPost={() => switchTab("post")}
+              onPost={(cat) => {
+                setPreselectedCategory(cat || null);
+                switchTab("post");
+              }}
               onJoin={() => (currentUser?.is_worker ? switchTab("worker_dashboard") : switchTab("auth"))}
               compact={false}
             />
@@ -289,10 +295,11 @@ export default function UnifiedMaddadApp({
               user={currentUser}
               ownJobIds={ownJobIds}
               onOpenJob={(job) => setActiveJobModal(job)}
-              onPost={() => switchTab("post")}
+              onPost={(cat) => {
+                setPreselectedCategory(cat || null);
+                switchTab("post");
+              }}
             />
-
-            <TrustPanel />
           </div>
         )}
 
@@ -303,6 +310,7 @@ export default function UnifiedMaddadApp({
               user={currentUser}
               categories={categories}
               areas={areas}
+              initialCategory={preselectedCategory}
               onNeedAuth={() => switchTab("auth")}
               onSuccess={(jobId) => {
                 showToast("Job posted successfully! Lahore technicians can now review and bid.");
@@ -505,4 +513,8 @@ export default function UnifiedMaddadApp({
       </nav>
     </div>
   );
+}
+
+export default function UnifiedMaddadApp(props: UnifiedAppProps) {
+  return <UnifiedAppContent {...props} />;
 }

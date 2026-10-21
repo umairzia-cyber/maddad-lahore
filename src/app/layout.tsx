@@ -8,8 +8,12 @@ import { getUser } from "@/lib/auth";
 import { isPostgresAvailable, q } from "@/lib/db";
 import { store } from "@/lib/store";
 import SiteNav, { type NavItem } from "@/components/SiteNav";
-import { IconPlus, IconWrench, IconShieldCheck, IconUser, IconLogOut } from "@/components/icons";
+import { IconPlus, IconWrench, IconUser, IconLogOut } from "@/components/icons";
 import { logoutAction } from "./actions";
+import { I18nProvider } from "@/components/maddad/I18nContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { TrustStrip } from "@/components/TrustStrip";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: { default: `${appName} – Plumbing & electrical jobs in Lahore`, template: `%s · ${appName}` },
@@ -56,93 +60,80 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} dir={LOCALE_DIR[locale]}>
       <body>
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        <div className="app-wrap">
-          <div className="app-canvas">
-            <header className="app-header">
-              <div className="header-inner">
-                <Link href="/" className="brand-badge" aria-label="Maddad Lahore home">
-                  <div className="brand-avatar" aria-hidden="true">
-                    مدد
-                  </div>
-                  <div>
-                    <div className="brand-title">
-                      <span>Maddad</span>
-                      <span className="brand-urdu" lang="ur">
-                        مدد لاہور
-                      </span>
+        <I18nProvider>
+          <a href="#main" className="skip-link">
+            Skip to content
+          </a>
+          <div className="app-wrap">
+            <div className="app-canvas">
+              <header className="app-header">
+                <div className="header-inner">
+                  <Link href="/" className="brand-badge" aria-label="Maddad Lahore home">
+                    <div className="brand-avatar" aria-hidden="true">
+                      مدد
                     </div>
-                    <span className="brand-tag">Lahore · Plumbing &amp; Electrical</span>
-                  </div>
-                </Link>
-
-                <Suspense fallback={<nav className="header-nav" aria-label="Main" />}>
-                  <SiteNav items={nav} />
-                </Suspense>
-
-                <div className="header-actions">
-                  <Link href="/?view=post" className="btn btn-primary btn-sm">
-                    <IconPlus size={16} aria-hidden="true" />
-                    <span>
-                      Post a job
-                    </span>
+                    <div>
+                      <div className="brand-title">
+                        <span>Maddad</span>
+                        <span className="brand-urdu" lang="ur">
+                          مدد لاہور
+                        </span>
+                      </div>
+                      <span className="brand-tag">Lahore · Plumbing &amp; Electrical</span>
+                    </div>
                   </Link>
-                  {user?.is_worker ? (
-                    <Link href="/worker/profile" className="btn btn-sm" aria-label="My technician profile">
-                      <IconWrench size={16} aria-hidden="true" />
-                      <span className="btn-label-long" aria-hidden="true">My technician profile</span>
+
+                  <Suspense fallback={<nav className="header-nav" aria-label="Main" />}>
+                    <SiteNav items={nav} />
+                  </Suspense>
+
+                  <div className="header-actions">
+                    <LanguageToggle />
+
+                    <Link href="/?view=post" className="btn btn-primary btn-sm">
+                      <IconPlus size={16} aria-hidden="true" />
+                      <span>
+                        Post a job
+                      </span>
                     </Link>
-                  ) : (
-                    <Link href="/?view=join" className="btn btn-sm" aria-label="Join as a technician">
-                      <IconWrench size={16} aria-hidden="true" />
-                      <span className="btn-label-long" aria-hidden="true">Join as a technician</span>
-                    </Link>
-                  )}
-                  {user ? (
-                    <form action={logoutAction}>
-                      <button type="submit" className="btn btn-ghost btn-sm" aria-label="Sign out">
-                        <IconLogOut size={16} aria-hidden="true" />
-                        <span className="hide-sm">Sign out</span>
-                      </button>
-                    </form>
-                  ) : (
-                    <Link href="/?view=signin" className="btn btn-ghost btn-sm">
-                      <IconUser size={16} aria-hidden="true" />
-                      <span>Sign in</span>
-                    </Link>
-                  )}
+                    {user?.is_worker ? (
+                      <Link href="/worker/profile" className="btn btn-sm" aria-label="My technician profile">
+                        <IconWrench size={16} aria-hidden="true" />
+                        <span className="btn-label-long" aria-hidden="true">My technician profile</span>
+                      </Link>
+                    ) : (
+                      <Link href="/?view=join" className="btn btn-sm" aria-label="Join as a technician">
+                        <IconWrench size={16} aria-hidden="true" />
+                        <span className="btn-label-long" aria-hidden="true">Join as a technician</span>
+                      </Link>
+                    )}
+                    {user ? (
+                      <form action={logoutAction}>
+                        <button type="submit" className="btn btn-ghost btn-sm" aria-label="Sign out">
+                          <IconLogOut size={16} aria-hidden="true" />
+                          <span className="hide-sm">Sign out</span>
+                        </button>
+                      </form>
+                    ) : (
+                      <Link href="/?view=signin" className="btn btn-ghost btn-sm">
+                        <IconUser size={16} aria-hidden="true" />
+                        <span>Sign in</span>
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </header>
+              </header>
 
-            <div className="trust-strip" role="note">
-              <div className="trust-strip-inner">
-                <IconShieldCheck size={14} aria-hidden="true" />
-                <span>
-                  <strong>English-first pilot (مکمل اردو ترجمہ جلد دستیاب ہوگا):</strong> Maddad is an open bulletin board. You pay the technician directly — zero platform escrow or fund holding.{" "}
-                  <Link href="/payments">How it works</Link>
-                </span>
-              </div>
+              <TrustStrip />
+
+              <main id="main" tabIndex={-1}>
+                {children}
+              </main>
+
+              <SiteFooter />
             </div>
-
-            <main id="main" tabIndex={-1}>
-              {children}
-            </main>
-
-            <footer className="site-footer">
-              <div className="site-footer-inner">
-                <span>© Maddad Lahore · Pilot for plumbing &amp; electrical jobs in Lahore only. English-first pilot (مکمل اردو ترجمہ جلد دستیاب ہوگا).</span>
-                <span className="row" style={{ gap: 16 }}>
-                  <Link href="/payments">Payments</Link>
-                  <Link href="/privacy">Privacy</Link>
-                  <Link href="/terms">Terms</Link>
-                </span>
-              </div>
-            </footer>
           </div>
-        </div>
+        </I18nProvider>
       </body>
     </html>
   );

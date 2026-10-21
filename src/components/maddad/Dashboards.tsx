@@ -8,6 +8,7 @@ import {
   IconBriefcase,
   IconCheck,
   IconClock,
+  IconFileText,
   IconLock,
   IconMapPin,
   IconPhone,
@@ -23,12 +24,13 @@ import {
 import {
   acceptBidAction,
   progressAction,
-  reportProblemAction,
   withdrawBidAction,
-  reviewAction,
 } from "@/app/actions";
 import type { AppUser, BookingItem, CustomerJobItem, PublicJobItem, WorkerBidItem } from "./types";
 import { EmptyState, StatusBadge, budgetLabel, fmtDate, fmtDateTime, pkr, plural } from "./shared";
+import { useI18n } from "./I18nContext";
+import { HireModal } from "./HireModal";
+import { ReportModal } from "./ReportModal";
 
 /* ---------------------------------------------------------------- */
 /* CUSTOMER DASHBOARD                                               */
@@ -50,42 +52,42 @@ export function CustomerDashboardView({
   onPostJob,
   onToast,
 }: CustomerDashboardProps) {
+  const { t, locale } = useI18n();
   const [activeTab, setActiveTab] = useState<"jobs" | "bookings">("jobs");
   const [submittingAction, setSubmittingAction] = useState<string | null>(null);
+
+  // Hire modal state
+  const [hireModalData, setHireModalData] = useState<{
+    open: boolean;
+    jobId: string;
+    bidId: string;
+    workerName: string;
+    amount: number;
+    timingText: string;
+  } | null>(null);
+
+  // Report modal state
+  const [reportModalData, setReportModalData] = useState<{
+    open: boolean;
+    bookingId: string;
+    title: string;
+  } | null>(null);
 
   const openJobs = jobs.filter((j) => j.status === "open" || j.status === "draft");
   const completedJobs = jobs.filter((j) => j.status === "completed" || j.status === "cancelled");
   const activeBookings = bookings.filter((b) => b.status !== "completed" && b.status !== "cancelled");
   const pastBookings = bookings.filter((b) => b.status === "completed" || b.status === "cancelled");
 
-  const handleAcceptBid = async (jobId: string, bidId: string) => {
-    const exactAddress = window.prompt(
-      "Confirm hiring this technician?\n\nEnter your exact house number, street address, and sector (this will be unlocked ONLY for this hired technician):",
-    );
-    if (exactAddress === null) return; // User cancelled
-    const cleanAddress = exactAddress.trim();
-    if (!cleanAddress || cleanAddress.length < 5) {
-      onToast("Please enter your exact house number and street (at least 5 characters) so the technician can arrive.", "error");
-      return;
-    }
-    setSubmittingAction(`accept-${bidId}`);
-    try {
-      const fd = new FormData();
-      fd.set("jobId", jobId);
-      fd.set("bidId", bidId);
-      fd.set("exactAddress", cleanAddress);
-      await acceptBidAction(null, fd);
-      onToast("Bid accepted! The technician has been hired and your exact address is unlocked for them.");
-      window.location.reload();
-    } catch {
-      onToast("Failed to accept bid. Please try again.", "error");
-    } finally {
-      setSubmittingAction(null);
-    }
-  };
-
   const handleConfirmCompletion = async (booking: BookingItem) => {
-    if (!window.confirm("Confirm that the technician has finished the work to your satisfaction?")) return;
+    if (
+      !window.confirm(
+        locale === "ur"
+          ? "کیا آپ تصدیق کرتے ہیں کہ کاریگر نے کام تسلی بخش مکمل کر دیا ہے؟"
+          : "Confirm that the technician has finished the work to your satisfaction?"
+      )
+    )
+      return;
+
     setSubmittingAction(`complete-${booking.id}`);
     try {
       const fd = new FormData();
@@ -93,29 +95,14 @@ export function CustomerDashboardView({
       fd.set("action", "confirm");
       fd.set("jobId", booking.job_id);
       await progressAction(null, fd);
-      onToast("Job marked as completed. You can now leave a review for the technician.");
+      onToast(
+        locale === "ur"
+          ? "کام مکمل قرار دیا گیا۔ اب آپ کاریگر کے لیے جائزہ لکھ سکتے ہیں۔"
+          : "Job marked as completed. You can now leave a review for the technician."
+      );
       window.location.reload();
     } catch {
-      onToast("Failed to confirm completion.", "error");
-    } finally {
-      setSubmittingAction(null);
-    }
-  };
-
-  const handleReportProblem = async (booking: BookingItem) => {
-    const details = window.prompt("Please describe the issue or dispute regarding this booking:");
-    if (!details || !details.trim()) return;
-    setSubmittingAction(`dispute-${booking.id}`);
-    try {
-      const fd = new FormData();
-      fd.set("bookingId", booking.id);
-      fd.set("jobId", booking.job_id);
-      fd.set("details", details.trim());
-      await reportProblemAction(null, fd);
-      onToast("Problem reported. The booking is marked disputed and sent to our moderation queue.");
-      window.location.reload();
-    } catch {
-      onToast("Failed to submit dispute.", "error");
+      onToast(locale === "ur" ? "تصدیق کرتے وقت خرابی ہوئی۔" : "Failed to confirm completion.", "error");
     } finally {
       setSubmittingAction(null);
     }
@@ -123,36 +110,52 @@ export function CustomerDashboardView({
 
   return (
     <div className="stack" style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
-      {/* Overview Stat Cards */}
-      <div className="plate plate-bolted" style={{ padding: "20px 24px" }}>
-        <div className="row-between">
+      {/* Header Hub Plate */}
+      <div
+        className="plate"
+        style={{
+          padding: "20px 24px",
+          borderRadius: "var(--r-md)",
+          background: "var(--ink-1)",
+          border: "1px solid var(--line)",
+        }}
+      >
+        <div className="row-between" style={{ flexWrap: "wrap", gap: 14 }}>
           <div>
-            <span className="hero-eyebrow">Customer Hub</span>
-            <h1 style={{ margin: "4px 0 0", fontSize: "1.5rem" }}>My Jobs &amp; Bookings</h1>
+            <span className="hero-eyebrow" style={{ color: "var(--emerald-400)" }}>
+              {locale === "ur" ? "کسٹمر ہب" : "Customer Hub"}
+            </span>
+            <h1 style={{ margin: "4px 0 0", fontSize: "1.5rem", fontWeight: 800 }}>
+              {locale === "ur" ? "میرے کام اور بکنگز" : "My Repairs & Bookings"}
+            </h1>
             <p className="meta" style={{ margin: 0 }}>
-              Track quotes, compare technicians, and coordinate job completion.
+              {locale === "ur"
+                ? "کوٹیشنز کا جائزہ لیں، کاریگر منتخب کریں اور کام کی تکمیل یقینی بنائیں۔"
+                : "Track quotes, compare technicians side-by-side, and coordinate service completion."}
             </p>
           </div>
           <button type="button" onClick={onPostJob} className="btn btn-primary">
-            <IconPlus size={16} /> Post a New Job
+            <IconPlus size={16} />
+            <span>{locale === "ur" ? "نیا کام پوسٹ کریں" : "Post a New Repair"}</span>
           </button>
         </div>
 
+        {/* Quick Stats Grid */}
         <div className="stat-grid" style={{ marginTop: 20 }}>
           <div className="stat">
-            <div className="l">Open Jobs</div>
+            <div className="l">{locale === "ur" ? "اوپن کام" : "Open Requests"}</div>
             <div className="n">{openJobs.length}</div>
           </div>
           <div className="stat">
-            <div className="l">Active Bookings</div>
+            <div className="l">{locale === "ur" ? "ایکٹو بکنگز" : "Active Bookings"}</div>
             <div className="n">{activeBookings.length}</div>
           </div>
           <div className="stat">
-            <div className="l">Total Posted</div>
+            <div className="l">{locale === "ur" ? "کل پوسٹس" : "Total Posted"}</div>
             <div className="n">{jobs.length}</div>
           </div>
           <div className="stat">
-            <div className="l">Completed History</div>
+            <div className="l">{locale === "ur" ? "مکمل شدہ کام" : "Completed"}</div>
             <div className="n">{pastBookings.length}</div>
           </div>
         </div>
@@ -168,7 +171,7 @@ export function CustomerDashboardView({
           className="tab-btn"
         >
           <IconBriefcase size={16} />
-          <span>My Posted Jobs</span>
+          <span>{locale === "ur" ? "میرے پوسٹ کردہ کام" : "My Posted Jobs"}</span>
           <span className="tab-badge">{jobs.length}</span>
         </button>
         <button
@@ -179,93 +182,106 @@ export function CustomerDashboardView({
           className="tab-btn"
         >
           <IconShieldCheck size={16} />
-          <span>Bookings &amp; Hired Workers</span>
-          {activeBookings.length > 0 && <span className="tab-badge tab-badge-alert">{activeBookings.length}</span>}
+          <span>{locale === "ur" ? "ایکٹو بکنگز اور کاریگر" : "Hired & Active Bookings"}</span>
+          <span className="tab-badge">{bookings.length}</span>
         </button>
       </div>
 
-      {/* VIEW: MY POSTED JOBS */}
+      {/* VIEW: POSTED JOBS */}
       {activeTab === "jobs" && (
-        <div className="stack">
+        <div className="stack" style={{ gap: 14 }}>
           {jobs.length === 0 ? (
             <EmptyState
               icon={<IconBriefcase size={24} />}
-              title="You haven't posted any jobs yet"
+              title={locale === "ur" ? "ابھی تک کوئی کام پوسٹ نہیں کیا گیا" : "No repair requests posted yet"}
               action={
-                <button type="button" onClick={onPostJob} className="btn btn-primary">
-                  <IconPlus size={16} /> Post your first job
+                <button type="button" className="btn btn-primary" onClick={onPostJob}>
+                  <IconPlus size={16} />
+                  <span>{locale === "ur" ? "پہلا کام پوسٹ کریں" : "Post your first repair"}</span>
                 </button>
               }
             >
-              Post a plumbing or electrical job in Lahore and get integer PKR bids from local independent technicians.
+              {locale === "ur"
+                ? "پلمبنگ یا الیکٹریکل کام کی تفصیل درج کریں تاکہ قریبی کاریگر کوٹیشنز بھیج سکیں۔"
+                : "Describe a plumbing or electrical issue to receive quotes from nearby technicians."}
             </EmptyState>
           ) : (
-            <div className="stack">
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {jobs.map((job) => {
-                const isDraft = job.status === "draft";
+                const isOpen = job.status === "open";
                 return (
-                  <div key={job.id} className="plate" style={{ padding: "20px 22px" }}>
-                    <div className="row-between" style={{ alignItems: "flex-start" }}>
-                      <div className="stack-sm" style={{ flex: 1, minWidth: 0 }}>
-                        <div className="row" style={{ gap: 8 }}>
-                          <span className="pill pill-violet">{job.category}</span>
-                          <span className="pill">{job.area}, Lahore</span>
+                  <div
+                    key={job.id}
+                    className="plate"
+                    style={{
+                      padding: 20,
+                      borderRadius: "var(--r-md)",
+                      background: "var(--ink-1)",
+                      border: "1px solid var(--line)",
+                    }}
+                  >
+                    <div className="row-between" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+                      <div>
+                        <div className="row" style={{ gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                          <span className="pill">{job.category}</span>
                           <StatusBadge status={job.status} />
-                          {job.asap && <span className="pill pill-warn">⚡ Urgent</span>}
+                          {job.asap && <span className="pill pill-warn">{locale === "ur" ? "فوری" : "Urgent"}</span>}
                         </div>
-                        <h3 style={{ fontSize: "1.15rem", margin: "4px 0 0" }}>
-                          <Link href={isDraft ? `/jobs/${job.id}/preview` : `/jobs/${job.id}`} style={{ color: "#fff", textDecoration: "none" }}>
-                            {job.title}
-                          </Link>
+                        <h3 style={{ margin: "0 0 4px", fontSize: "1.2rem", fontWeight: 800 }}>
+                          {job.title}
                         </h3>
                         <p className="meta" style={{ margin: 0 }}>
-                          Budget: {budgetLabel(job.budget_min, job.budget_max)} · Posted {fmtDate(job.created_at)}
+                          <IconMapPin size={13} style={{ verticalAlign: "middle", marginInlineEnd: 4 }} />
+                          {job.area}, Lahore · {fmtDate(job.created_at)}
                         </p>
                       </div>
 
-                      <div className="row" style={{ gap: 10 }}>
-                        <span className="pill pill-violet" style={{ fontSize: "0.85rem", padding: "4px 12px" }}>
-                          {plural(job.bid_count, "bid")} received
+                      <div style={{ textAlign: "right" }}>
+                        <span className="budget" style={{ fontSize: "1.1rem" }}>
+                          <small>{locale === "ur" ? "بجٹ" : "Budget"}</small>
+                          {budgetLabel(job.budget_min, job.budget_max)}
                         </span>
-                        <Link href={`/jobs/${job.id}`} className="btn btn-secondary btn-sm">
-                          <span>View &amp; Compare Bids</span>
-                          <IconArrowRight size={14} />
-                        </Link>
                       </div>
                     </div>
 
-                    <p className="job-desc" style={{ marginTop: 12, marginBottom: 12 }}>
+                    <p style={{ margin: "12px 0", color: "var(--text-2)", fontSize: "0.9rem", lineHeight: 1.5 }}>
                       {job.description}
                     </p>
 
-                    {/* Received bids preview box */}
-                    {job.bid_count > 0 && job.status === "open" && (
+                    {/* Received Bids Callout */}
+                    {isOpen && (
                       <div
                         style={{
-                          background: "var(--ink-1)",
+                          marginTop: 14,
+                          padding: "14px 18px",
                           borderRadius: "var(--r-sm)",
+                          background: "var(--graphite-1)",
                           border: "1px solid var(--line)",
-                          padding: "12px 16px",
-                          marginTop: 10,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: 12,
                         }}
-                        className="row-between"
                       >
-                        <div className="row" style={{ gap: 8 }}>
-                          <span className="module module-sm">
-                            <IconStar size={16} />
-                          </span>
-                          <div>
-                            <strong style={{ fontSize: "0.9rem", color: "#fff" }}>
-                              {job.bid_count} technician{job.bid_count === 1 ? "" : "s"} submitted quotes
-                            </strong>
-                            <p className="hint" style={{ margin: 0 }}>
-                              Compare prices, arrival times, and reputation ratings privately.
-                            </p>
+                        <div>
+                          <div style={{ fontWeight: 800, color: "var(--emerald-300)", fontSize: "0.95rem" }}>
+                            {job.bid_count === 0
+                              ? locale === "ur"
+                                ? "ابھی تک کوئی کوٹیشن موصول نہیں ہوئی"
+                                : "No quotes received yet"
+                              : `${job.bid_count} ${locale === "ur" ? "کاریگروں نے ریٹ بھیجے ہیں" : "technicians submitted quotes"}`}
                           </div>
+                          <p style={{ margin: "2px 0 0", fontSize: "0.82rem", color: "var(--text-3)" }}>
+                            {locale === "ur"
+                              ? "کاریگر کے ریٹس، تجربہ اور وقت کا موازنہ کریں اور اپنی پسند سے ہائر کریں۔"
+                              : "Compare quotes side-by-side and choose who to hire with address protection."}
+                          </p>
                         </div>
 
                         <Link href={`/jobs/${job.id}`} className="btn btn-primary btn-sm">
-                          Compare &amp; Hire
+                          <span>{locale === "ur" ? "ریٹ کا موازنہ کریں" : "Compare & Hire"}</span>
+                          <IconArrowRight size={14} aria-hidden="true" />
                         </Link>
                       </div>
                     )}
@@ -277,18 +293,20 @@ export function CustomerDashboardView({
         </div>
       )}
 
-      {/* VIEW: BOOKINGS & HIRED WORKERS */}
+      {/* VIEW: HIRED & BOOKINGS */}
       {activeTab === "bookings" && (
-        <div className="stack">
+        <div className="stack" style={{ gap: 14 }}>
           {bookings.length === 0 ? (
             <EmptyState
               icon={<IconShieldCheck size={24} />}
-              title="No bookings yet"
+              title={locale === "ur" ? "کوئی ایکٹو بکنگ نہیں ہے" : "No active bookings yet"}
             >
-              When you accept a technician&apos;s bid, the booking details, direct phone number, and completion code appear here.
+              {locale === "ur"
+                ? "جب آپ کسی کاریگر کی کوٹیشن قبول کریں گے، ان کا فون نمبر اور آپ کا چار ہندسوں والا تکمیل کوڈ یہاں نظر آئے گا۔"
+                : "When you accept a quote, direct contact numbers and your 4-digit completion code will appear here."}
             </EmptyState>
           ) : (
-            <div className="stack">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {bookings.map((booking) => {
                 const isCompleted = booking.status === "completed";
                 const isDisputed = booking.status === "disputed";
@@ -297,84 +315,128 @@ export function CustomerDashboardView({
                 return (
                   <div
                     key={booking.id}
-                    className="plate plate-bolted stack"
+                    className="plate"
                     style={{
-                      padding: "20px 24px",
-                      borderColor: isCompleted ? "rgba(95, 211, 154, 0.3)" : isDisputed ? "rgba(255, 138, 138, 0.4)" : "var(--violet-line)",
+                      padding: 22,
+                      borderRadius: "var(--r-md)",
+                      background: "var(--ink-1)",
+                      border: "1px solid",
+                      borderColor: isCompleted
+                        ? "rgba(16, 185, 129, 0.4)"
+                        : isDisputed
+                        ? "rgba(255, 138, 138, 0.5)"
+                        : "var(--emerald-500)",
                     }}
                   >
-                    <div className="row-between">
+                    <div className="row-between" style={{ flexWrap: "wrap", gap: 10 }}>
                       <div>
-                        <div className="row" style={{ gap: 8 }}>
+                        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
                           <StatusBadge status={booking.status} />
-                          <span className="pill">Agreed: {pkr(booking.amount)}</span>
+                          <span className="pill pill-ok">
+                            {locale === "ur" ? "طے شدہ رقم:" : "Agreed:"} {pkr(booking.amount)}
+                          </span>
                         </div>
-                        <h3 style={{ fontSize: "1.2rem", margin: "6px 0 2px", color: "#fff" }}>
+                        <h3 style={{ margin: "4px 0 2px", fontSize: "1.2rem", fontWeight: 800 }}>
                           {booking.title}
                         </h3>
                         <p className="meta" style={{ margin: 0 }}>
-                          Hired Technician: <strong>{booking.worker_name || "Assigned Worker"}</strong> · Selected {fmtDateTime(booking.selected_at)}
+                          {locale === "ur" ? "منتخب کاریگر:" : "Hired technician:"}{" "}
+                          <strong>{booking.worker_name || "Verified Technician"}</strong> ·{" "}
+                          {fmtDateTime(booking.selected_at)}
                         </p>
                       </div>
                     </div>
 
-                    {/* Unlocked Private Details Box */}
+                    {/* Unlocked Contact & Completion Code Box */}
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
                         gap: 14,
                         padding: "16px 18px",
-                        borderRadius: "var(--r-md)",
-                        background: "var(--ink-1)",
+                        borderRadius: "var(--r-sm)",
+                        background: "var(--graphite-1)",
                         border: "1px solid var(--line-strong)",
+                        marginTop: 14,
                       }}
                     >
                       <div>
-                        <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--ok)", fontWeight: 700 }}>
-                          📞 Direct Technician Contact:
+                        <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--emerald-400)", fontWeight: 800 }}>
+                          📞 {locale === "ur" ? "کاریگر سے براہ راست رابطہ:" : "Direct Technician Contact:"}
                         </div>
-                        <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#fff", marginTop: 4 }}>
+                        <div style={{ fontSize: "1.1rem", fontWeight: 800, marginTop: 4 }}>
                           {booking.worker_name || "Technician"}
                         </div>
-                        <p className="hint" style={{ margin: "2px 0 0" }}>
-                          Arrange exact arrival or directions via direct phone call.
+                        <p className="hint" style={{ margin: "2px 0 0", fontSize: "0.82rem" }}>
+                          {locale === "ur"
+                            ? "آمد کے درست وقت اور گلی کے راستے کے لیے کال کر کے رابطہ کریں۔"
+                            : "Call directly to coordinate arrival time or give directions."}
                         </p>
                       </div>
 
                       <div>
-                        <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--violet-300)", fontWeight: 700 }}>
-                          🔑 Your Completion Code:
+                        <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--violet-300)", fontWeight: 800 }}>
+                          🔑 {locale === "ur" ? "آپ کا تصدیقی تکمیل کوڈ:" : "Your Completion Code:"}
                         </div>
                         <div style={{ marginTop: 4 }}>
-                          <span className="completion-code-box" style={{ fontSize: "1.4rem", padding: "6px 16px" }}>
-                            {/* In client view if code exists */}
-                            4819
+                          <span
+                            className="completion-code-box"
+                            style={{
+                              fontSize: "1.35rem",
+                              padding: "4px 14px",
+                              borderRadius: "var(--r-xs)",
+                              background: "rgba(124, 58, 237, 0.15)",
+                              border: "1px solid var(--violet-400)",
+                              color: "var(--violet-200)",
+                              fontWeight: 800,
+                              letterSpacing: "0.15em",
+                            }}
+                          >
+                            7344
                           </span>
                         </div>
-                        <p className="hint" style={{ margin: "4px 0 0" }}>
-                          Give this 4-digit code to the technician only after checking that the work is completely done.
+                        <p className="hint" style={{ margin: "4px 0 0", fontSize: "0.78rem" }}>
+                          {locale === "ur"
+                            ? "یہ 4 ہندسوں کا کوڈ صرف اسی وقت کاریگر کو دیں جب وہ کام تسلی بخش مکمل کر لے۔"
+                            : "Read this code to the technician only after checking that the repair is fully finished."}
                         </p>
                       </div>
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="row-between" style={{ marginTop: 6 }}>
+                    {/* Action Buttons */}
+                    <div
+                      style={{
+                        marginTop: 14,
+                        paddingTop: 12,
+                        borderTop: "1px solid var(--line-soft)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 12,
+                      }}
+                    >
                       <Link href={`/jobs/${booking.job_id}`} className="btn btn-ghost btn-sm">
-                        View Full Job File →
+                        <span>{locale === "ur" ? "مکمل تفصیل دیکھیں →" : "View full details →"}</span>
                       </Link>
 
-                      <div className="row" style={{ gap: 10 }}>
+                      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                         {!isCompleted && !isDisputed && (
                           <button
                             type="button"
-                            onClick={() => handleReportProblem(booking)}
+                            onClick={() =>
+                              setReportModalData({
+                                open: true,
+                                bookingId: booking.id,
+                                title: booking.title,
+                              })
+                            }
                             disabled={isActing}
                             className="btn btn-ghost btn-sm"
                             style={{ color: "var(--bad)" }}
                           >
                             <IconAlertCircle size={15} />
-                            <span>Report a Problem</span>
+                            <span>{locale === "ur" ? "شکایت درج کریں" : "Report a problem"}</span>
                           </button>
                         )}
 
@@ -386,13 +448,14 @@ export function CustomerDashboardView({
                             className="btn btn-primary btn-sm"
                           >
                             <IconCheck size={16} />
-                            <span>Confirm Work Completed</span>
+                            <span>{locale === "ur" ? "کام کی تکمیل کی تصدیق" : "Confirm work completed"}</span>
                           </button>
                         )}
 
                         {isCompleted && (
                           <Link href={`/jobs/${booking.job_id}#reviews`} className="btn btn-secondary btn-sm">
-                            <IconStar size={15} /> Leave / View Review
+                            <IconStar size={15} />
+                            <span>{locale === "ur" ? "جائزہ درج کریں" : "Leave review"}</span>
                           </Link>
                         )}
                       </div>
@@ -404,12 +467,53 @@ export function CustomerDashboardView({
           )}
         </div>
       )}
+
+      {/* Hire Modal with Address Privacy */}
+      {hireModalData && (
+        <HireModal
+          open={hireModalData.open}
+          onClose={() => setHireModalData(null)}
+          jobId={hireModalData.jobId}
+          bidId={hireModalData.bidId}
+          workerName={hireModalData.workerName}
+          amount={hireModalData.amount}
+          timingText={hireModalData.timingText}
+          onSuccess={() => {
+            setHireModalData(null);
+            onToast(
+              locale === "ur"
+                ? "کاریگر منتخب ہو گیا اور گھر کا پتہ شیئر کر دیا گیا۔"
+                : "Technician hired! Exact address unlocked exclusively for them."
+            );
+            window.location.reload();
+          }}
+        />
+      )}
+
+      {/* Report Modal */}
+      {reportModalData && (
+        <ReportModal
+          open={reportModalData.open}
+          onClose={() => setReportModalData(null)}
+          targetType="booking"
+          targetId={reportModalData.bookingId}
+          targetTitle={reportModalData.title}
+          onSuccess={() => {
+            setReportModalData(null);
+            onToast(
+              locale === "ur"
+                ? "آپ کی رپورٹ موصول ہو گئی ہے۔"
+                : "Report submitted to Lahore moderation team."
+            );
+          }}
+        />
+      )}
     </div>
   );
 }
 
 /* ---------------------------------------------------------------- */
-/* WORKER / TECHNICIAN DASHBOARD                                    */
+/* DEDICATED WORKER / TECHNICIAN DASHBOARD                          */
 /* ---------------------------------------------------------------- */
 interface WorkerDashboardProps {
   user: AppUser;
@@ -428,6 +532,7 @@ export function WorkerDashboardView({
   onOpenProfile,
   onToast,
 }: WorkerDashboardProps) {
+  const { t, locale } = useI18n();
   const [activeTab, setActiveTab] = useState<"matching" | "my_bids">("matching");
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
 
@@ -435,17 +540,25 @@ export function WorkerDashboardView({
   const acceptedBids = bids.filter((b) => b.status === "accepted");
 
   const handleWithdrawBid = async (bid: WorkerBidItem) => {
-    if (!window.confirm(`Withdraw your bid of Rs ${bid.amount.toLocaleString("en-PK")} for "${bid.title}"?`)) return;
+    if (
+      !window.confirm(
+        locale === "ur"
+          ? `کیا آپ "${bid.title}" پر اپنی بولی واپس لینا چاہتے ہیں؟`
+          : `Withdraw your quote of Rs ${bid.amount.toLocaleString("en-PK")} for "${bid.title}"?`
+      )
+    )
+      return;
+
     setWithdrawingId(bid.id);
     try {
       const fd = new FormData();
       fd.set("bidId", bid.id);
       fd.set("jobId", bid.job_id);
       await withdrawBidAction(null, fd);
-      onToast("Bid withdrawn successfully.");
+      onToast(locale === "ur" ? "بولی واپس لے لی گئی۔" : "Quote withdrawn.");
       window.location.reload();
     } catch {
-      onToast("Failed to withdraw bid.", "error");
+      onToast(locale === "ur" ? "بولی واپس لیتے وقت خرابی ہوئی۔" : "Failed to withdraw quote.", "error");
     } finally {
       setWithdrawingId(null);
     }
@@ -453,54 +566,49 @@ export function WorkerDashboardView({
 
   return (
     <div className="stack" style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
-      {/* Overview Stat Cards */}
-      <div className="plate plate-bolted" style={{ padding: "20px 24px" }}>
-        <div className="row-between">
-          <div>
-            <span className="hero-eyebrow">Technician Operations</span>
-            <h1 style={{ margin: "4px 0 0", fontSize: "1.5rem" }}>Worker Portal (لاہور کاریگر)</h1>
-            <p className="meta" style={{ margin: 0 }}>
-              Jobs matched to your plumbing &amp; electrical trades and Lahore service areas.
-            </p>
-          </div>
-          <button type="button" onClick={onOpenProfile} className="btn btn-secondary">
-            <IconUser size={16} /> My Trade Profile &amp; Areas
-          </button>
-        </div>
-
-        <div className="stat-grid" style={{ marginTop: 20 }}>
-          <div className="stat">
-            <div className="l">Matching Open Jobs</div>
-            <div className="n">{matchingJobs.length}</div>
-          </div>
-          <div className="stat">
-            <div className="l">Active Bids</div>
-            <div className="n">{activeBids.length}</div>
-          </div>
-          <div className="stat">
-            <div className="l">Hired / Accepted</div>
-            <div className="n">{acceptedBids.length}</div>
-          </div>
-          <div className="stat">
-            <div className="l">Total Quotes Sent</div>
-            <div className="n">{bids.length}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Direct Payment Reminder for Technicians */}
+      {/* Header Hub Plate */}
       <div
         className="plate"
         style={{
-          padding: "14px 18px",
-          background: "rgba(124, 58, 237, 0.08)",
-          borderColor: "var(--violet-line)",
+          padding: "20px 24px",
+          borderRadius: "var(--r-md)",
+          background: "var(--ink-1)",
+          border: "1px solid var(--line)",
         }}
       >
-        <div className="row" style={{ gap: 10 }}>
-          <IconShieldCheck size={18} color="var(--violet-300)" />
-          <div style={{ fontSize: "0.88rem", color: "var(--text-2)" }}>
-            <strong style={{ color: "#fff" }}>Direct Payment Policy:</strong> Settle labour charges directly with the customer upon arrival or job completion via PKR cash, JazzCash, or EasyPaisa. Maddad does not deduct commissions or hold funds.
+        <div className="row-between" style={{ flexWrap: "wrap", gap: 14 }}>
+          <div>
+            <span className="hero-eyebrow" style={{ color: "var(--emerald-400)" }}>
+              {locale === "ur" ? "کاریگر پورٹل" : "Technician Portal"}
+            </span>
+            <h1 style={{ margin: "4px 0 0", fontSize: "1.5rem", fontWeight: 800 }}>
+              {locale === "ur" ? "لاہور کے کام اور بولیاں" : "Available Jobs & Quotes"}
+            </h1>
+            <p className="meta" style={{ margin: 0 }}>
+              {locale === "ur"
+                ? "اپنے قریبی علاقوں کے نئے کام دیکھیں اور کسٹمرز کو اپنا ریٹ بھیجیں۔"
+                : "Browse local repair requests in your service areas and submit competitive quotes."}
+            </p>
+          </div>
+          <button type="button" onClick={onOpenProfile} className="btn btn-secondary">
+            <IconUser size={16} />
+            <span>{locale === "ur" ? "پروفائل اور علاقے" : "Profile & Areas"}</span>
+          </button>
+        </div>
+
+        {/* Quick Stats Grid */}
+        <div className="stat-grid" style={{ marginTop: 20 }}>
+          <div className="stat">
+            <div className="l">{locale === "ur" ? "نئے دستیاب کام" : "Available Jobs"}</div>
+            <div className="n">{matchingJobs.length}</div>
+          </div>
+          <div className="stat">
+            <div className="l">{locale === "ur" ? "ایکٹو بولیاں" : "Sent Quotes"}</div>
+            <div className="n">{activeBids.length}</div>
+          </div>
+          <div className="stat">
+            <div className="l">{locale === "ur" ? "ملے ہوئے کام" : "Hired Jobs"}</div>
+            <div className="n">{acceptedBids.length}</div>
           </div>
         </div>
       </div>
@@ -515,7 +623,7 @@ export function WorkerDashboardView({
           className="tab-btn"
         >
           <IconZap size={16} />
-          <span>Available Matching Jobs</span>
+          <span>{locale === "ur" ? "کام تلاش کریں" : "Find Work in Lahore"}</span>
           <span className="tab-badge">{matchingJobs.length}</span>
         </button>
         <button
@@ -525,69 +633,98 @@ export function WorkerDashboardView({
           onClick={() => setActiveTab("my_bids")}
           className="tab-btn"
         >
-          <IconBriefcase size={16} />
-          <span>My Submitted Quotes</span>
+          <IconFileText size={16} />
+          <span>{locale === "ur" ? "میری بولیاں اور سٹیٹس" : "My Sent Quotes"}</span>
           <span className="tab-badge">{bids.length}</span>
         </button>
       </div>
 
-      {/* VIEW: MATCHING JOBS */}
+      {/* TAB: MATCHING AVAILABLE JOBS */}
       {activeTab === "matching" && (
-        <div className="stack">
+        <div className="stack" style={{ gap: 14 }}>
           {matchingJobs.length === 0 ? (
             <EmptyState
               icon={<IconZap size={24} />}
-              title="No open jobs matching your profile right now"
+              title={locale === "ur" ? "اس وقت آپ کے علاقوں میں کوئی نیا کام نہیں" : "No open jobs in your areas right now"}
               action={
-                <button type="button" onClick={onOpenProfile} className="btn btn-secondary">
-                  Expand service areas or trades
+                <button type="button" className="btn btn-secondary" onClick={onOpenProfile}>
+                  <IconMapPin size={16} />
+                  <span>{locale === "ur" ? "مزید علاقے منتخب کریں" : "Update Service Areas"}</span>
                 </button>
               }
             >
-              When customers post plumbing or electrical jobs in your selected Lahore neighbourhoods, they appear here instantly.
+              {locale === "ur"
+                ? "اپنی پروفائل میں جا کر لاہور کے مزید علاقے منتخب کریں تاکہ آپ کو زیادہ کام مل سکیں۔"
+                : "Add more Lahore neighborhoods in your technician profile to receive more job alerts."}
             </EmptyState>
           ) : (
-            <div className="stack">
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {matchingJobs.map((job) => (
-                <div key={job.id} className="plate" style={{ padding: "18px 20px" }}>
-                  <div className="row-between" style={{ alignItems: "flex-start" }}>
-                    <div className="stack-sm" style={{ flex: 1, minWidth: 0 }}>
-                      <div className="row" style={{ gap: 8 }}>
-                        <span className="pill pill-violet">{job.category}</span>
-                        <span className="pill">{job.area}, Lahore</span>
+                <div
+                  key={job.id}
+                  className="plate"
+                  style={{
+                    padding: 20,
+                    borderRadius: "var(--r-md)",
+                    background: "var(--ink-1)",
+                    border: "1px solid var(--line)",
+                  }}
+                >
+                  <div className="row-between" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
+                    <div>
+                      <div className="row" style={{ gap: 8, marginBottom: 4 }}>
+                        <span className="pill">{job.category}</span>
                         <StatusBadge status={job.status} />
-                        {job.asap && <span className="pill pill-warn">⚡ Urgent</span>}
-                        {job.is_demo && <span className="pill pill-demo">Demo</span>}
+                        {job.asap && <span className="pill pill-warn">{locale === "ur" ? "فوری" : "Urgent"}</span>}
                       </div>
-
-                      <h3 style={{ fontSize: "1.1rem", margin: "4px 0 2px" }}>
-                        <button
-                          type="button"
-                          onClick={() => onOpenJob(job)}
-                          style={{ all: "unset", cursor: "pointer", color: "#fff", fontWeight: 700 }}
-                        >
-                          {job.title}
-                        </button>
+                      <h3 style={{ margin: "4px 0 2px", fontSize: "1.15rem", fontWeight: 800 }}>
+                        {job.title}
                       </h3>
-
                       <p className="meta" style={{ margin: 0 }}>
-                        Customer Budget: <strong>{budgetLabel(job.budget_min, job.budget_max)}</strong> · {plural(job.bid_count, "bid")} currently
+                        <IconMapPin size={13} style={{ verticalAlign: "middle", marginInlineEnd: 4 }} />
+                        {job.area}, Lahore · {fmtDate(job.created_at)}
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onOpenJob(job)}
-                      className="btn btn-primary btn-sm"
-                    >
-                      <span>Submit Bid</span>
-                      <IconArrowRight size={14} />
-                    </button>
+                    <div style={{ textAlign: "right" }}>
+                      <span className="budget">
+                        <small>{locale === "ur" ? "کسٹمر بجٹ" : "Customer budget"}</small>
+                        {budgetLabel(job.budget_min, job.budget_max)}
+                      </span>
+                    </div>
                   </div>
 
-                  <p className="job-desc" style={{ marginTop: 10 }}>
+                  <p style={{ margin: "12px 0", color: "var(--text-2)", fontSize: "0.9rem", lineHeight: 1.5 }}>
                     {job.description}
                   </p>
+
+                  <div
+                    style={{
+                      marginTop: 12,
+                      paddingTop: 12,
+                      borderTop: "1px solid var(--line-soft)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 10,
+                    }}
+                  >
+                    <span className="pill pill-ok" style={{ fontSize: "0.8rem" }}>
+                      {job.bid_count === 0
+                        ? locale === "ur" ? "پہلا ریٹ بھیجیں" : "Be the first to quote"
+                        : `${job.bid_count} ${locale === "ur" ? "بولیاں موصول" : "quotes so far"}`}
+                    </span>
+
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => onOpenJob(job)}
+                    >
+                      <IconPlus size={15} />
+                      <span>{locale === "ur" ? "ریٹ بھیجیں" : "Send Quote"}</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -595,56 +732,107 @@ export function WorkerDashboardView({
         </div>
       )}
 
-      {/* VIEW: MY SUBMITTED BIDS */}
+      {/* TAB: MY SENT BIDS */}
       {activeTab === "my_bids" && (
-        <div className="stack">
+        <div className="stack" style={{ gap: 14 }}>
           {bids.length === 0 ? (
             <EmptyState
-              icon={<IconBriefcase size={24} />}
-              title="You haven't submitted any bids yet"
+              icon={<IconFileText size={24} />}
+              title={locale === "ur" ? "ابھی تک کوئی بولی نہیں بھیجی گئی" : "No quotes sent yet"}
             >
-              Review the available matching jobs and submit your whole PKR quotes with arrival estimates.
+              {locale === "ur"
+                ? "دستیاب کاموں کا جائزہ لیں اور کسٹمرز کو اپنا ریٹ بھیجیں۔"
+                : "Browse available jobs to submit quotes to Lahore customers."}
             </EmptyState>
           ) : (
-            <div className="stack">
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {bids.map((bid) => {
+                const isAccepted = bid.status === "accepted";
                 const isWithdrawing = withdrawingId === bid.id;
+
                 return (
-                  <div key={bid.id} className="plate" style={{ padding: "16px 20px" }}>
-                    <div className="row-between">
-                      <div className="stack-sm">
-                        <div className="row" style={{ gap: 8 }}>
+                  <div
+                    key={bid.id}
+                    className="plate"
+                    style={{
+                      padding: 20,
+                      borderRadius: "var(--r-md)",
+                      background: "var(--ink-1)",
+                      border: "1px solid",
+                      borderColor: isAccepted ? "var(--emerald-500)" : "var(--line)",
+                    }}
+                  >
+                    <div className="row-between" style={{ flexWrap: "wrap", gap: 10 }}>
+                      <div>
+                        <div className="row" style={{ gap: 8, marginBottom: 4 }}>
                           <StatusBadge status={bid.status} kind="bid" />
-                          <span className="pill">Job Status: {bid.job_status}</span>
+                          <span className="pill">{locale === "ur" ? "کام سٹیٹس:" : "Job:"} {bid.job_status}</span>
                         </div>
-                        <h3 style={{ fontSize: "1.1rem", margin: "4px 0 2px", color: "#fff" }}>
-                          <Link href={`/jobs/${bid.job_id}`} style={{ color: "#fff", textDecoration: "none" }}>
-                            {bid.title}
-                          </Link>
+                        <h3 style={{ margin: "4px 0 2px", fontSize: "1.15rem", fontWeight: 800 }}>
+                          {bid.title}
                         </h3>
                         <p className="meta" style={{ margin: 0 }}>
-                          Your Price: <strong style={{ color: "#fff" }}>{pkr(bid.amount)}</strong> · Last updated {fmtDateTime(bid.updated_at)}
+                          {locale === "ur" ? "اپ ڈیٹ:" : "Updated:"} {fmtDateTime(bid.updated_at)}
                         </p>
                       </div>
 
-                      <div className="row" style={{ gap: 10 }}>
-                        <Link href={`/jobs/${bid.job_id}`} className="btn btn-secondary btn-sm">
-                          View Job Details
-                        </Link>
-
-                        {bid.status === "active" && (
-                          <button
-                            type="button"
-                            onClick={() => handleWithdrawBid(bid)}
-                            disabled={isWithdrawing}
-                            className="btn btn-ghost btn-sm"
-                            style={{ color: "var(--bad)" }}
-                          >
-                            {isWithdrawing ? "Withdrawing…" : "Withdraw Bid"}
-                          </button>
-                        )}
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--emerald-300)" }}>
+                          {pkr(bid.amount)}
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
+                          {locale === "ur" ? "آپ کی پیشکش" : "Your quote"}
+                        </div>
                       </div>
                     </div>
+
+                    {isAccepted && (
+                      <div
+                        style={{
+                          marginTop: 14,
+                          padding: "12px 16px",
+                          borderRadius: "var(--r-sm)",
+                          background: "rgba(16, 185, 129, 0.1)",
+                          border: "1px solid rgba(16, 185, 129, 0.3)",
+                          color: "var(--emerald-200)",
+                          fontSize: "0.88rem",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                          gap: 10,
+                        }}
+                      >
+                        <div>
+                          <strong>{locale === "ur" ? "مبارک ہو! آپ کا ریٹ قبول ہو گیا ہے" : "Your quote was accepted!"}</strong>
+                          <div style={{ fontSize: "0.82rem", color: "var(--text-2)", marginTop: 2 }}>
+                            {locale === "ur"
+                              ? "کسٹمر کا مکمل پتہ اور فون نمبر دیکھنے کے لیے کام کا صفحہ کھولیں۔"
+                              : "Open the job page to view the customer's unlocked address and phone number."}
+                          </div>
+                        </div>
+                        <Link href={`/jobs/${bid.job_id}`} className="btn btn-primary btn-sm">
+                          <span>{locale === "ur" ? "پتہ دیکھیں" : "View Address"}</span>
+                          <IconArrowRight size={14} />
+                        </Link>
+                      </div>
+                    )}
+
+                    {!isAccepted && bid.status === "active" && (
+                      <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => handleWithdrawBid(bid)}
+                          disabled={isWithdrawing}
+                          style={{ color: "var(--bad)" }}
+                        >
+                          {isWithdrawing
+                            ? locale === "ur" ? "واپس لی جا رہی ہے..." : "Withdrawing..."
+                            : locale === "ur" ? "بولی واپس لیں" : "Withdraw Quote"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
