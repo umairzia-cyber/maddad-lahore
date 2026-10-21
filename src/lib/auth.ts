@@ -223,8 +223,14 @@ export async function loginAsDemoUser(rawPhone: string): Promise<SessionUser> {
       [dbUser.id, `${displayName} · Verified Technician in Lahore`]
     );
     await q(
-      `INSERT INTO worker_categories (worker_id, category_id)
+      `INSERT INTO worker_categories (user_id, category_id)
        SELECT $1, id FROM service_categories WHERE slug='plumbing' OR slug='electrical'
+       ON CONFLICT DO NOTHING`,
+      [dbUser.id]
+    );
+    await q(
+      `INSERT INTO worker_areas (user_id, area_id)
+       SELECT $1, id FROM service_areas WHERE name='Gulberg'
        ON CONFLICT DO NOTHING`,
       [dbUser.id]
     );

@@ -51,9 +51,10 @@ export async function GET() {
       );
       worker1 = await one<SessionUser>("SELECT id, phone, display_name, is_customer, is_worker, is_admin, account_status, status_reason, suspended_until FROM users WHERE id=$1", [u!.id]);
     }
-    // Ensure worker profile and category for worker1
+    // Ensure worker profile, category, and area for worker1
     await q("INSERT INTO worker_profiles (user_id, bio, experience_years, accepting_bids) VALUES ($1, 'Plumber in Lahore', 5, true) ON CONFLICT (user_id) DO UPDATE SET accepting_bids=true", [worker1!.id]);
-    await q("INSERT INTO worker_categories (worker_id, category_id) SELECT $1, id FROM service_categories WHERE slug='plumbing' ON CONFLICT DO NOTHING", [worker1!.id]);
+    await q("INSERT INTO worker_categories (user_id, category_id) SELECT $1, id FROM service_categories WHERE slug='plumbing' ON CONFLICT DO NOTHING", [worker1!.id]);
+    await q("INSERT INTO worker_areas (user_id, area_id) SELECT $1, id FROM service_areas WHERE name='Gulberg' ON CONFLICT DO NOTHING", [worker1!.id]);
 
     let worker2 = await one<SessionUser>(
       "SELECT id, phone, display_name, is_customer, is_worker, is_admin, account_status, status_reason, suspended_until FROM users WHERE phone=$1",
@@ -66,9 +67,10 @@ export async function GET() {
       );
       worker2 = await one<SessionUser>("SELECT id, phone, display_name, is_customer, is_worker, is_admin, account_status, status_reason, suspended_until FROM users WHERE id=$1", [u!.id]);
     }
-    // Ensure worker profile and category for worker2
+    // Ensure worker profile, category, and area for worker2
     await q("INSERT INTO worker_profiles (user_id, bio, experience_years, accepting_bids) VALUES ($1, 'Electrician in Lahore', 4, true) ON CONFLICT (user_id) DO UPDATE SET accepting_bids=true", [worker2!.id]);
-    await q("INSERT INTO worker_categories (worker_id, category_id) SELECT $1, id FROM service_categories WHERE slug='electrical' OR slug='plumbing' ON CONFLICT DO NOTHING", [worker2!.id]);
+    await q("INSERT INTO worker_categories (user_id, category_id) SELECT $1, id FROM service_categories WHERE slug='electrical' OR slug='plumbing' ON CONFLICT DO NOTHING", [worker2!.id]);
+    await q("INSERT INTO worker_areas (user_id, area_id) SELECT $1, id FROM service_areas WHERE name='Gulberg' ON CONFLICT DO NOTHING", [worker2!.id]);
 
     results.step1_users = {
       customer: { id: customer!.id, phone: customer!.phone, name: customer!.display_name },
