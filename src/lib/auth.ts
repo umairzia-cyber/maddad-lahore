@@ -191,12 +191,45 @@ export async function loginAsDemoUser(rawPhone: string): Promise<SessionUser> {
   }
 
   let dbUser = await one<{ id: string }>("SELECT id FROM users WHERE phone=$1 AND deleted_at IS NULL", [phone]);
+  const isWorkerPhone = ["+923004445566", "+923007778899"].includes(phone);
+  const displayName =
+    phone === "+923001112233" ? "Tariq (Customer)"
+    : phone === "+923004445566" ? "Rashid (Electrician)"
+    : phone === "+923007778899" ? "Akram (Plumber)"
+    : phone === "+923001234567" ? "Fatima (Moderator)"
+    : null;
+
   if (!dbUser) {
     dbUser = await one<{ id: string }>(
-      `INSERT INTO users (phone, phone_verified_at) VALUES ($1, now()) RETURNING id`,
-      [phone],
+      `INSERT INTO users (phone, phone_verified_at, display_name, is_customer, is_worker)
+       VALUES ($1, now(), $2, true, $3) RETURNING id`,
+      [phone, displayName, isWorkerPhone],
+    );
+  } else {
+    await q(
+      `UPDATE users SET phone_verified_at = COALESCE(phone_verified_at, now()),
+                        display_name = COALESCE(display_name, $2),
+                        is_worker = (is_worker OR $3)
+       WHERE id=$1`,
+      [dbUser.id, displayName, isWorkerPhone]
     );
   }
+
+  if (isWorkerPhone && dbUser) {
+    await q(
+      `INSERT INTO worker_profiles (user_id, bio, experience_years, accepting_bids)
+       VALUES ($1, $2, 5, true)
+       ON CONFLICT (user_id) DO UPDATE SET accepting_bids=true`,
+      [dbUser.id, `${displayName} · Verified Technician in Lahore`]
+    );
+    await q(
+      `INSERT INTO worker_categories (worker_id, category_id)
+       SELECT $1, id FROM service_categories WHERE slug='plumbing' OR slug='electrical'
+       ON CONFLICT DO NOTHING`,
+      [dbUser.id]
+    );
+  }
+
   if (adminPhones.includes(phone)) {
     await q("UPDATE users SET is_admin=true WHERE id=$1", [dbUser!.id]);
   }

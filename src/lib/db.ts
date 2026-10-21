@@ -40,6 +40,7 @@ export async function isPostgresAvailable(): Promise<boolean> {
       client.release();
       g.__pgAvailable = true;
       g.__pgChecked = true;
+      await ensureReferenceData();
       return true;
     } catch {
       g.__pgAvailable = false;
@@ -51,6 +52,45 @@ export async function isPostgresAvailable(): Promise<boolean> {
   })();
 
   return availabilityPromise;
+}
+
+const LAHORE_AREAS: [string, string, number, number][] = [
+  ["Gulberg", "گلبرگ", 31.512, 74.344], ["DHA Phase 5", "ڈی ایچ اے فیز 5", 31.477, 74.4],
+  ["DHA Phase 6", "ڈی ایچ اے فیز 6", 31.465, 74.43], ["Johar Town", "جوہر ٹاؤن", 31.4697, 74.2728],
+  ["Model Town", "ماڈل ٹاؤن", 31.4826, 74.3239], ["Bahria Town", "بحریہ ٹاؤن", 31.3653, 74.186],
+  ["Wapda Town", "واپڈا ٹاؤن", 31.4417, 74.2658], ["Faisal Town", "فیصل ٹاؤن", 31.485, 74.3],
+  ["Garden Town", "گارڈن ٹاؤن", 31.498, 74.33], ["Lahore Cantt", "لاہور کینٹ", 31.529, 74.39],
+  ["Allama Iqbal Town", "علامہ اقبال ٹاؤن", 31.505, 74.29], ["Samanabad", "سمن آباد", 31.54, 74.3],
+  ["Shadman", "شادمان", 31.538, 74.332], ["Township", "ٹاؤن شپ", 31.435, 74.3],
+  ["Valencia Town", "ویلنشیا ٹاؤن", 31.432, 74.256], ["Askari 10", "عسکری 10", 31.493, 74.402],
+  ["Muslim Town", "مسلم ٹاؤن", 31.524, 74.328], ["Sabzazar", "سبزہ زار", 31.5, 74.268],
+  ["Walled City", "اندرون شہر", 31.5826, 74.3294], ["Cavalry Ground", "کیولری گراؤنڈ", 31.51, 74.38],
+];
+
+export async function ensureReferenceData(): Promise<void> {
+  try {
+    const cityRow = await one<{ id: number }>(
+      `INSERT INTO cities (slug, name, active) VALUES ('lahore','Lahore',true)
+       ON CONFLICT (slug) DO UPDATE SET active=true RETURNING id`
+    );
+    if (!cityRow) return;
+
+    await q(`INSERT INTO service_categories (id, slug, name, name_ur, sort_order) VALUES 
+      (1, 'plumbing','Plumbing','پلمبنگ',1),
+      (2, 'electrical','Electrical','الیکٹریکل',2)
+      ON CONFLICT (slug) DO NOTHING`);
+
+    let areaId = 1;
+    for (const [name, ur, lat, lng] of LAHORE_AREAS) {
+      await q(
+        `INSERT INTO service_areas (id, city_id, name, name_ur, centroid) VALUES ($1,$2,$3,$4, ST_SetSRID(ST_MakePoint($6,$5),4326)::geography)
+         ON CONFLICT (city_id, name) DO NOTHING`,
+        [areaId++, cityRow.id, name, ur, lat, lng]
+      );
+    }
+  } catch (err) {
+    console.error("ensureReferenceData notice:", err);
+  }
 }
 
 /** Parameterised queries only. Never interpolate user input into SQL text. */
