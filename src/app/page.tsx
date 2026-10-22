@@ -9,7 +9,7 @@ import { DEMO_ACCOUNTS, demoAccountsEnabled } from "@/lib/config";
 import UnifiedMaddadApp from "@/components/UnifiedMaddadApp";
 
 export const metadata: Metadata = {
-  title: "Maddad Lahore – Post a plumbing or electrical job, compare bids",
+  title: "Maddadgaar Lahore – Post a plumbing or electrical job, compare bids",
   description:
     "Describe a small plumbing or electrical job in Lahore, get bids from independent technicians, and choose who to hire. You pay the technician directly.",
 };

@@ -13,7 +13,7 @@ export function SiteFooter() {
       <div className="site-footer-inner" style={{ maxWidth: 1120, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div>
           <div style={{ fontWeight: 700, color: "var(--text-1)", fontSize: "0.95rem" }}>
-            {locale === "ur" ? "© مدد لاہور · مقامی پلمبنگ اور الیکٹریکل سروسز" : "© Maddad Lahore · Local Plumbing & Electrical Network"}
+            {locale === "ur" ? "© مددگار لاہور · مقامی پلمبنگ اور الیکٹریکل سروسز" : "© Maddadgaar Lahore · Local Plumbing & Electrical Network"}
           </div>
           <div style={{ fontSize: "0.82rem", color: "var(--text-3)", marginTop: 4, maxWidth: 500 }}>
             {t("footer.direct_pay")}

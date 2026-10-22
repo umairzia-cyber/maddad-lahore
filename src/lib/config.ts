@@ -4,7 +4,7 @@
  */
 const env = process.env;
 
-export const appName = env.NEXT_PUBLIC_APP_NAME || "مدد (Maddad)";
+export const appName = env.NEXT_PUBLIC_APP_NAME || "مددگار (Maddadgaar)";
 export const isProd = env.NODE_ENV === "production";
 export const appUrl = env.APP_URL || "http://localhost:3000";
 export const supportEmail = env.SUPPORT_EMAIL || "";

@@ -8,8 +8,8 @@ export const LOCALE_DIR: Record<Locale, "ltr" | "rtl"> = { en: "ltr", ur: "rtl" 
 
 export const en = {
   // Brand & Header
-  "brand.name": "Maddad",
-  "brand.urdu": "مدد",
+  "brand.name": "Maddadgaar",
+  "brand.urdu": "مددگار",
   "brand.tagline": "Lahore · Local help, made simple",
   "nav.marketplace": "Find help",
   "nav.post": "Post a repair request",
@@ -43,7 +43,7 @@ export const en = {
   "cat.electrical_desc": "Wiring, switch, fan, breaker, light",
 
   // How it works
-  "hiw.title": "How Maddad works in Lahore",
+  "hiw.title": "How Maddadgaar works in Lahore",
   "hiw.step1_title": "1. Describe the problem",
   "hiw.step1_desc": "Select what needs fixing and choose your Lahore area (e.g. Johar Town, Gulberg). No technical jargon needed.",
   "hiw.step2_title": "2. Compare local quotes",
@@ -132,7 +132,7 @@ export const en = {
   "report.success": "Your report has been submitted to Lahore moderation. Reference logged.",
 
   // Footer
-  "footer.rights": "© Maddad Lahore · Independent repair marketplace for Lahore.",
+  "footer.rights": "© Maddadgaar Lahore · Independent repair marketplace for Lahore.",
   "footer.direct_pay": "Direct settlement: customers pay technicians directly upon satisfactory job completion.",
   "footer.safety": "Safety guidelines",
   "footer.terms": "Terms of service",
@@ -142,9 +142,9 @@ export const en = {
 
 export const ur: Record<keyof typeof en, string> = {
   // Brand & Header
-  "brand.name": "مدد",
-  "brand.urdu": "مدد لاہور",
-  "brand.tagline": "لاہور · گھر کی مرمت، آسان اور بااعتماد",
+  "brand.name": "مددگار",
+  "brand.urdu": "مددگار لاہور",
+  "brand.tagline": "لاہور · گھریلو مرمت کا بااعتماد نیٹ ورک",
   "nav.marketplace": "کام تلاش کریں",
   "nav.post": "مرمت کی درخواست دیں",
   "nav.find_work": "کاریگر لاگ ان",
@@ -177,7 +177,7 @@ export const ur: Record<keyof typeof en, string> = {
   "cat.electrical_desc": "وائرنگ، پنکھا، لائٹ، سوئچ بورڈ، شارٹ سرکٹ، بریکر",
 
   // How it works
-  "hiw.title": "مدد پر کام کروانے کا آسان طریقہ",
+  "hiw.title": "مددگار پر کام کروانے کا آسان طریقہ",
   "hiw.step1_title": "1. مسئلہ بتائیں",
   "hiw.step1_desc": "مسئلہ منتخب کریں اور اپنا علاقہ منتخب کریں (جیسے جوہر ٹاؤن، گلبرگ، ڈی ایچ اے)۔ کسی مشکل اصطلاح کی ضرورت نہیں۔",
   "hiw.step2_title": "2. ریٹ دیکھیں اور موازنہ کریں",
@@ -266,7 +266,7 @@ export const ur: Record<keyof typeof en, string> = {
   "report.success": "آپ کی شکایت موصول ہو چکی ہے اور لاہور موڈریشن ٹیم کو بھیج دی گئی ہے۔",
 
   // Footer
-  "footer.rights": "© مدد لاہور · لاہور میں پلمبنگ اور الیکٹریکل کاموں کی شفاف مارکیٹ۔",
+  "footer.rights": "© مددگار لاہور · لاہور میں پلمبنگ اور الیکٹریکل کاموں کی شفاف مارکیٹ۔",
   "footer.direct_pay": "براہ راست ادائیگی: کسٹمر تسلی بخش کام مکمل ہونے پر براہ راست کاریگر کو رقم ادا کرتا ہے۔",
   "footer.safety": "حفاظتی رہنمائی",
   "footer.terms": "شرائط و ضوابط",

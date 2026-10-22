@@ -72,6 +72,7 @@ export function AuthView({
   const [devCode, setDevCode] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [channel, setChannel] = useState<"whatsapp" | "sms">("whatsapp");
 
   // Switch to Sign In section
   const handleGoToSignIn = () => {
@@ -111,6 +112,7 @@ export function AuthView({
     const fd = new FormData();
     fd.set("name", name.trim());
     fd.set("phone", phone.trim());
+    fd.set("channel", channel);
     fd.set("role", role);
     fd.set("trade", trade);
     fd.set("area", area);
@@ -125,7 +127,7 @@ export function AuthView({
       if (res?.devCode) {
         setDevCode(res.devCode);
       }
-      showToast(res?.ok || "Verification code dispatched via SMS.");
+      showToast(res?.ok || (channel === "whatsapp" ? "Verification code dispatched via WhatsApp." : "Verification code dispatched via SMS."));
     }
   };
 
@@ -142,6 +144,7 @@ export function AuthView({
     setBusy(true);
     const fd = new FormData();
     fd.set("phone", phone.trim());
+    fd.set("channel", channel);
 
     const res = await requestOtpAction(null, fd);
     setBusy(false);
@@ -153,7 +156,7 @@ export function AuthView({
       if (res?.devCode) {
         setDevCode(res.devCode);
       }
-      showToast(res?.ok || "Verification code dispatched via SMS.");
+      showToast(res?.ok || (channel === "whatsapp" ? "Verification code dispatched via WhatsApp." : "Verification code dispatched via SMS."));
     }
   };
 
@@ -280,25 +283,25 @@ export function AuthView({
               width: 44,
               height: 44,
               borderRadius: 10,
-              background: "linear-gradient(135deg, var(--violet-600) 0%, var(--violet-800) 100%)",
+              background: "linear-gradient(135deg, var(--emerald-600, #059669) 0%, var(--emerald-800, #065f46) 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 800,
-              fontSize: "1.25rem",
+              fontSize: "1.05rem",
               color: "#fff",
-              boxShadow: "var(--glow-violet)",
-              border: "1px solid var(--violet-400)",
+              boxShadow: "0 4px 12px rgba(5, 150, 105, 0.3)",
+              border: "1px solid var(--emerald-400, #34d399)",
             }}
           >
-            مدد
+            مددگار
           </div>
           <div>
             <h1 style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0, color: "var(--text-1)" }}>
-              {mode === "signup" ? "Create an Account" : "Sign In to Maddad"}
+              {mode === "signup" ? "Create a Maddadgaar Account" : "Sign In to Maddadgaar"}
             </h1>
-            <p style={{ margin: "2px 0 0", fontSize: "0.82rem", color: "var(--violet-300)" }}>
-              {mode === "signup" ? "نیا اکاؤنٹ بنائیں" : "اپنے اکاؤنٹ میں لاگ ان کریں"}
+            <p style={{ margin: "2px 0 0", fontSize: "0.82rem", color: "var(--emerald-300, #6ee7b7)" }}>
+              {mode === "signup" ? "مددگار میں نیا اکاؤنٹ بنائیں" : "اپنے مددگار اکاؤنٹ میں لاگ ان کریں"}
             </p>
           </div>
         </div>
@@ -359,16 +362,27 @@ export function AuthView({
           <form onSubmit={handleVerifyOtp} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div
               style={{
-                background: "rgba(16, 185, 129, 0.08)",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
+                background: channel === "whatsapp" ? "rgba(37, 211, 102, 0.1)" : "rgba(16, 185, 129, 0.08)",
+                border: channel === "whatsapp" ? "1px solid rgba(37, 211, 102, 0.4)" : "1px solid rgba(16, 185, 129, 0.3)",
                 padding: "12px 14px",
                 borderRadius: "var(--radius-sm)",
                 fontSize: "0.85rem",
-                color: "var(--emerald-300)",
+                color: channel === "whatsapp" ? "#25D366" : "var(--emerald-300)",
                 lineHeight: 1.5,
               }}
             >
-              A 6-digit verification code was sent to <strong>{phone}</strong>.
+              {channel === "whatsapp" ? (
+                <div>
+                  💬 A 6-digit verification code was sent to your <strong>WhatsApp</strong> at <strong>{phone}</strong>.
+                  <div style={{ fontSize: "0.8rem", marginTop: 4, opacity: 0.9 }}>
+                    واٹس ایپ پر 6 ہندسوں کا تصدیقی کوڈ بھیج دیا گیا ہے۔
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  A 6-digit verification code was sent via SMS to <strong>{phone}</strong>.
+                </div>
+              )}
             </div>
 
             {devCode && (
@@ -402,7 +416,7 @@ export function AuthView({
                 htmlFor="auth-code-input"
                 style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-2)", marginBottom: 6 }}
               >
-                Enter 6-Digit SMS Code:
+                {channel === "whatsapp" ? "Enter 6-Digit WhatsApp Code (واٹس ایپ کوڈ درج کریں):" : "Enter 6-Digit SMS Code:"}
               </label>
               <input
                 id="auth-code-input"
@@ -427,6 +441,31 @@ export function AuthView({
                 }}
               />
             </div>
+
+            {channel === "whatsapp" && (
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent("Hello Maddadgaar, I need assistance verifying my phone number: " + phone)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "9px 12px",
+                  borderRadius: "var(--radius-sm)",
+                  background: "rgba(37, 211, 102, 0.12)",
+                  border: "1px solid rgba(37, 211, 102, 0.4)",
+                  color: "#25D366",
+                  fontSize: "0.84rem",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <span>💬 Open WhatsApp App / واٹس ایپ ایپ کھولیں</span>
+              </a>
+            )}
 
             {formError && (
               <div
@@ -557,7 +596,61 @@ export function AuthView({
                 </span>
               </div>
               <div style={{ fontSize: "0.76rem", color: "var(--text-3)", marginTop: 4 }}>
-                Used for SMS verification and direct contact upon hiring.
+                Used for verification and direct contact upon hiring.
+              </div>
+            </div>
+
+            {/* Delivery Channel Selection */}
+            <div>
+              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-2)", marginBottom: 8 }}>
+                Receive Code Via / کوڈ وصول کرنے کا طریقہ:
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setChannel("whatsapp")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "9px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: channel === "whatsapp" ? "2px solid #25D366" : "1px solid var(--graphite-600)",
+                    background: channel === "whatsapp" ? "rgba(37, 211, 102, 0.12)" : "var(--ink-0)",
+                    color: channel === "whatsapp" ? "#25D366" : "var(--text-2)",
+                    fontWeight: channel === "whatsapp" ? 700 : 500,
+                    fontSize: "0.86rem",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <span style={{ fontSize: "1.1rem" }}>💬</span>
+                  <span>WhatsApp</span>
+                  <span style={{ fontSize: "0.68rem", background: "#25D366", color: "#000", padding: "1px 5px", borderRadius: 4, fontWeight: 800 }}>فوری</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChannel("sms")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "9px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: channel === "sms" ? "2px solid var(--emerald-400, #34d399)" : "1px solid var(--graphite-600)",
+                    background: channel === "sms" ? "rgba(16, 185, 129, 0.12)" : "var(--ink-0)",
+                    color: channel === "sms" ? "var(--emerald-300, #6ee7b7)" : "var(--text-2)",
+                    fontWeight: channel === "sms" ? 700 : 500,
+                    fontSize: "0.86rem",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <IconPhone size={15} />
+                  <span>SMS</span>
+                </button>
               </div>
             </div>
 
@@ -826,7 +919,61 @@ export function AuthView({
                 </span>
               </div>
               <div style={{ fontSize: "0.76rem", color: "var(--text-3)", marginTop: 4 }}>
-                Enter your 11-digit mobile number to receive a 6-digit SMS verification code.
+                Enter your 11-digit mobile number to receive a 6-digit verification code.
+              </div>
+            </div>
+
+            {/* Delivery Channel Selection */}
+            <div>
+              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-2)", marginBottom: 8 }}>
+                Receive Code Via / کوڈ وصول کرنے کا طریقہ:
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setChannel("whatsapp")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "9px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: channel === "whatsapp" ? "2px solid #25D366" : "1px solid var(--graphite-600)",
+                    background: channel === "whatsapp" ? "rgba(37, 211, 102, 0.12)" : "var(--ink-0)",
+                    color: channel === "whatsapp" ? "#25D366" : "var(--text-2)",
+                    fontWeight: channel === "whatsapp" ? 700 : 500,
+                    fontSize: "0.86rem",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <span style={{ fontSize: "1.1rem" }}>💬</span>
+                  <span>WhatsApp</span>
+                  <span style={{ fontSize: "0.68rem", background: "#25D366", color: "#000", padding: "1px 5px", borderRadius: 4, fontWeight: 800 }}>فوری</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChannel("sms")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "9px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    border: channel === "sms" ? "2px solid var(--emerald-400, #34d399)" : "1px solid var(--graphite-600)",
+                    background: channel === "sms" ? "rgba(16, 185, 129, 0.12)" : "var(--ink-0)",
+                    color: channel === "sms" ? "var(--emerald-300, #6ee7b7)" : "var(--text-2)",
+                    fontWeight: channel === "sms" ? 700 : 500,
+                    fontSize: "0.86rem",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <IconPhone size={15} />
+                  <span>SMS</span>
+                </button>
               </div>
             </div>
 

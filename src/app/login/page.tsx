@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { AuthView } from "@/components/maddad/AuthView";
 
 export const metadata: Metadata = {
-  title: "Sign In & Sign Up · Maddad Lahore",
-  description: "Sign in or register for Maddad Lahore to post plumbing & electrical jobs or bid as an independent technician.",
+  title: "Sign In & Sign Up · Maddadgaar Lahore",
+  description: "Sign in or register for Maddadgaar Lahore to post plumbing & electrical jobs or bid as an independent technician.",
 };
 
 export default async function LoginPage({

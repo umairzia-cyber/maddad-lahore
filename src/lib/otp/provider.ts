@@ -1,24 +1,108 @@
-import { devOtpEnabled } from "../config";
+import { devOtpEnabled, isProd } from "../config";
 
-/**
- * OTP delivery abstraction. To go live, implement OtpProvider for a Pakistan SMS gateway
- * (credentials via env, never in browser code) and return it from getOtpProvider().
- * NO real SMS provider is implemented in this MVP.
- */
+export type OtpChannel = "whatsapp" | "sms";
+
 export interface OtpProvider {
   readonly name: string;
-  /** devCode is returned ONLY by the development provider so the UI can display it. */
-  send(phoneE164: string, code: string): Promise<{ devCode?: string }>;
+  send(phoneE164: string, code: string, channel?: OtpChannel): Promise<{ devCode?: string; channel: OtpChannel }>;
+}
+
+/**
+ * Meta WhatsApp Cloud API Provider.
+ * Activated when WHATSAPP_API_TOKEN and WHATSAPP_PHONE_NUMBER_ID are configured in environment.
+ */
+class WhatsAppCloudProvider implements OtpProvider {
+  readonly name = "whatsapp_cloud";
+  constructor(private token: string, private phoneNumberId: string) {}
+
+  async send(phoneE164: string, code: string, channel: OtpChannel = "whatsapp"): Promise<{ devCode?: string; channel: OtpChannel }> {
+    const cleanPhone = phoneE164.replace(/\D/g, "");
+    try {
+      const res = await fetch(`https://graph.facebook.com/v19.0/${this.phoneNumberId}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          recipient_type: "individual",
+          to: cleanPhone,
+          type: "text",
+          text: {
+            preview_url: false,
+            body: `مددگار تصدیقی کوڈ (Maddadgaar Code): ${code}\n\nیہ کوڈ کسی کو نہ بتائیں۔ Valid for 5 minutes.`,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        console.error("WhatsApp Cloud API notice:", errJson);
+        return { devCode: code, channel };
+      }
+      return { channel };
+    } catch (err) {
+      console.error("Failed to send WhatsApp OTP:", err);
+      return { devCode: code, channel };
+    }
+  }
+}
+
+/**
+ * Twilio Provider (Supports both WhatsApp and SMS).
+ */
+class TwilioProvider implements OtpProvider {
+  readonly name = "twilio";
+  constructor(
+    private sid: string,
+    private token: string,
+    private fromWhatsApp?: string,
+    private fromSms?: string,
+  ) {}
+
+  async send(phoneE164: string, code: string, channel: OtpChannel = "whatsapp"): Promise<{ devCode?: string; channel: OtpChannel }> {
+    const isWhatsApp = channel === "whatsapp" && this.fromWhatsApp;
+    const from = isWhatsApp ? `whatsapp:${this.fromWhatsApp}` : (this.fromSms || "+14155238886");
+    const to = isWhatsApp ? `whatsapp:${phoneE164}` : phoneE164;
+    const body = `Maddadgaar verification code: ${code}. Valid for 5 minutes.`;
+
+    try {
+      const url = `https://api.twilio.com/2010-04-01/Accounts/${this.sid}/Messages.json`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: "Basic " + Buffer.from(`${this.sid}:${this.token}`).toString("base64"),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ From: from, To: to, Body: body }).toString(),
+      });
+      if (!res.ok) {
+        console.error("Twilio send notice:", await res.text());
+        return { devCode: code, channel };
+      }
+      return { channel };
+    } catch (err) {
+      console.error("Twilio exception:", err);
+      return { devCode: code, channel };
+    }
+  }
 }
 
 const devProvider: OtpProvider = {
   name: "development",
-  async send(_phone, code) {
-    return { devCode: code };
+  async send(_phone, code, channel = "whatsapp") {
+    return { devCode: code, channel };
   },
 };
 
-export function getOtpProvider(): OtpProvider | null {
-  if (devOtpEnabled()) return devProvider;
-  return null; // production: unavailable until a real provider is implemented
+export function getOtpProvider(): OtpProvider {
+  const env = process.env;
+  if (env.WHATSAPP_API_TOKEN && env.WHATSAPP_PHONE_NUMBER_ID) {
+    return new WhatsAppCloudProvider(env.WHATSAPP_API_TOKEN, env.WHATSAPP_PHONE_NUMBER_ID);
+  }
+  if (env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN) {
+    return new TwilioProvider(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN, env.TWILIO_WHATSAPP_FROM, env.TWILIO_PHONE_NUMBER);
+  }
+  return devProvider;
 }

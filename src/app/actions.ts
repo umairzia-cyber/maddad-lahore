@@ -42,8 +42,14 @@ const str = (f: FormData, k: string) => String(f.get(k) ?? "");
 // ---------- auth ----------
 export async function requestOtpAction(_: FormState, f: FormData): Promise<FormState> {
   return wrap(async () => {
-    const r = await requestOtp(str(f, "phone"));
-    return { phone: r.phone, devCode: r.devCode, ok: "Code sent." };
+    const channel = (str(f, "channel") || "whatsapp") as "whatsapp" | "sms";
+    const r = await requestOtp(str(f, "phone"), channel);
+    return {
+      phone: r.phone,
+      devCode: r.devCode,
+      channel: r.channel,
+      ok: r.channel === "whatsapp" ? "Verification code sent to your WhatsApp." : "Verification code sent via SMS.",
+    };
   });
 }
 
@@ -51,6 +57,7 @@ export async function signUpAction(_: FormState, f: FormData): Promise<FormState
   return wrap(async () => {
     const name = str(f, "name").trim();
     const phone = str(f, "phone").trim();
+    const channel = (str(f, "channel") || "whatsapp") as "whatsapp" | "sms";
     const role = str(f, "role").trim() === "worker" ? "technician" : "customer";
     const trade = str(f, "trade").trim();
     const area = str(f, "area").trim();
@@ -62,12 +69,17 @@ export async function signUpAction(_: FormState, f: FormData): Promise<FormState
       throw new AppError("Please enter your Pakistani mobile number.");
     }
 
-    const r = await requestOtp(phone);
+    const r = await requestOtp(phone, channel);
 
     // Collect lead/signup in Supabase
     await collectSignup({ name, phone: r.phone, role, trade, area });
 
-    return { phone: r.phone, devCode: r.devCode, ok: "Verification code sent to your mobile." };
+    return {
+      phone: r.phone,
+      devCode: r.devCode,
+      channel: r.channel,
+      ok: r.channel === "whatsapp" ? "Verification code sent to your WhatsApp." : "Verification code sent to your mobile.",
+    };
   });
 }
 

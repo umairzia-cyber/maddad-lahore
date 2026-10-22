@@ -4,7 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { cache } from "react";
 import { one, q, tx, isPostgresAvailable } from "./db";
 import { adminPhones, isProd, sessionSecret } from "./config";
-import { getOtpProvider } from "./otp/provider";
+import { getOtpProvider, OtpChannel } from "./otp/provider";
 import { rateLimit } from "./ratelimit";
 import { normalizePkPhone } from "./phone";
 import { AppError } from "./state";
@@ -39,14 +39,14 @@ function clientIp(): string {
   }
 }
 
-export async function requestOtp(rawPhone: string): Promise<{ phone: string; devCode?: string }> {
+export async function requestOtp(rawPhone: string, channel: OtpChannel = "whatsapp"): Promise<{ phone: string; devCode?: string; channel: OtpChannel }> {
   const phone = normalizePkPhone(rawPhone);
   if (!phone) throw new AppError("Enter a valid Pakistani mobile number, e.g. 0300 1234567.");
   const provider = getOtpProvider();
   if (!provider) {
     throw new AppError(
       isProd
-        ? "Sign-in is not available yet: no SMS provider is configured for this deployment."
+        ? "Sign-in is not available yet: no verification provider is configured for this deployment."
         : "No OTP provider is enabled. Set ENABLE_DEV_OTP=true for local development.",
     );
   }
@@ -56,16 +56,16 @@ export async function requestOtp(rawPhone: string): Promise<{ phone: string; dev
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
   if (!(await isPostgresAvailable())) {
     store.recordOtp(phone, hmac(phone + ":" + code), OTP_TTL_MIN);
-    const res = await provider.send(phone, code);
-    return { phone, devCode: res.devCode };
+    const res = await provider.send(phone, code, channel);
+    return { phone, devCode: res.devCode, channel: res.channel };
   }
 
   await q(
     `INSERT INTO otp_codes (phone, code_hash, expires_at) VALUES ($1,$2, now() + ($3 || ' minutes')::interval)`,
     [phone, hmac(phone + ":" + code), String(OTP_TTL_MIN)],
   );
-  const res = await provider.send(phone, code);
-  return { phone, devCode: res.devCode };
+  const res = await provider.send(phone, code, channel);
+  return { phone, devCode: res.devCode, channel: res.channel };
 }
 
 export async function verifyOtp(rawPhone: string, code: string): Promise<void> {

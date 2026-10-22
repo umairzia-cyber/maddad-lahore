@@ -12,8 +12,8 @@ import {
 } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Payments & Trust · Maddad Lahore",
-  description: "Learn how direct payment, completion codes, privacy, and technician independence work in Maddad Lahore.",
+  title: "Payments & Trust · Maddadgaar Lahore",
+  description: "Learn how direct payment, completion codes, privacy, and technician independence work in Maddadgaar Lahore.",
 };
 
 export default function Payments() {
