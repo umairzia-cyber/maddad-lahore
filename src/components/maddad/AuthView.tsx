@@ -25,8 +25,8 @@ import {
 interface AuthViewProps {
   currentUser: AppUser | null;
   initialMode?: "signup" | "signin";
-  onNavigateMarketplace: () => void;
-  showToast: (msg: string) => void;
+  onNavigateMarketplace?: () => void;
+  showToast?: (msg: string) => void;
 }
 
 const LAHORE_AREAS = [
@@ -54,6 +54,13 @@ export function AuthView({
   showToast,
 }: AuthViewProps) {
   const [isPending, startTransition] = useTransition();
+
+  const handleMarketplaceNav = onNavigateMarketplace || (() => {
+    if (typeof window !== "undefined") window.location.href = "/";
+  });
+  const notify = (msg: string) => {
+    if (showToast) showToast(msg);
+  };
 
   // Mode: "signup" or "signin"
   const [mode, setMode] = useState<"signup" | "signin">(initialMode);
@@ -127,7 +134,7 @@ export function AuthView({
       if (res?.devCode) {
         setDevCode(res.devCode);
       }
-      showToast(res?.ok || (channel === "whatsapp" ? "Verification code dispatched via WhatsApp." : "Verification code dispatched via SMS."));
+      notify(res?.ok || (channel === "whatsapp" ? "Verification code dispatched via WhatsApp." : "Verification code dispatched via SMS."));
     }
   };
 
@@ -156,7 +163,7 @@ export function AuthView({
       if (res?.devCode) {
         setDevCode(res.devCode);
       }
-      showToast(res?.ok || (channel === "whatsapp" ? "Verification code dispatched via WhatsApp." : "Verification code dispatched via SMS."));
+      notify(res?.ok || (channel === "whatsapp" ? "Verification code dispatched via WhatsApp." : "Verification code dispatched via SMS."));
     }
   };
 
@@ -187,7 +194,7 @@ export function AuthView({
     if (res?.error) {
       setFormError(res.error);
     } else {
-      showToast(mode === "signup" ? "Account created successfully!" : "Signed in successfully!");
+      notify(mode === "signup" ? "Account created successfully!" : "Signed in successfully!");
       window.location.reload();
     }
   };
@@ -256,7 +263,7 @@ export function AuthView({
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button type="button" onClick={onNavigateMarketplace} className="btn btn-secondary btn-sm">
+              <button type="button" onClick={handleMarketplaceNav} className="btn btn-secondary btn-sm">
                 Go to Marketplace
               </button>
               <button

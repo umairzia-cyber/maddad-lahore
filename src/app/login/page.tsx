@@ -26,10 +26,6 @@ export default async function LoginPage({
       <AuthView
         currentUser={null}
         initialMode={initialMode}
-        onNavigateMarketplace={() => {
-          if (typeof window !== "undefined") window.location.href = "/";
-        }}
-        showToast={() => {}}
       />
     </div>
   );

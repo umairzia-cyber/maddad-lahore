@@ -20,10 +20,6 @@ export default async function SignUpPage() {
       <AuthView
         currentUser={null}
         initialMode="signup"
-        onNavigateMarketplace={() => {
-          if (typeof window !== "undefined") window.location.href = "/";
-        }}
-        showToast={() => {}}
       />
     </div>
   );
