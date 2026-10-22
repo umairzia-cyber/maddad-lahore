@@ -22,11 +22,11 @@ export async function logStatus(db: Db, jobId: string, from: JobStatus | null, t
 export async function createDraft(user: SessionUser, form: FormData): Promise<string> {
   await rateLimit(`job_create:${user.id}`, 5, 86400);
   const raw = Object.fromEntries(
-    ["categoryId","areaId","title","description","budgetMin","budgetMax","preferredAt","addressText","contactNote","lat","lng","ack"].map((k) => [k, form.get(k) ?? undefined]),
+    ["categoryId","areaId","title","description","budgetMin","budgetMax","preferredAt","addressText","contactNote","lat","lng","ack","listingType","pricingModel","price","itemCondition"].map((k) => [k, form.get(k) ?? undefined]),
   );
-  const v = parseOrThrow(jobSchema, { ...raw, asap: form.get("asap") === "on" });
+  const v = parseOrThrow(jobSchema, { ...raw, asap: form.get("asap") === "on" || form.get("asap") === "true" || raw.listingType === "item_sale" });
 
-  const preferred = v.asap ? null : new Date(v.preferredAt.length === 16 ? `${v.preferredAt}:00+05:00` : v.preferredAt);
+  const preferred = v.asap ? null : (v.preferredAt ? new Date(v.preferredAt.length === 16 ? `${v.preferredAt}:00+05:00` : v.preferredAt) : null);
   if (preferred && (isNaN(preferred.getTime()) || preferred.getTime() < Date.now() - 3600_000))
     throw new AppError("Preferred time must be in the future.");
 
@@ -53,6 +53,10 @@ export async function createDraft(user: SessionUser, form: FormData): Promise<st
       contactNote: v.contactNote,
       lat: v.lat ? Number(v.lat) : undefined,
       lng: v.lng ? Number(v.lng) : undefined,
+      listingType: v.listingType as any,
+      pricingModel: v.pricingModel as any,
+      price: v.price ?? null,
+      itemCondition: v.itemCondition as any,
     });
   }
 
@@ -77,9 +81,9 @@ export async function createDraft(user: SessionUser, form: FormData): Promise<st
   return tx(async (c) => {
     const j = await one<{ id: string }>(
       `INSERT INTO jobs (customer_id, category_id, area_id, title, description, budget_min, budget_max, asap, preferred_at,
-                         status, match_radius_km, expires_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'draft',$10, now() + ($11 || ' days')::interval) RETURNING id`,
-      [user.id, v.categoryId, v.areaId, v.title, v.description, v.budgetMin, v.budgetMax, v.asap, preferred, s.matchRadiusKm, String(s.jobExpiryDays)],
+                         status, match_radius_km, expires_at, listing_type, pricing_model, price, item_condition)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'draft',$10, now() + ($11 || ' days')::interval, $12, $13, $14, $15) RETURNING id`,
+      [user.id, v.categoryId, v.areaId, v.title, v.description, v.budgetMin, v.budgetMax, v.asap, preferred, s.matchRadiusKm, String(s.jobExpiryDays), v.listingType, v.pricingModel, v.price, v.itemCondition || null],
       c,
     );
     const id = j!.id;
@@ -149,11 +153,16 @@ export type PublicJob = {
   budget_min: number | null; budget_max: number | null; asap: boolean; preferred_at: Date | null;
   created_at: Date; expires_at: Date; bid_count: number; my_bid_status: string | null;
   is_demo?: boolean;
+  listing_type?: string | null;
+  pricing_model?: string | null;
+  price?: number | null;
+  item_condition?: string | null;
 };
 
 /** Columns safe to show a bidder: NO job_private columns, ever. */
 const PUBLIC_COLS = `j.id, j.title, j.description, c.name AS category, a.name AS area, j.status,
-  j.budget_min, j.budget_max, j.asap, j.preferred_at, j.created_at, j.expires_at, j.is_demo`;
+  j.budget_min, j.budget_max, j.asap, j.preferred_at, j.created_at, j.expires_at, j.is_demo,
+  j.listing_type, j.pricing_model, j.price, j.item_condition`;
 
 /** Safe discovery list for guests and landing page: approximate areas only, NO private details, NO bids */
 export async function browsePublicJobs(): Promise<PublicJob[]> {
@@ -275,12 +284,12 @@ export async function getPrivateDetails(user: SessionUser, jobId: string): Promi
 export async function categoriesAndAreas() {
   if (!(await isPostgresAvailable())) {
     return {
-      categories: getCategories().map(c => ({ id: c.id, name: c.name, slug: c.slug })),
-      areas: getAreas().map(a => ({ id: a.id, name: a.name, lat: a.lat, lng: a.lng })),
+      categories: getCategories().map(c => ({ id: c.id, name: c.name, slug: c.slug, name_ur: c.name_ur })),
+      areas: getAreas().map(a => ({ id: a.id, name: a.name, name_ur: a.name_ur, lat: a.lat, lng: a.lng })),
     };
   }
   const [categories, areas] = await Promise.all([
-    q<{ id: number; name: string; slug: string }>(`SELECT id, name, slug FROM service_categories WHERE active ORDER BY sort_order, name`),
+    q<{ id: number; name: string; slug: string; name_ur?: string }>(`SELECT id, name, slug, name_ur FROM service_categories WHERE active ORDER BY sort_order, name`),
     q<{ id: number; name: string; lat: number; lng: number }>(
       `SELECT a.id, a.name, ST_Y(a.centroid::geometry) AS lat, ST_X(a.centroid::geometry) AS lng
        FROM service_areas a JOIN cities c ON c.id=a.city_id WHERE a.active AND c.active AND c.slug=$1 ORDER BY a.name`,

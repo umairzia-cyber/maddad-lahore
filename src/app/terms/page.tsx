@@ -1,28 +1,48 @@
 import type { Metadata } from "next";
 import { appName } from "@/lib/config";
 
-export const metadata: Metadata = { title: "Terms of Use · Pilot" };
+export const metadata: Metadata = { title: "Terms of Service · Maddadgaar Lahore" };
 
 export default function Terms() {
   return (
-    <div style={{ maxWidth: 760, margin: "24px auto", padding: "0 12px" }}>
-      <article className="plate-bolted">
-        <h1 style={{ fontSize: "1.6rem", fontWeight: 800, margin: "0 0 12px", color: "var(--text-1)" }}>Terms of Use (Lahore Pilot)</h1>
-        <p className="notice" style={{ marginBottom: 20 }}>
-          Welcome to {appName}. By using this platform to post repair requests or submit bids in Lahore, you agree to the following terms governing our open-bid bulletin board.
+    <div style={{ maxWidth: 840, margin: "32px auto", padding: "0 16px" }}>
+      <article className="card" style={{ padding: "clamp(24px, 4vw, 44px)", background: "#FFFFFF", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
+        <h1 style={{ fontSize: "clamp(1.6rem, 2vw, 2.2rem)", fontWeight: 700, margin: "0 0 12px", fontFamily: "var(--font-serif)", color: "var(--text)" }}>
+          Terms of Service
+        </h1>
+        <p style={{ marginBottom: 24, fontSize: "1.02rem", color: "var(--text-2)", lineHeight: 1.6 }}>
+          Welcome to {appName}. By using our website to browse listings, post classified advertisements (for items, services, or jobs), submit quotes, or communicate with counterparts across Lahore, you agree to these Terms of Service.
         </p>
-        <ol style={{ color: "var(--text-2)", lineHeight: 1.7, paddingLeft: 20 }}>
-          <li><strong>Bulletin Board Model:</strong> {appName} is a technology classifieds and open-bid bidding board connecting independent technicians with local customers in Lahore. {appName} is not a party to any contract or transaction agreed between users.</li>
-          <li><strong>Technician Independence:</strong> Technicians are independent tradespeople, not employees, contractors, or agents of {appName}. {appName} does not assign, dispatch, supervise, or direct repair work, and does not determine prices.</li>
-          <li><strong>Customer Discretion:</strong> Customers evaluate incoming bids independently and decide whom to hire. Customers are responsible for verifying the scope, safety, and price with the technician before work commences.</li>
-          <li><strong>Direct Payment & Zero Funds:</strong> Payment is settled directly between customer and technician (cash, Raast, mobile wallet, or bank transfer). {appName} holds zero user funds, operates no escrow or wallets, charges no commission in this pilot, and issues no refunds.</li>
-          <li><strong>Workmanship & Safety Disclaimer:</strong> {appName} does not guarantee workmanship quality, safety, or timeliness. An &quot;ID Reviewed&quot; badge indicates only that our moderators conducted a visual inspection of submitted identity documents; it does NOT constitute a police, criminal background, or skill certification.</li>
-          <li><strong>Community Conduct & Prohibited Acts:</strong> Harassment, price gouging after job acceptance, no-shows without notice, fraudulent reviews, and unsafe conduct are strictly prohibited. Moderators reserve the right to warn, temporarily suspend (1–90 days), or permanently terminate accounts following documented reports.</li>
-          <li><strong>Two-Way Dispute Reporting:</strong> Both customers and technicians can file reports regarding booking problems, no-shows, or scope disputes. Resolving a report updates community records; {appName} does not adjudicate monetary settlements.</li>
-          <li><strong>Governing Jurisdiction:</strong> These terms are governed by the applicable laws of Lahore, Punjab, Pakistan.</li>
+
+        <ol style={{ color: "var(--text)", lineHeight: 1.75, paddingLeft: 22, display: "grid", gap: 16 }}>
+          <li>
+            <strong>Local Classifieds &amp; Technology Bulletin Board:</strong> {appName} operates exclusively as an online communications and listing platform facilitating connections between buyers, sellers, clients, and service providers in Lahore. {appName} is not an employer, broker, agent, or party to any contract, sale, or agreement formed between users.
+          </li>
+          <li>
+            <strong>Physical Items for Sale:</strong> Users listing physical goods (electronics, mobile phones, furniture, vehicles, household items) warrant that they have lawful ownership and provide accurate descriptions of item condition. Buyers are solely responsible for inspecting and testing items in person prior to payment.
+          </li>
+          <li>
+            <strong>Independent Service Providers:</strong> Plumbers, electricians, cleaners, tutors, and freelance contractors offering services through {appName} are independent contractors and not employees of {appName}. {appName} does not supervise, schedule, direct, or insure their work.
+          </li>
+          <li>
+            <strong>Direct Payment &amp; Zero Escrow:</strong> All monetary payments (cash, Raast, mobile banking) are settled directly between users. {appName} holds zero user funds, operates no escrow service, charges no hidden buyer commissions, and cannot issue monetary refunds.
+          </li>
+          <li>
+            <strong>Verification &amp; Badges:</strong> An &quot;ID Reviewed&quot; status signifies only that our moderators conducted a visual inspection of submitted documentation to deter duplicate accounts. It does NOT constitute a police character clearance, NADRA database verification, or trade certification.
+          </li>
+          <li>
+            <strong>Prohibited Content &amp; Conduct:</strong> Listings involving illegal goods, counterfeit items, harassment, fraud, bait-and-switch pricing, or hazardous materials are strictly banned. Accounts violating community standards will be warned, suspended, or permanently terminated.
+          </li>
+          <li>
+            <strong>Dispute Reporting:</strong> Users may file reports through the platform for no-shows, offensive conduct, or fraudulent listings. While {appName} investigates policy violations, it does not act as a court or arbitrate monetary disputes.
+          </li>
+          <li>
+            <strong>Jurisdiction:</strong> These terms are governed by the applicable laws of the province of Punjab and the Islamic Republic of Pakistan.
+          </li>
         </ol>
-        <p className="meta" style={{ marginTop: 24, paddingTop: 14, borderTop: "1px solid var(--graphite-800)" }}>
-          {appName} · Lahore, Pakistan
+
+        <p style={{ marginTop: 32, paddingTop: 16, borderTop: "1px solid var(--line-soft)", fontSize: "0.85rem", color: "var(--text-3)" }}>
+          {appName} · Lahore, Punjab, Pakistan
         </p>
       </article>
     </div>

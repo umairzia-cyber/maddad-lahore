@@ -1,50 +1,79 @@
 import type { Metadata } from "next";
 import { appName, supportEmail, storage } from "@/lib/config";
 
-export const metadata: Metadata = { title: "Privacy notice" };
+export const metadata: Metadata = { title: "Privacy Notice · Maddadgaar Lahore" };
 
 export default function Privacy() {
   return (
-    <div style={{ maxWidth: 760, margin: "24px auto", padding: "0 12px" }}>
-      <article className="plate-bolted">
-        <h1 style={{ fontSize: "1.6rem", fontWeight: 800, margin: "0 0 12px", color: "var(--text-1)" }}>Privacy Notice</h1>
-        <p className="notice" style={{ marginBottom: 20 }}>
-          This privacy notice outlines how {appName} handles user information during our Lahore pilot. We operate under strict data minimization and zero financial fund holding.
+    <div style={{ maxWidth: 840, margin: "32px auto", padding: "0 16px" }}>
+      <article className="card" style={{ padding: "clamp(24px, 4vw, 44px)", background: "#FFFFFF", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
+        <h1 style={{ fontSize: "clamp(1.6rem, 2vw, 2.2rem)", fontWeight: 700, margin: "0 0 12px", fontFamily: "var(--font-serif)", color: "var(--text)" }}>
+          Privacy Notice
+        </h1>
+        <p style={{ marginBottom: 24, fontSize: "1.02rem", color: "var(--text-2)", lineHeight: 1.6 }}>
+          This privacy notice outlines how {appName} protects and processes user information. We operate under strict data minimization, zero monetary fund holding, and rigorous location privacy.
         </p>
-        <h2 style={{ fontSize: "1.15rem", fontWeight: 700, margin: "16px 0 8px", color: "var(--text-1)" }}>What we collect, and why</h2>
-        <div style={{ overflowX: "auto" }}>
-          <table>
-            <thead><tr><th>Data</th><th>Why</th><th>Who can see it</th></tr></thead>
+
+        <h2 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "24px 0 12px", fontFamily: "var(--font-serif)", color: "var(--text)" }}>
+          What we collect, and why
+        </h2>
+
+        <div style={{ overflowX: "auto", marginBottom: 28 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.92rem", lineHeight: 1.5 }}>
+            <thead>
+              <tr style={{ borderBottom: "2px solid var(--line)", textAlign: "left" }}>
+                <th style={{ padding: "10px 12px", color: "var(--text)" }}>Data Category</th>
+                <th style={{ padding: "10px 12px", color: "var(--text)" }}>Purpose</th>
+                <th style={{ padding: "10px 12px", color: "var(--text)" }}>Visibility</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>Mobile number</td><td>Sign-in (OTP) and direct communication between the two parties of an awarded booking</td><td>You; your counterpart only after a bid is accepted; never other bidders or the public</td></tr>
-              <tr><td>Display name</td><td>Shown on bids, jobs and reviews</td><td>Signed-in users involved with you</td></tr>
-              <tr><td>Job description & photos</td><td>So technicians can evaluate the repair and submit bids</td><td>Eligible technicians (showing approximate area only) and you</td></tr>
-              <tr><td>Exact address & house number</td><td>So the chosen technician can reach your home</td><td>Unlocked strictly for you and the single accepted technician upon bid acceptance. Never shown to quoting bidders or unverified visitors</td></tr>
-              <tr><td>Technician profile, areas, work photos</td><td>So customers can compare experience and reviews</td><td>Customers evaluating incoming bids</td></tr>
-              <tr><td>Identity documents (optional, technicians)</td><td>Optional manual visual review to award an &quot;ID reviewed&quot; badge</td><td>Human moderators only for visual review; access is strictly audited. We do NOT verify against NADRA and we do NOT store full CNIC numbers</td></tr>
-              <tr><td>Reviews, reports, moderation records</td><td>Trust, safety, and community dispute handling</td><td>Double-blind reviews: both sides once revealed (or 7 days). Reports and internal notes: moderators only</td></tr>
-              <tr><td>Security audit logs</td><td>Prevent abuse and brute-force attempts; contains no plain passwords or OTPs</td><td>Platform operators</td></tr>
+              <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
+                <td style={{ padding: "12px", fontWeight: 600 }}>Mobile Number</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Sign-in authentication via 6-digit OTP; direct contact with confirmed counterpart</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Strictly private; shared only with the specific counterpart you accept or contact</td>
+              </tr>
+              <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
+                <td style={{ padding: "12px", fontWeight: 600 }}>Neighborhood &amp; Approximate Area</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Helps nearby buyers and service providers discover relevant Lahore listings</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Publicly visible (e.g. &quot;Gulberg III&quot;, &quot;DHA Phase 5&quot;)</td>
+              </tr>
+              <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
+                <td style={{ padding: "12px", fontWeight: 600 }}>Exact Street Address &amp; House Details</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Enables the chosen service technician or buyer to reach the premises</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}><strong>Strictly Isolated:</strong> Never exposed publicly or to quoting bidders. Unlocked only upon mutual agreement</td>
+              </tr>
+              <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
+                <td style={{ padding: "12px", fontWeight: 600 }}>Listing Photos &amp; Descriptions</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Provides clear condition of items or visual details of repairs needed</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Public on the marketplace listing</td>
+              </tr>
+              <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
+                <td style={{ padding: "12px", fontWeight: 600 }}>Identity Documents (Optional)</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Optional manual inspection by moderators to deter spam</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Internal human moderators only. Automatically deleted after {storage.identityRetentionDays} days</td>
+              </tr>
             </tbody>
           </table>
         </div>
-        <h2 style={{ fontSize: "1.15rem", fontWeight: 700, margin: "20px 0 8px", color: "var(--text-1)" }}>Location Privacy</h2>
-        <p style={{ color: "var(--text-2)", lineHeight: 1.6 }}>We never track your ongoing location. Device location is optional, read once when you tap the button, and used solely to suggest a Lahore neighbourhood. You can always select your area manually from the list.</p>
-        <h2 style={{ fontSize: "1.15rem", fontWeight: 700, margin: "20px 0 8px", color: "var(--text-1)" }}>Retention and Deletion</h2>
-        <ul style={{ color: "var(--text-2)", lineHeight: 1.6, paddingLeft: 20 }}>
-          <li>Submitted identity photos are automatically purged {storage.identityRetentionDays} days after a moderator decision, and immediately if you delete your account.</li>
-          <li>You can delete your account from the Account page. This permanently anonymises your phone number, name, uploaded photos, and private records. Deletion is restricted only while an awarded booking is in progress.</li>
-          <li>OTP codes expire in 5 minutes and are stored exclusively as cryptographically salted HMAC hashes.</li>
-        </ul>
-        <h2 style={{ fontSize: "1.15rem", fontWeight: 700, margin: "20px 0 8px", color: "var(--text-1)" }}>Support &amp; Inquiries</h2>
-        <p style={{ color: "var(--text-2)", lineHeight: 1.6 }}>
-          {supportEmail ? (
-            <>For privacy questions, data deletion requests, or appeals against account restrictions, contact: <a href={`mailto:${supportEmail}`} style={{ color: "var(--violet-400)", fontWeight: 700 }}>{supportEmail}</a>. </>
-          ) : (
-            <>During the pilot, privacy inquiries, data deletion requests, and appeals are handled directly in-app through the appeal form on the Account page or via the moderation reporting system. </>
-          )}
-          Restricted users can also file an appeal directly from their Account dashboard.
+
+        <h2 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "24px 0 12px", fontFamily: "var(--font-serif)", color: "var(--text)" }}>
+          Location Privacy Guarantee
+        </h2>
+        <p style={{ color: "var(--text-2)", lineHeight: 1.65, fontSize: "0.95rem" }}>
+          We never track your live or ongoing GPS coordinates in the background. If you tap the location helper button, browser location is queried a single time solely to pre-select your closest Lahore neighborhood. You are always free to pick your neighborhood manually from our list.
         </p>
-        <p className="meta" style={{ marginTop: 20, paddingTop: 12, borderTop: "1px solid var(--graphite-800)" }}>{appName} Pilot · Lahore, Pakistan</p>
+
+        <h2 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "24px 0 12px", fontFamily: "var(--font-serif)", color: "var(--text)" }}>
+          Your Rights &amp; Account Deletion
+        </h2>
+        <p style={{ color: "var(--text-2)", lineHeight: 1.65, fontSize: "0.95rem" }}>
+          You can delete your account at any time from your Account dashboard. Deletion immediately scrambles your phone number, anonymizes completed booking records, and deletes uploaded documents and draft listings.
+        </p>
+
+        <p style={{ marginTop: 32, paddingTop: 16, borderTop: "1px solid var(--line-soft)", fontSize: "0.85rem", color: "var(--text-3)" }}>
+          Questions about our privacy practices? Contact: {supportEmail ? <a href={`mailto:${supportEmail}`} style={{ color: "var(--violet-500)", fontWeight: 600 }}>{supportEmail}</a> : "support@maddadgaar.pk"}
+        </p>
       </article>
     </div>
   );

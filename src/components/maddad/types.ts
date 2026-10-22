@@ -14,6 +14,11 @@ export interface PublicJobItem {
   bid_count: number;
   my_bid_status?: string | null;
   is_demo?: boolean;
+  listing_type?: "item_sale" | "service_request" | "service_offer" | "job_opportunity" | string | null;
+  pricing_model?: "fixed" | "negotiable" | "budget_range" | "quote_requested" | "contact_for_price" | string | null;
+  price?: number | null;
+  item_condition?: string | null;
+  photos?: string[];
 }
 
 export type CustomerJobItem = PublicJobItem & { customer_id?: string };
@@ -91,6 +96,8 @@ export interface CategoryOption {
   id: number;
   name: string;
   slug: string;
+  name_ur?: string;
+  icon?: string;
 }
 
 export interface DemoAccount {

@@ -188,21 +188,54 @@ export async function createAndPublishJobAction(_: FormState, f: FormData): Prom
     const u = await requireActive();
     const id = await createAndPublishJob(u, f);
     try {
+      const priceVal = Number(f.get("price")) || Number(f.get("budgetMin")) || null;
       await collectJobLead({
         title: str(f, "title"),
         description: str(f, "description"),
-        category: str(f, "categoryId") === "2" ? "Electrical" : "Plumbing",
+        category: str(f, "categoryName") || (str(f, "categoryId") === "2" ? "Electrical" : "Plumbing"),
         area: str(f, "areaId"),
-        budgetMin: Number(f.get("budgetMin")) || null,
-        budgetMax: Number(f.get("budgetMax")) || null,
+        budgetMin: Number(f.get("budgetMin")) || priceVal,
+        budgetMax: Number(f.get("budgetMax")) || priceVal,
         customerPhone: u.phone,
-        addressText: str(f, "addressText"),
+        addressText: str(f, "addressText") || str(f, "landmark"),
       });
     } catch {
       // Non-blocking
     }
     revalidatePath("/", "layout");
-    return { ok: "Job posted and published successfully to Lahore technicians!", jobId: id };
+    return { ok: "Listing posted and published successfully to Lahore marketplace!", jobId: id };
+  });
+}
+
+export async function submitInquiryAction(_: FormState, f: FormData): Promise<FormState> {
+  return wrap(async () => {
+    const jobId = str(f, "jobId");
+    const message = str(f, "message").trim();
+    const offerPrice = f.get("offerPrice") ? Number(f.get("offerPrice")) : null;
+    const phoneInput = str(f, "phone").trim();
+
+    if (!jobId) throw new AppError("Listing is required.");
+    if (!message || message.length < 3) throw new AppError("Please write a message of at least 3 characters.");
+
+    const u = await requireUser().catch(() => null);
+    const senderPhone = u?.phone || phoneInput;
+    if (!senderPhone) throw new AppError("Please provide your contact phone number.");
+
+    if (await isPostgresAvailable()) {
+      await q(
+        `INSERT INTO listing_inquiries (job_id, sender_id, sender_phone, message, offer_price) VALUES ($1, $2, $3, $4, $5)`,
+        [jobId, u?.id || null, senderPhone, message, offerPrice]
+      );
+      const [job] = await q<{ customer_id: string; title: string }>(`SELECT customer_id, title FROM jobs WHERE id=$1`, [jobId]);
+      if (job) {
+        await q(
+          `INSERT INTO notifications (user_id, type, title, body, ref_type, ref_id) VALUES ($1, 'inquiry_received', 'New Inquiry on your listing', $2, 'job', $3)`,
+          [job.customer_id, `Someone inquired: "${message.slice(0, 80)}"`, jobId]
+        );
+      }
+    }
+    revalidatePath("/", "layout");
+    return { ok: "Your inquiry has been sent to the poster!" };
   });
 }
 export async function cancelJobAction(_: FormState, f: FormData): Promise<FormState> {

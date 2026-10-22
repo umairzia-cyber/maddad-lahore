@@ -51,6 +51,10 @@ export type WorkerProfile = {
   updated_at: Date;
 };
 
+export type ListingType = "item_sale" | "service_request" | "service_offer" | "job_opportunity";
+export type PricingModel = "fixed" | "negotiable" | "budget_range" | "quote_requested" | "contact_for_price";
+export type ItemCondition = "new" | "like_new" | "good" | "fair";
+
 export type Job = {
   id: string;
   customer_id: string;
@@ -70,6 +74,10 @@ export type Job = {
   hidden_at: Date | null;
   created_at: Date;
   updated_at: Date;
+  listing_type?: ListingType;
+  pricing_model?: PricingModel;
+  price?: number | null;
+  item_condition?: ItemCondition | null;
 };
 
 export type JobPrivate = {
@@ -189,6 +197,12 @@ const CITIES: City[] = [
 const CATEGORIES: Category[] = [
   { id: 1, slug: "plumbing", name: "Plumbing", name_ur: "پلمبنگ", sort_order: 1, active: true },
   { id: 2, slug: "electrical", name: "Electrical", name_ur: "الیکٹریکل", sort_order: 2, active: true },
+  { id: 3, slug: "home-repairs", name: "Home Repairs & Maintenance", name_ur: "گھریلو مرمت و سروسز", sort_order: 3, active: true },
+  { id: 4, slug: "electronics", name: "Electronics & Appliances", name_ur: "الیکٹرانکس اور ہوم اپلائنسز", sort_order: 4, active: true },
+  { id: 5, slug: "furniture", name: "Furniture & Household", name_ur: "فرنیچر اور گھریلو سامان", sort_order: 5, active: true },
+  { id: 6, slug: "vehicles", name: "Vehicles & Transport", name_ur: "گاڑیاں اور ٹرانسپورٹ", sort_order: 6, active: true },
+  { id: 7, slug: "education", name: "Tutoring & Education", name_ur: "ٹیوشن اور تعلیم", sort_order: 7, active: true },
+  { id: 8, slug: "jobs-work", name: "Jobs & Skilled Work", name_ur: "مقامی ملازمتیں اور ہنر مند کام", sort_order: 8, active: true },
 ];
 
 const AREAS_RAW: [string, string, number, number][] = [
@@ -640,6 +654,10 @@ export class DomainStore {
           expires_at: j.expires_at,
           bid_count: bids,
           is_demo: j.is_demo,
+          listing_type: j.listing_type || "service_request",
+          pricing_model: j.pricing_model || "quote_requested",
+          price: j.price || null,
+          item_condition: j.item_condition || null,
         });
       }
     }
@@ -798,6 +816,7 @@ export class DomainStore {
     categoryId: number; areaId: number; title: string; description: string;
     budgetMin?: number; budgetMax?: number; asap: boolean; preferredAt?: Date | null;
     addressText: string; contactNote?: string; lat?: number; lng?: number;
+    listingType?: ListingType; pricingModel?: PricingModel; price?: number | null; itemCondition?: ItemCondition | null;
   }): string {
     const id = `job-${Date.now()}-${randomBytes(3).toString("hex")}`;
     const now = new Date();
@@ -823,6 +842,10 @@ export class DomainStore {
       hidden_at: null,
       created_at: now,
       updated_at: now,
+      listing_type: data.listingType || "service_request",
+      pricing_model: data.pricingModel || (data.price != null ? "fixed" : "budget_range"),
+      price: data.price ?? null,
+      item_condition: data.itemCondition || null,
     };
     this.jobs.set(id, job);
     this.jobPrivates.set(id, {

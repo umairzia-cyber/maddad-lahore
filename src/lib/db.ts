@@ -77,8 +77,14 @@ export async function ensureReferenceData(): Promise<void> {
 
     await q(`INSERT INTO service_categories (id, slug, name, name_ur, sort_order) VALUES 
       (1, 'plumbing','Plumbing','پلمبنگ',1),
-      (2, 'electrical','Electrical','الیکٹریکل',2)
-      ON CONFLICT (slug) DO NOTHING`);
+      (2, 'electrical','Electrical','الیکٹریکل',2),
+      (3, 'home-repairs','Home Repairs & Maintenance','گھریلو مرمت و سروسز',3),
+      (4, 'electronics','Electronics & Appliances','الیکٹرانکس اور ہوم اپلائنسز',4),
+      (5, 'furniture','Furniture & Household','فرنیچر اور گھریلو سامان',5),
+      (6, 'vehicles','Vehicles & Transport','گاڑیاں اور ٹرانسپورٹ',6),
+      (7, 'education','Tutoring & Education','ٹیوشن اور تعلیم',7),
+      (8, 'jobs-work','Jobs & Skilled Work','مقامی ملازمتیں اور ہنر مند کام',8)
+      ON CONFLICT (slug) DO UPDATE SET name=EXCLUDED.name, name_ur=EXCLUDED.name_ur, sort_order=EXCLUDED.sort_order, active=true`);
 
     let areaId = 1;
     for (const [name, ur, lat, lng] of LAHORE_AREAS) {
@@ -88,6 +94,35 @@ export async function ensureReferenceData(): Promise<void> {
         [areaId++, cityRow.id, name, ur, lat, lng]
       );
     }
+
+    // Ensure generalized marketplace columns & inquiries table exist
+    await q(`DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'listing_type') THEN
+        CREATE TYPE listing_type AS ENUM ('item_sale', 'service_request', 'service_offer', 'job_opportunity');
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'pricing_model') THEN
+        CREATE TYPE pricing_model AS ENUM ('fixed', 'negotiable', 'budget_range', 'quote_requested', 'contact_for_price');
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'inquiry_type') THEN
+        CREATE TYPE inquiry_type AS ENUM ('question', 'offer', 'quote');
+      END IF;
+    END $$;`);
+
+    await q(`ALTER TABLE jobs 
+      ADD COLUMN IF NOT EXISTS listing_type listing_type NOT NULL DEFAULT 'service_request',
+      ADD COLUMN IF NOT EXISTS pricing_model pricing_model NOT NULL DEFAULT 'budget_range',
+      ADD COLUMN IF NOT EXISTS price integer,
+      ADD COLUMN IF NOT EXISTS item_condition text`);
+
+    await q(`CREATE TABLE IF NOT EXISTS listing_inquiries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      listing_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+      sender_id UUID NOT NULL REFERENCES users(id),
+      inquiry_type inquiry_type NOT NULL DEFAULT 'question',
+      offer_amount INTEGER,
+      message TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`);
   } catch (err) {
     console.error("ensureReferenceData notice:", err);
   }

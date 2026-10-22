@@ -18,6 +18,10 @@ import {
   IconEye,
   IconFileText,
   IconCalendar,
+  IconTag,
+  IconPackage,
+  IconBriefcase,
+  IconSmartphone,
 } from "../icons";
 import { createAndPublishJobAction } from "@/app/actions";
 import type { AppUser, AreaOption, CategoryOption } from "./types";
@@ -28,7 +32,7 @@ interface PostJobProps {
   user: AppUser | null;
   categories: CategoryOption[];
   areas: AreaOption[];
-  initialCategory?: "plumbing" | "electrical" | null;
+  initialCategory?: string | null;
   onNeedAuth: () => void;
   onSuccess: (jobId: string) => void;
   onViewMarketplace: () => void;
@@ -43,137 +47,91 @@ export function PostJobView({
   onSuccess,
   onViewMarketplace,
 }: PostJobProps) {
-  const { t, locale } = useI18n();
-
-  // Find category ID based on slug or default
-  const defaultPlumbingId = String(categories.find((c) => c.slug === "plumbing")?.id || categories[0]?.id || "1");
-  const defaultElectricalId = String(categories.find((c) => c.slug === "electrical")?.id || categories[1]?.id || "2");
+  const { locale } = useI18n();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [selectedTrade, setSelectedTrade] = useState<"plumbing" | "electrical">(
-    initialCategory === "electrical" ? "electrical" : "plumbing"
-  );
-  const [selectedProblem, setSelectedProblem] = useState<string>("");
-  const [areaId, setAreaId] = useState<string>(areas[0]?.id ? String(areas[0].id) : "1");
-  const [urgency, setUrgency] = useState<"asap" | "today" | "tomorrow" | "flexible">("asap");
-  const [landmark, setLandmark] = useState<string>("");
+
+  // Step 1: Listing Type
+  const [listingType, setListingType] = useState<"item_sale" | "service_request" | "service_offer" | "job_opportunity">("item_sale");
+
+  // Step 2: Details
+  const [categoryId, setCategoryId] = useState<string>(categories[0]?.id ? String(categories[0].id) : "1");
+  const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [itemCondition, setItemCondition] = useState<string>("Used - Good");
+
+  // Step 3: Pricing & Terms
+  const [pricingModel, setPricingModel] = useState<"fixed" | "negotiable" | "budget_range" | "quote_requested" | "contact_for_price">("fixed");
+  const [price, setPrice] = useState<string>("5000");
   const [budgetMin, setBudgetMin] = useState<string>("1500");
-  const [budgetMax, setBudgetMax] = useState<string>("2500");
+  const [budgetMax, setBudgetMax] = useState<string>("3000");
+  const [urgency, setUrgency] = useState<"asap" | "today" | "tomorrow" | "flexible">("flexible");
+
+  // Step 4: Location & Contact Privacy
+  const [areaId, setAreaId] = useState<string>(areas[0]?.id ? String(areas[0].id) : "1");
+  const [landmark, setLandmark] = useState<string>("");
   const [contactPhone, setContactPhone] = useState<string>(user?.phone || "");
-  const [createdJobId, setCreatedJobId] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
+  // Pre-select category if passed from Hero pills
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = localStorage.getItem("maddad_saved_job_draft");
-      if (raw) {
-        const d = JSON.parse(raw);
-        if (d.step) setStep(d.step);
-        if (d.selectedTrade) setSelectedTrade(d.selectedTrade);
-        if (d.selectedProblem) setSelectedProblem(d.selectedProblem);
-        if (d.areaId) setAreaId(d.areaId);
-        if (d.urgency) setUrgency(d.urgency);
-        if (d.landmark) setLandmark(d.landmark);
-        if (d.description) setDescription(d.description);
-        if (d.budgetMin) setBudgetMin(d.budgetMin);
-        if (d.budgetMax) setBudgetMax(d.budgetMax);
+    if (initialCategory) {
+      const match = categories.find((c) => c.slug.toLowerCase().includes(initialCategory.toLowerCase()));
+      if (match) {
+        setCategoryId(String(match.id));
+        if (initialCategory === "plumbing" || initialCategory === "electrical") {
+          setListingType("service_request");
+          setPricingModel("quote_requested");
+        }
       }
-    } catch {}
-  }, []);
-
-  const plumbingProblems = [
-    { id: "pipe_leak", en: "Leaking tap or pipe", ur: "نل یا پائپ لیکیج" },
-    { id: "drain", en: "Blocked drain / sink", ur: "نالی یا سنک بند" },
-    { id: "motor", en: "Water motor not working", ur: "پانی کی موٹر بند / خرابی" },
-    { id: "geyser", en: "Geyser problem / no hot water", ur: "گیزر خراب / پانی گرم نہیں" },
-    { id: "no_water", en: "No water in tank / low pressure", ur: "ٹینک میں پانی نہیں / کم پریشر" },
-    { id: "other_plumbing", en: "Other plumbing issue", ur: "دیگر پلمبنگ کا مسئلہ" },
-  ];
-
-  const electricalProblems = [
-    { id: "fan_light", en: "Fan or light not working", ur: "پنکھا یا لائٹ خراب ہے" },
-    { id: "spark_breaker", en: "Switch or breaker spark", ur: "سوئچ یا بریکر سے چنگاری" },
-    { id: "short_circuit", en: "Short circuit / frequent tripping", ur: "شارٹ سرکٹ / بار بار ٹرپنگ" },
-    { id: "wiring", en: "New wiring or socket fitting", ur: "نئی وائرنگ یا بورڈ فٹنگ" },
-    { id: "ups_inverter", en: "UPS or inverter problem", ur: "یو پی ایس یا انورٹر کی خرابی" },
-    { id: "other_electrical", en: "Other electrical issue", ur: "دیگر بجلی کا مسئلہ" },
-  ];
-
-  const currentProblems = selectedTrade === "plumbing" ? plumbingProblems : electricalProblems;
-
-  // Step 1 Validation
-  const validateStep1 = () => {
-    const errs: Record<string, string> = {};
-    if (!selectedProblem) {
-      errs.problem =
-        locale === "ur"
-          ? "براہ کرم سب سے قریبی مسئلہ منتخب کریں تاکہ کاریگر سمجھ سکے۔"
-          : "Please choose the problem closest to your issue.";
     }
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
+  }, [initialCategory, categories]);
 
-  // Step 2 Validation
   const validateStep2 = () => {
     const errs: Record<string, string> = {};
-    if (!areaId) {
-      errs.area = locale === "ur" ? "براہ کرم لاہور کا علاقہ منتخب کریں۔" : "Please select your Lahore neighbourhood.";
+    if (!title.trim() || title.trim().length < 4) {
+      errs.title = locale === "ur" ? "عنوان کم از کم 4 حروف کا ہونا چاہیے۔" : "Title must be at least 4 characters.";
+    }
+    if (!description.trim() || description.trim().length < 10) {
+      errs.description = locale === "ur" ? "تفصیل کم از کم 10 حروف کی ہونی چاہیے۔" : "Description must be at least 10 characters.";
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // Step 3 Validation
   const validateStep3 = () => {
     const errs: Record<string, string> = {};
-    const problemObj = currentProblems.find((p) => p.id === selectedProblem);
-    const combinedDesc = description.trim() || (locale === "ur" ? problemObj?.ur : problemObj?.en) || "Home repair needed";
-
-    if (combinedDesc.length < 15) {
-      errs.description =
-        locale === "ur"
-          ? "براہ کرم مسئلے کی تھوڑی اور وضاحت لکھیں (کم از کم 15 حروف)۔"
-          : "Please describe the problem in a few more words (at least 15 characters).";
+    if (pricingModel === "fixed" || pricingModel === "negotiable") {
+      const p = Number(price);
+      if (!p || p < 50) {
+        errs.price = locale === "ur" ? "براہ کرم درست رقم درج کریں۔" : "Please enter a valid price (min Rs 50).";
+      }
+    } else if (pricingModel === "budget_range") {
+      const min = Number(budgetMin);
+      const max = Number(budgetMax);
+      if (!min || !max || min > max) {
+        errs.price = "Minimum budget cannot exceed maximum budget.";
+      }
     }
-
-    if (budgetMin && budgetMax && Number(budgetMax) < Number(budgetMin)) {
-      errs.budget =
-        locale === "ur"
-          ? "زیادہ سے زیادہ بجٹ کم از کم بجٹ سے زیادہ ہونا چاہیے۔"
-          : "Maximum budget should be greater than minimum budget.";
-    }
-
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // Final Submit Action
-  const handleSubmitJob = async () => {
+  const validateStep4 = () => {
+    const errs: Record<string, string> = {};
+    if (!contactPhone.trim() || contactPhone.trim().length < 10) {
+      errs.phone = locale === "ur" ? "درست پاکستانی موبائل نمبر درج کریں۔" : "Enter a valid Pakistani mobile number.";
+    }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleFinalPublish = async () => {
+    if (!validateStep4()) return;
     if (!user) {
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(
-            "maddad_saved_job_draft",
-            JSON.stringify({
-              step,
-              selectedTrade,
-              selectedProblem,
-              areaId,
-              urgency,
-              landmark,
-              description,
-              budgetMin,
-              budgetMax,
-            })
-          );
-        } catch {}
-      }
       onNeedAuth();
       return;
     }
@@ -181,541 +139,592 @@ export function PostJobView({
     setSubmitting(true);
     setServerError(null);
 
-    const problemObj = currentProblems.find((p) => p.id === selectedProblem);
-    const resolvedTitle = `${selectedTrade === "plumbing" ? "Plumbing" : "Electrical"}: ${problemObj?.en || "Repair needed"}`;
-    const resolvedDesc = description.trim()
-      ? `${description.trim()} (${problemObj?.en || ""})`
-      : `${problemObj?.en || "Repair needed in Lahore"}. Needs inspection and repair by verified technician.`;
-
-    const activeCatId = selectedTrade === "plumbing" ? defaultPlumbingId : defaultElectricalId;
-
     const fd = new FormData();
-    fd.set("categoryId", activeCatId);
+    fd.set("title", title.trim());
+    fd.set("description", description.trim());
+    fd.set("categoryId", categoryId);
     fd.set("areaId", areaId);
-    fd.set("title", resolvedTitle);
-    fd.set("description", resolvedDesc);
-    fd.set("budgetMin", budgetMin || "1000");
-    fd.set("budgetMax", budgetMax || "3000");
+    fd.set("landmark", landmark.trim());
+    fd.set("addressText", landmark.trim() ? `Near ${landmark.trim()}` : "Lahore Neighborhood");
+    fd.set("listingType", listingType);
+    fd.set("pricingModel", pricingModel);
+    fd.set("itemCondition", listingType === "item_sale" ? itemCondition : "");
     fd.set("asap", urgency === "asap" ? "true" : "false");
-    fd.set("addressText", landmark.trim() || "Near neighbourhood main road (Exact address shared on hire)");
-    fd.set("contactNote", "Contact directly upon hire");
+    fd.set("preferredTiming", urgency);
+
+    if (pricingModel === "fixed" || pricingModel === "negotiable") {
+      fd.set("price", price);
+      fd.set("budgetMin", price);
+      fd.set("budgetMax", price);
+    } else if (pricingModel === "budget_range") {
+      fd.set("budgetMin", budgetMin);
+      fd.set("budgetMax", budgetMax);
+    }
+
+    // Resolve category name
+    const catName = categories.find((c) => String(c.id) === categoryId)?.name || "Classifieds";
+    fd.set("categoryName", catName);
 
     try {
       const res = await createAndPublishJobAction(null, fd);
       if (res?.error) {
         setServerError(res.error);
       } else if (res?.jobId) {
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.removeItem("maddad_saved_job_draft");
-          } catch {}
-        }
-        setCreatedJobId(res.jobId);
         onSuccess(res.jobId);
       } else {
-        setServerError(locale === "ur" ? "درخواست جمع نہیں ہو سکی۔ دوبارہ کوشش کریں۔" : "Failed to create job.");
+        onSuccess("created");
       }
-    } catch {
-      setServerError(locale === "ur" ? "درخواست جمع کرتے وقت خرابی ہوئی۔" : "Something went wrong. Please try again.");
+    } catch (e: any) {
+      setServerError(e?.message || "Failed to publish listing. Please check required fields.");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const selectedCategoryName = categories.find((c) => String(c.id) === categoryId)?.name || "Selected Category";
+  const selectedAreaName = areas.find((a) => String(a.id) === areaId)?.name || "Lahore";
+
   return (
-    <div style={{ maxWidth: 680, margin: "0 auto", paddingBottom: 40 }}>
-      {/* Progress Header */}
-      <div style={{ marginBottom: 20 }}>
-        <button
-          type="button"
-          onClick={onViewMarketplace}
-          className="btn btn-ghost btn-sm"
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 12, paddingInlineStart: 0 }}
-        >
-          <IconArrowLeft size={16} aria-hidden="true" />
-          <span>{locale === "ur" ? "مارکیٹ پر واپس جائیں" : "Back to marketplace"}</span>
-        </button>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <span className="pill pill-ok" style={{ fontWeight: 800 }}>
-            {locale === "ur" ? `مرحلہ ${step} از 4` : `Step ${step} of 4`}
-          </span>
-          <span style={{ fontSize: "0.82rem", color: "var(--text-3)" }}>
-            {step === 1
-              ? locale === "ur" ? "مسئلہ منتخب کریں" : "Select problem"
-              : step === 2
-              ? locale === "ur" ? "علاقہ اور وقت" : "Area & timing"
-              : step === 3
-              ? locale === "ur" ? "تفصیل اور بجٹ" : "Details & budget"
-              : locale === "ur" ? "جائزہ اور پوسٹ" : "Review & publish"}
-          </span>
-        </div>
-
-        {/* Step indicator bar */}
-        <div style={{ display: "flex", gap: 6, height: 6, borderRadius: 3, overflow: "hidden", background: "var(--graphite-2)" }}>
-          {[1, 2, 3, 4].map((s) => (
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 12px" }}>
+      <div className="card" style={{ padding: "clamp(24px, 3.5vw, 40px)", background: "#FFFFFF", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
+        {/* Wizard Progress Indicator */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <span style={{ fontSize: "0.82rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--violet-500)" }}>
+              Step {step} of 4: {step === 1 ? "Ad Category" : step === 2 ? "Listing Details" : step === 3 ? "Pricing & Terms" : "Location & Privacy"}
+            </span>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={onViewMarketplace}
+              style={{ fontSize: "0.82rem", color: "var(--text-3)" }}
+            >
+              Cancel
+            </button>
+          </div>
+          <div style={{ height: 4, width: "100%", background: "var(--graphite-2)", borderRadius: 2, overflow: "hidden" }}>
             <div
-              key={s}
               style={{
-                flex: 1,
-                background: s <= step ? "var(--emerald-500)" : "transparent",
-                transition: "background 0.2s ease",
+                height: "100%",
+                width: `${(step / 4) * 100}%`,
+                background: "var(--violet-500)",
+                transition: "width 0.25s ease",
               }}
             />
-          ))}
+          </div>
         </div>
-      </div>
 
-      {serverError && (
-        <div className="notice notice-bad" style={{ marginBottom: 16 }}>
-          <IconAlertCircle size={18} />
-          <span>{serverError}</span>
-        </div>
-      )}
+        {/* STEP 1: LISTING TYPE */}
+        {step === 1 && (
+          <div>
+            <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.45rem", fontWeight: 700, margin: "0 0 8px" }}>
+              {locale === "ur" ? "آپ کیا پوسٹ کرنا چاہتے ہیں؟" : "What would you like to post?"}
+            </h2>
+            <p style={{ color: "var(--text-2)", fontSize: "0.95rem", margin: "0 0 24px" }}>
+              {locale === "ur"
+                ? "درست زمرہ منتخب کریں تاکہ لاہور کے متعلقہ خریدار اور افراد آپ سے آسانی سے رابطہ کر سکیں۔"
+                : "Choose the type of advertisement that best matches your goal in Lahore."}
+            </p>
 
-      {/* ------------------------------------------------------------ */}
-      {/* STEP 1: CHOOSE PROBLEM                                       */}
-      {/* ------------------------------------------------------------ */}
-      {step === 1 && (
-        <div className="plate" style={{ padding: 24, borderRadius: "var(--r-md)", background: "var(--ink-1)", border: "1px solid var(--line)" }}>
-          <h2 style={{ margin: "0 0 6px", fontSize: "1.35rem", fontWeight: 800 }}>
-            {t("post.step1_title")}
-          </h2>
-          <p style={{ margin: "0 0 20px", color: "var(--text-2)", fontSize: "0.92rem" }}>
-            {t("post.step1_sub")}
-          </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 28 }}>
+              {/* Type 1: Item for Sale */}
+              <div
+                onClick={() => setListingType("item_sale")}
+                style={{
+                  padding: "20px",
+                  borderRadius: "var(--r-md)",
+                  border: listingType === "item_sale" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
+                  background: listingType === "item_sale" ? "var(--violet-soft)" : "var(--graphite-2)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <IconTag size={20} style={{ color: "var(--violet-500)" }} />
+                  <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)" }}>
+                    {locale === "ur" ? "سامان برائے فروخت" : "Item for Sale"}
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: "0.86rem", color: "var(--text-2)", lineHeight: 1.5 }}>
+                  {locale === "ur"
+                    ? "موبائل فونز، لیپ ٹاپس، فرنیچر، گاڑیاں، الیکٹرانکس اور گھریلو سامان۔"
+                    : "Mobiles, laptops, appliances, furniture, cars, bikes, and physical goods."}
+                </p>
+              </div>
 
-          {/* Trade Selector (Plumbing vs Electrical) */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, marginBottom: 8 }}>
-              {t("post.choose_trade")}
-            </label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* Type 2: Service Request */}
+              <div
+                onClick={() => setListingType("service_request")}
+                style={{
+                  padding: "20px",
+                  borderRadius: "var(--r-md)",
+                  border: listingType === "service_request" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
+                  background: listingType === "service_request" ? "var(--violet-soft)" : "var(--graphite-2)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <IconWrench size={20} style={{ color: "var(--violet-500)" }} />
+                  <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)" }}>
+                    {locale === "ur" ? "سروس یا کاریگر چاہیے" : "Request a Service"}
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: "0.86rem", color: "var(--text-2)", lineHeight: 1.5 }}>
+                  {locale === "ur"
+                    ? "گھر کے لیے پلمبر، الیکٹریشن، اے سی ٹیکنیشن، پینٹر یا صفائی کی سروس۔"
+                    : "Need a plumber, electrician, AC mechanic, painter, or carpenter in your area."}
+                </p>
+              </div>
+
+              {/* Type 3: Service Offer */}
+              <div
+                onClick={() => setListingType("service_offer")}
+                style={{
+                  padding: "20px",
+                  borderRadius: "var(--r-md)",
+                  border: listingType === "service_offer" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
+                  background: listingType === "service_offer" ? "var(--violet-soft)" : "var(--graphite-2)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <IconCheck size={20} style={{ color: "var(--ok)" }} />
+                  <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)" }}>
+                    {locale === "ur" ? "اپنی سروس پیش کریں" : "Offer a Service"}
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: "0.86rem", color: "var(--text-2)", lineHeight: 1.5 }}>
+                  {locale === "ur"
+                    ? "فری لانس کاریگر، ہوم ٹیوٹرز، ٹیلرنگ، گاڑیوں کی صفائی، کیٹرنگ سروسز۔"
+                    : "Independent technicians, home tutors, tailors, contractors, and freelance pros."}
+                </p>
+              </div>
+
+              {/* Type 4: Job Opportunity */}
+              <div
+                onClick={() => setListingType("job_opportunity")}
+                style={{
+                  padding: "20px",
+                  borderRadius: "var(--r-md)",
+                  border: listingType === "job_opportunity" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
+                  background: listingType === "job_opportunity" ? "var(--violet-soft)" : "var(--graphite-2)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <IconBriefcase size={20} style={{ color: "var(--violet-500)" }} />
+                  <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)" }}>
+                    {locale === "ur" ? "ملازمت اور ہائرنگ" : "Job & Hiring"}
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: "0.86rem", color: "var(--text-2)", lineHeight: 1.5 }}>
+                  {locale === "ur"
+                    ? "ڈرائیور، گھریلو ملازمین، دکان کے سیلز عملہ، رائیڈرز اور کک۔"
+                    : "Hiring drivers, domestic staff, retail workers, delivery riders, or office help."}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <button
                 type="button"
-                className={`service-choice-card ${selectedTrade === "plumbing" ? "selected" : ""}`}
-                onClick={() => {
-                  setSelectedTrade("plumbing");
-                  setSelectedProblem("");
-                }}
-                style={{ padding: "14px 16px" }}
+                className="btn btn-primary"
+                onClick={() => setStep(2)}
+                style={{ padding: "10px 24px" }}
               >
-                <div className="service-choice-icon" style={{ width: 38, height: 38 }}>
-                  <IconWrench size={20} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>{t("cat.plumbing_title")}</div>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text-3)", marginTop: 2 }}>{t("cat.plumbing_desc")}</div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                className={`service-choice-card electrical ${selectedTrade === "electrical" ? "selected" : ""}`}
-                onClick={() => {
-                  setSelectedTrade("electrical");
-                  setSelectedProblem("");
-                }}
-                style={{ padding: "14px 16px" }}
-              >
-                <div className="service-choice-icon" style={{ width: 38, height: 38 }}>
-                  <IconZap size={20} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: "1.05rem" }}>{t("cat.electrical_title")}</div>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text-3)", marginTop: 2 }}>{t("cat.electrical_desc")}</div>
-                </div>
+                <span>Continue to Details</span>
+                <IconArrowRight size={16} />
               </button>
             </div>
           </div>
+        )}
 
-          {/* Electrical Safety Notice */}
-          {selectedTrade === "electrical" && (
-            <div
-              style={{
-                padding: "12px 14px",
-                borderRadius: "var(--r-sm)",
-                background: "rgba(245, 158, 11, 0.1)",
-                border: "1px solid rgba(245, 158, 11, 0.3)",
-                marginBottom: 20,
-                fontSize: "0.85rem",
-                color: "var(--amber-300)",
-                lineHeight: 1.5,
-              }}
-            >
-              <strong>{t("post.electrical_safety_title")}</strong>
-              <div style={{ marginTop: 4, color: "var(--text-2)" }}>
-                {t("post.electrical_safety_body")}
+        {/* STEP 2: DETAILS & DESCRIPTION */}
+        {step === 2 && (
+          <div>
+            <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.45rem", fontWeight: 700, margin: "0 0 8px" }}>
+              {locale === "ur" ? "اشتہار کی تفصیلات درج کریں" : "Listing Details & Description"}
+            </h2>
+            <p style={{ color: "var(--text-2)", fontSize: "0.95rem", margin: "0 0 24px" }}>
+              Provide clear and accurate details to get quick, relevant responses.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 28 }}>
+              {/* Category selector */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                  Category
+                </label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-2)", fontSize: "0.92rem" }}
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} {c.name_ur ? `(${c.name_ur})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                  Listing Title
+                </label>
+                <input
+                  type="text"
+                  placeholder={
+                    listingType === "item_sale"
+                      ? "e.g. iPhone 13 128GB PTA Approved Midnight Blue"
+                      : listingType === "service_request"
+                      ? "e.g. Need Plumber for Leaking Bathroom Motor in Gulberg"
+                      : listingType === "service_offer"
+                      ? "e.g. Experienced Math & Physics Tutor for O/A Levels"
+                      : "e.g. Hiring Full-Time Family Driver in DHA Phase 5"
+                  }
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.92rem" }}
+                />
+                {errors.title && <span style={{ color: "var(--bad)", fontSize: "0.8rem", marginTop: 4, display: "block" }}>{errors.title}</span>}
+              </div>
+
+              {/* Condition (if item sale) */}
+              {listingType === "item_sale" && (
+                <div>
+                  <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                    Item Condition
+                  </label>
+                  <select
+                    value={itemCondition}
+                    onChange={(e) => setItemCondition(e.target.value)}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-2)", fontSize: "0.92rem" }}
+                  >
+                    <option value="Brand New (Box Pack)">Brand New (Box Pack)</option>
+                    <option value="Like New (Flawless)">Like New (Flawless)</option>
+                    <option value="Used - Good">Used - Good</option>
+                    <option value="Used - Fair">Used - Fair (Minor Wear)</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Detailed Description */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                  Detailed Description
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="Describe specifications, reason for selling, exact problem details, or requirements..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.92rem" }}
+                />
+                {errors.description && <span style={{ color: "var(--bad)", fontSize: "0.8rem", marginTop: 4, display: "block" }}>{errors.description}</span>}
               </div>
             </div>
-          )}
 
-          {/* Problem Choice Chips */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setStep(1)}>
+                <IconArrowLeft size={16} />
+                <span>Back</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  if (validateStep2()) setStep(3);
+                }}
+              >
+                <span>Continue to Pricing</span>
+                <IconArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: PRICING & TERMS */}
+        {step === 3 && (
           <div>
-            <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, marginBottom: 8 }}>
-              {t("post.problem_label")}
-            </label>
-            {errors.problem && (
-              <p style={{ color: "var(--bad)", fontSize: "0.82rem", margin: "0 0 8px" }}>
-                {errors.problem}
-              </p>
-            )}
-            <div className="problem-chips-grid">
-              {currentProblems.map((prob) => {
-                const isSelected = selectedProblem === prob.id;
-                return (
+            <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.45rem", fontWeight: 700, margin: "0 0 8px" }}>
+              {locale === "ur" ? "قیمت اور شرائط طے کریں" : "Pricing & Terms"}
+            </h2>
+            <p style={{ color: "var(--text-2)", fontSize: "0.95rem", margin: "0 0 24px" }}>
+              Set your expectations clearly so interested buyers or providers know what to expect.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 28 }}>
+              {/* Pricing Model selection */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                  Pricing Model
+                </label>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
                   <button
-                    key={prob.id}
                     type="button"
-                    className={`problem-chip-btn ${isSelected ? "active" : ""}`}
-                    onClick={() => {
-                      setSelectedProblem(prob.id);
-                      setErrors({});
+                    onClick={() => setPricingModel("fixed")}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: "var(--r-sm)",
+                      border: pricingModel === "fixed" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
+                      background: pricingModel === "fixed" ? "var(--violet-soft)" : "var(--graphite-2)",
+                      fontWeight: 600,
+                      fontSize: "0.88rem",
+                      cursor: "pointer",
                     }}
                   >
-                    {isSelected && <IconCheck size={16} aria-hidden="true" />}
-                    <span>{locale === "ur" ? prob.ur : prob.en}</span>
+                    Fixed Price
                   </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 28 }}>
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={() => {
-                if (validateStep1()) setStep(2);
-              }}
-            >
-              <span>{t("post.next_btn")}</span>
-              <IconArrowRight size={18} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ------------------------------------------------------------ */}
-      {/* STEP 2: AREA & TIMING                                        */}
-      {/* ------------------------------------------------------------ */}
-      {step === 2 && (
-        <div className="plate" style={{ padding: 24, borderRadius: "var(--r-md)", background: "var(--ink-1)", border: "1px solid var(--line)" }}>
-          <h2 style={{ margin: "0 0 6px", fontSize: "1.35rem", fontWeight: 800 }}>
-            {locale === "ur" ? "لاہور کا علاقہ اور وقت منتخب کریں" : "Where and when do you need help?"}
-          </h2>
-          <p style={{ margin: "0 0 20px", color: "var(--text-2)", fontSize: "0.92rem" }}>
-            {locale === "ur"
-              ? "صرف قریبی کاریگروں کو مطلع کیا جائے گا تاکہ وہ جلدی پہنچ سکیں۔"
-              : "Only nearby technicians covering this area will be invited to quote."}
-          </p>
-
-          <Field id="post-area" label={t("post.area_label")} error={errors.area}>
-            {(p) => (
-              <select
-                {...p}
-                value={areaId}
-                onChange={(e) => setAreaId(e.target.value)}
-                style={{ padding: "10px 14px", fontSize: "0.95rem" }}
-              >
-                {areas.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}, Lahore
-                  </option>
-                ))}
-              </select>
-            )}
-          </Field>
-
-          {/* Urgency Selector */}
-          <div style={{ marginTop: 18 }}>
-            <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, marginBottom: 8 }}>
-              {t("post.urgency_label")}
-            </label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {[
-                { id: "asap", label: t("post.urgency_asap"), icon: <IconClock size={16} /> },
-                { id: "today", label: t("post.urgency_today"), icon: <IconCalendar size={16} /> },
-                { id: "tomorrow", label: t("post.urgency_tomorrow"), icon: <IconCalendar size={16} /> },
-                { id: "flexible", label: t("post.urgency_anytime"), icon: <IconCheck size={16} /> },
-              ].map((u) => {
-                const isSelected = urgency === u.id;
-                return (
                   <button
-                    key={u.id}
                     type="button"
-                    className={`problem-chip-btn ${isSelected ? "active" : ""}`}
-                    onClick={() => setUrgency(u.id as any)}
-                    style={{ padding: "12px 14px", justifyContent: "flex-start" }}
+                    onClick={() => setPricingModel("negotiable")}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: "var(--r-sm)",
+                      border: pricingModel === "negotiable" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
+                      background: pricingModel === "negotiable" ? "var(--violet-soft)" : "var(--graphite-2)",
+                      fontWeight: 600,
+                      fontSize: "0.88rem",
+                      cursor: "pointer",
+                    }}
                   >
-                    {u.icon}
-                    <span>{u.label}</span>
+                    Negotiable
                   </button>
-                );
-              })}
-            </div>
-          </div>
+                  <button
+                    type="button"
+                    onClick={() => setPricingModel("quote_requested")}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: "var(--r-sm)",
+                      border: pricingModel === "quote_requested" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
+                      background: pricingModel === "quote_requested" ? "var(--violet-soft)" : "var(--graphite-2)",
+                      fontWeight: 600,
+                      fontSize: "0.88rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Request Quotes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPricingModel("budget_range")}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: "var(--r-sm)",
+                      border: pricingModel === "budget_range" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
+                      background: pricingModel === "budget_range" ? "var(--violet-soft)" : "var(--graphite-2)",
+                      fontWeight: 600,
+                      fontSize: "0.88rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Budget Range
+                  </button>
+                </div>
+              </div>
 
-          {/* Approximate Landmark Note with Privacy Reassurance */}
-          <div style={{ marginTop: 20 }}>
-            <Field
-              id="post-landmark"
-              label={t("post.landmark_label")}
-              hint={t("post.landmark_hint")}
-            >
-              {(p) => (
-                <input
-                  {...p}
-                  type="text"
-                  placeholder={t("post.landmark_placeholder")}
-                  value={landmark}
-                  onChange={(e) => setLandmark(e.target.value)}
-                  style={{ padding: "10px 14px", fontSize: "0.92rem" }}
-                />
+              {/* Price inputs based on model */}
+              {(pricingModel === "fixed" || pricingModel === "negotiable") && (
+                <div>
+                  <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                    Price (PKR)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 15000"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.95rem" }}
+                  />
+                  {errors.price && <span style={{ color: "var(--bad)", fontSize: "0.8rem", marginTop: 4, display: "block" }}>{errors.price}</span>}
+                </div>
               )}
-            </Field>
-          </div>
 
-          <div
-            style={{
-              padding: "10px 14px",
-              borderRadius: "var(--r-sm)",
-              background: "rgba(16, 185, 129, 0.08)",
-              border: "1px solid rgba(16, 185, 129, 0.25)",
-              marginTop: 18,
-              fontSize: "0.84rem",
-              color: "var(--emerald-300)",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <IconLock size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
-            <span>
-              <strong>{t("hero.privacy_badge")}</strong> {t("post.landmark_hint")}
-            </span>
-          </div>
+              {pricingModel === "budget_range" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                      Minimum (PKR)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="1500"
+                      value={budgetMin}
+                      onChange={(e) => setBudgetMin(e.target.value)}
+                      style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                      Maximum (PKR)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="3500"
+                      value={budgetMax}
+                      onChange={(e) => setBudgetMax(e.target.value)}
+                      style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)" }}
+                    />
+                  </div>
+                </div>
+              )}
 
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
-            <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>
-              {t("post.back_btn")}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={() => {
-                if (validateStep2()) setStep(3);
-              }}
-            >
-              <span>{t("post.next_btn")}</span>
-              <IconArrowRight size={18} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ------------------------------------------------------------ */}
-      {/* STEP 3: SHORT DESCRIPTION & BUDGET                           */}
-      {/* ------------------------------------------------------------ */}
-      {step === 3 && (
-        <div className="plate" style={{ padding: 24, borderRadius: "var(--r-md)", background: "var(--ink-1)", border: "1px solid var(--line)" }}>
-          <h2 style={{ margin: "0 0 6px", fontSize: "1.35rem", fontWeight: 800 }}>
-            {locale === "ur" ? "مختصر تفصیل اور بجٹ" : "Describe the job in simple words"}
-          </h2>
-          <p style={{ margin: "0 0 20px", color: "var(--text-2)", fontSize: "0.92rem" }}>
-            {locale === "ur"
-              ? "کسی تکنیکی اصطلاح کی ضرورت نہیں، بس عام الفاظ میں بتائیں کہ کیا مسئلہ پیش آ رہا ہے۔"
-              : "No technical jargon needed. Tell technicians what is happening so they can quote accurately."}
-          </p>
-
-          <Field
-            id="post-desc"
-            label={t("post.details_label")}
-            error={errors.description}
-            hint={
-              locale === "ur"
-                ? "مثلاً: واش روم کا نل مسلسل ٹپک رہا ہے، یا پنکھا گھومتے وقت آواز دے رہا ہے۔"
-                : "e.g. Water is leaking under the kitchen sink, or the fan switch sparked when turned on."
-            }
-          >
-            {(p) => (
-              <textarea
-                {...p}
-                rows={4}
-                placeholder={t("post.details_placeholder")}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                style={{ padding: "10px 14px", fontSize: "0.92rem" }}
-              />
-            )}
-          </Field>
-
-          {/* Expected Budget */}
-          <div style={{ marginTop: 18 }}>
-            <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, marginBottom: 8 }}>
-              {t("post.budget_label")}
-            </label>
-            {errors.budget && (
-              <p style={{ color: "var(--bad)", fontSize: "0.82rem", margin: "0 0 6px" }}>
-                {errors.budget}
-              </p>
-            )}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* Timing */}
               <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-3)", display: "block", marginBottom: 4 }}>
-                  {locale === "ur" ? "کم از کم (روپے)" : "Minimum (PKR)"}
-                </span>
-                <input
-                  type="number"
-                  min={500}
-                  step={100}
-                  value={budgetMin}
-                  onChange={(e) => setBudgetMin(e.target.value)}
-                  style={{ padding: "8px 12px", width: "100%" }}
-                />
-              </div>
-              <div>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-3)", display: "block", marginBottom: 4 }}>
-                  {locale === "ur" ? "زیادہ سے زیادہ (روپے)" : "Maximum (PKR)"}
-                </span>
-                <input
-                  type="number"
-                  min={500}
-                  step={100}
-                  value={budgetMax}
-                  onChange={(e) => setBudgetMax(e.target.value)}
-                  style={{ padding: "8px 12px", width: "100%" }}
-                />
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                  Timing Preference
+                </label>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {[
+                    { id: "flexible", label: "Flexible Schedule" },
+                    { id: "asap", label: "⚡ Immediate / ASAP" },
+                    { id: "today", label: "Today" },
+                    { id: "tomorrow", label: "Tomorrow / Weekend" },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setUrgency(t.id as any)}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: "var(--r-pill)",
+                        border: urgency === t.id ? "1px solid var(--violet-500)" : "1px solid var(--line)",
+                        background: urgency === t.id ? "var(--violet-soft)" : "transparent",
+                        color: urgency === t.id ? "var(--violet-700)" : "var(--text-2)",
+                        fontWeight: 600,
+                        fontSize: "0.84rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
-            <button type="button" className="btn btn-ghost" onClick={() => setStep(2)}>
-              {t("post.back_btn")}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={() => {
-                if (validateStep3()) setStep(4);
-              }}
-            >
-              <span>{locale === "ur" ? "جائزہ دیکھیں →" : "Review request →"}</span>
-              <IconArrowRight size={18} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ------------------------------------------------------------ */}
-      {/* STEP 4: REVIEW & PUBLISH                                     */}
-      {/* ------------------------------------------------------------ */}
-      {step === 4 && (
-        <div className="plate" style={{ padding: 24, borderRadius: "var(--r-md)", background: "var(--ink-1)", border: "1px solid var(--line)" }}>
-          <h2 style={{ margin: "0 0 6px", fontSize: "1.35rem", fontWeight: 800 }}>
-            {t("post.summary_title")}
-          </h2>
-          <p style={{ margin: "0 0 20px", color: "var(--text-2)", fontSize: "0.92rem" }}>
-            {t("post.free_notice")}
-          </p>
-
-          {/* Plain Language Summary Card */}
-          <div
-            style={{
-              padding: "18px 20px",
-              borderRadius: "var(--r-md)",
-              background: "var(--graphite-1)",
-              border: "1px solid var(--line-strong)",
-              marginBottom: 20,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-              <div>
-                <span className="pill pill-ok" style={{ textTransform: "capitalize", marginBottom: 6 }}>
-                  {selectedTrade}
-                </span>
-                <h3 style={{ margin: "4px 0 0", fontSize: "1.2rem", fontWeight: 800 }}>
-                  {currentProblems.find((p) => p.id === selectedProblem)?.en || "Repair needed"}
-                </h3>
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setStep(2)}>
+                <IconArrowLeft size={16} />
+                <span>Back</span>
+              </button>
               <button
                 type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => setStep(1)}
-                style={{ color: "var(--emerald-400)" }}
+                className="btn btn-primary"
+                onClick={() => {
+                  if (validateStep3()) setStep(4);
+                }}
               >
-                {locale === "ur" ? "تبدیل کریں" : "Edit"}
+                <span>Continue to Location</span>
+                <IconArrowRight size={16} />
               </button>
             </div>
+          </div>
+        )}
 
-            <div style={{ fontSize: "0.88rem", color: "var(--text-2)", lineHeight: 1.5, marginBottom: 14 }}>
-              {description.trim() || "Inspection and repair requested."}
+        {/* STEP 4: LOCATION & PRIVACY */}
+        {step === 4 && (
+          <div>
+            <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.45rem", fontWeight: 700, margin: "0 0 8px" }}>
+              {locale === "ur" ? "مقام اور رازداری کا تحفظ" : "Location & Privacy Protection"}
+            </h2>
+            <p style={{ color: "var(--text-2)", fontSize: "0.95rem", margin: "0 0 24px" }}>
+              Only your approximate Lahore neighborhood is public. Exact street addresses stay strictly locked until mutual agreement.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 28 }}>
+              {/* Lahore Area */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                  Lahore Neighbourhood / Area
+                </label>
+                <select
+                  value={areaId}
+                  onChange={(e) => setAreaId(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-2)", fontSize: "0.92rem" }}
+                >
+                  {areas.map((a) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Private Landmark / House info */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                  Street / Landmark (Strictly Private)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Near Siddique Trade Center, Main Boulevard"
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.92rem" }}
+                />
+                <span style={{ fontSize: "0.8rem", color: "var(--text-3)", marginTop: 4, display: "block" }}>
+                  🔒 Kept private. Only shared with the single person you agree to deal with.
+                </span>
+              </div>
+
+              {/* Contact Phone */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
+                  Contact Mobile Number (Pakistani SIM)
+                </label>
+                <input
+                  type="tel"
+                  placeholder="0300 1234567"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.92rem" }}
+                />
+                {errors.phone && <span style={{ color: "var(--bad)", fontSize: "0.8rem", marginTop: 4, display: "block" }}>{errors.phone}</span>}
+              </div>
+
+              {/* Summary Review Card */}
+              <div style={{ padding: 16, background: "var(--graphite-2)", borderRadius: "var(--r-md)", border: "1px solid var(--line-soft)" }}>
+                <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", marginBottom: 6 }}>
+                  Summary Preview
+                </div>
+                <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)", marginBottom: 4 }}>
+                  {title || "Untitled Listing"}
+                </div>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-2)" }}>
+                  {selectedCategoryName} · {selectedAreaName}, Lahore · {pricingModel === "fixed" ? pkr(Number(price)) : pricingModel}
+                </div>
+              </div>
+
+              {serverError && (
+                <div style={{ padding: "12px 14px", background: "rgba(155, 44, 44, 0.08)", border: "1px solid var(--bad)", borderRadius: "var(--r-sm)", color: "var(--bad)", fontSize: "0.88rem" }}>
+                  {serverError}
+                </div>
+              )}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, paddingTop: 12, borderTop: "1px solid var(--line-soft)", fontSize: "0.85rem" }}>
-              <div>
-                <span style={{ color: "var(--text-3)" }}>{locale === "ur" ? "علاقہ:" : "Area:"}</span>{" "}
-                <strong>{areas.find((a) => String(a.id) === areaId)?.name || "Lahore"}</strong>
-              </div>
-              <div>
-                <span style={{ color: "var(--text-3)" }}>{locale === "ur" ? "وقت:" : "Timing:"}</span>{" "}
-                <strong>{urgency === "asap" ? "Urgent (ASAP)" : urgency}</strong>
-              </div>
-              <div>
-                <span style={{ color: "var(--text-3)" }}>{locale === "ur" ? "بجٹ:" : "Budget:"}</span>{" "}
-                <strong>Rs {budgetMin} – {budgetMax}</strong>
-              </div>
-              <div>
-                <span style={{ color: "var(--text-3)" }}>{locale === "ur" ? "پتہ کی رازداری:" : "Address:"}</span>{" "}
-                <strong style={{ color: "var(--emerald-300)" }}>{locale === "ur" ? "مکمل محفوظ" : "Hidden until hire"}</strong>
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setStep(3)} disabled={submitting}>
+                <IconArrowLeft size={16} />
+                <span>Back</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleFinalPublish}
+                disabled={submitting}
+                style={{ padding: "10px 28px" }}
+              >
+                <span>{submitting ? "Publishing..." : "Publish Listing"}</span>
+                <IconCheck size={16} />
+              </button>
             </div>
           </div>
-
-          <div
-            style={{
-              padding: "12px 16px",
-              borderRadius: "var(--r-sm)",
-              background: "rgba(16, 185, 129, 0.08)",
-              border: "1px solid rgba(16, 185, 129, 0.25)",
-              marginBottom: 24,
-              fontSize: "0.85rem",
-              color: "var(--emerald-300)",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <IconShieldCheck size={18} aria-hidden="true" style={{ flexShrink: 0 }} />
-            <span>
-              <strong>{locale === "ur" ? "کوئی پیشگی فیس نہیں:" : "Zero upfront charges:"}</strong>{" "}
-              {locale === "ur"
-                ? "آپ صرف اس کاریگر کو براہ راست مزدوری ادا کرتے ہیں جس کا کام آپ کی تسلی کے مطابق مکمل ہو۔"
-                : "You pay your chosen technician directly upon satisfactory completion of work."}
-            </span>
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <button type="button" className="btn btn-ghost" onClick={() => setStep(3)}>
-              {t("post.back_btn")}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={handleSubmitJob}
-              disabled={submitting}
-              style={{ padding: "14px 28px", fontWeight: 800 }}
-            >
-              {submitting
-                ? locale === "ur"
-                  ? "پوسٹ کیا جا رہا ہے..."
-                  : "Posting..."
-                : t("post.submit_btn")}
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

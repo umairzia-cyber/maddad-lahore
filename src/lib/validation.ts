@@ -28,22 +28,26 @@ export const jobSchema = z
     categoryId: z.coerce.number().int().positive("Choose a category."),
     areaId: z.coerce.number().int().positive("Choose your area."),
     title: publicText(5, 120, "Title"),
-    description: publicText(20, 2000, "Description"),
+    description: publicText(15, 2500, "Description"),
+    listingType: z.enum(["item_sale", "service_request", "service_offer", "job_opportunity"]).optional().default("service_request"),
+    pricingModel: z.enum(["fixed", "negotiable", "budget_range", "quote_requested", "contact_for_price"]).optional().default("budget_range"),
+    price: optionalInt,
+    itemCondition: z.enum(["new", "like_new", "good", "fair", ""]).optional().default(""),
     budgetMin: optionalInt,
     budgetMax: optionalInt,
-    asap: z.coerce.boolean().default(false),
+    asap: z.coerce.boolean().default(true),
     preferredAt: z.string().optional().default(""),
     addressText: z.string().transform(clean).pipe(z.string().max(300)).optional().default(""),
     landmark: z.string().transform(clean).pipe(z.string().max(120)).optional().default(""),
     contactNote: z.string().transform(clean).pipe(z.string().max(300)).optional().default(""),
     lat: z.string().optional().default(""),
     lng: z.string().optional().default(""),
-    ack: z.literal("on", { errorMap: () => ({ message: "Please confirm you understand how payment works." }) }),
+    ack: z.string().optional().default("on"),
   })
   .superRefine((v, ctx) => {
     if (v.budgetMin && v.budgetMax && v.budgetMax < v.budgetMin)
       ctx.addIssue({ code: "custom", path: ["budgetMax"], message: "Maximum budget must be at least the minimum." });
-    if (!v.asap && !v.preferredAt)
+    if (v.listingType === "service_request" && !v.asap && !v.preferredAt)
       ctx.addIssue({ code: "custom", path: ["preferredAt"], message: "Pick a preferred time or choose 'as soon as possible'." });
     if (v.lat || v.lng) {
       const la = Number(v.lat), ln = Number(v.lng);

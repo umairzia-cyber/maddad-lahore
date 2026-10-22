@@ -17,9 +17,9 @@ import { TrustStrip } from "@/components/TrustStrip";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: { default: `${appName} – Plumbing & electrical jobs in Lahore`, template: `%s · ${appName}` },
+  title: { default: `${appName} – Lahore Classifieds & Local Services`, template: `%s · ${appName}` },
   description:
-    "Post a plumbing or electrical job in Lahore, compare bids from independent technicians and choose who to hire. Payment is arranged directly with the technician.",
+    "Lahore's local classifieds and services marketplace. Buy and sell goods, hire verified tradespeople, offer services, and discover neighborhood work across Lahore.",
   manifest: "/manifest.webmanifest",
   robots: { index: true, follow: true },
 };
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#050507",
+  themeColor: "#F6F3EC",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -47,17 +47,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   const nav: NavItem[] = [
-    { href: "/", label: "Marketplace" },
+    { href: "/", label: locale === "ur" ? "مارکیٹ پلیس" : "Marketplace" },
     ...(user
       ? ([
-          { href: "/dashboard", label: "My dashboard", match: "prefix" },
-          ...(user.is_worker ? [{ href: "/worker/jobs", label: "Matching jobs", match: "prefix" as const }] : []),
-          { href: "/notifications", label: "Notifications", count: unreadCount, match: "prefix" },
-          { href: "/account", label: "Account", match: "prefix" },
+          { href: "/dashboard", label: locale === "ur" ? "ڈیش بورڈ" : "My Dashboard", match: "prefix" },
+          ...(user.is_worker ? [{ href: "/worker/jobs", label: locale === "ur" ? "ملازمتیں اور کام" : "Jobs & Offers", match: "prefix" as const }] : []),
+          { href: "/notifications", label: locale === "ur" ? "اطلاعات" : "Notifications", count: unreadCount, match: "prefix" },
+          { href: "/account", label: locale === "ur" ? "اکاؤنٹ" : "Account", match: "prefix" },
           ...(user.is_admin ? [{ href: "/admin", label: "Moderation", match: "prefix" as const }] : []),
         ] as NavItem[])
       : []),
-    { href: "/payments", label: "How it works", match: "prefix" },
+    { href: "/safety", label: locale === "ur" ? "حفاظتی رہنمائی" : "Trust & Safety", match: "prefix" },
+    { href: "/payments", label: locale === "ur" ? "طریقہ کار" : "How it works", match: "prefix" },
   ];
 
   return (
@@ -82,7 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                           مددگار لاہور
                         </span>
                       </div>
-                      <span className="brand-tag">Lahore · Plumbing &amp; Electrical</span>
+                      <span className="brand-tag">Lahore · Classifieds &amp; Services</span>
                     </div>
                   </Link>
 
@@ -96,18 +97,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <Link href="/?view=post" className="btn btn-primary btn-sm">
                       <IconPlus size={16} aria-hidden="true" />
                       <span>
-                        Post a job
+                        {locale === "ur" ? "اشتہار لگائیں" : "Post an Ad"}
                       </span>
                     </Link>
                     {user?.is_worker ? (
-                      <Link href="/worker/profile" className="btn btn-sm" aria-label="My technician profile">
+                      <Link href="/worker/profile" className="btn btn-secondary btn-sm" aria-label="My professional profile">
                         <IconWrench size={16} aria-hidden="true" />
-                        <span className="btn-label-long" aria-hidden="true">My technician profile</span>
+                        <span className="btn-label-long" aria-hidden="true">
+                          {locale === "ur" ? "پروفائل" : "Provider Profile"}
+                        </span>
                       </Link>
                     ) : (
-                      <Link href="/?view=join" className="btn btn-sm" aria-label="Join as a technician">
+                      <Link href="/?view=join" className="btn btn-secondary btn-sm" aria-label="Offer services or work">
                         <IconWrench size={16} aria-hidden="true" />
-                        <span className="btn-label-long" aria-hidden="true">Join as a technician</span>
+                        <span className="btn-label-long" aria-hidden="true">
+                          {locale === "ur" ? "سروس فراہم کریں" : "Offer Services"}
+                        </span>
                       </Link>
                     )}
                     {user ? (

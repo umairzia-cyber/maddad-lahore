@@ -110,9 +110,10 @@ function UnifiedAppContent({
   const [activeTab, setActiveTab] = useState<TabType>(() =>
     resolveInitialTab(initialView, currentUser),
   );
-  const [preselectedCategory, setPreselectedCategory] = useState<"plumbing" | "electrical" | null>(null);
+  const [preselectedCategory, setPreselectedCategory] = useState<string | null>(null);
   const [notifications, setNotifications] = useState(initialNotifications);
   const [activeJobModal, setActiveJobModal] = useState<PublicJobItem | null>(null);
+  const [showDemoPersonas, setShowDemoPersonas] = useState(false);
 
   const { toasts, push: showToast } = useToasts();
 
@@ -163,63 +164,92 @@ function UnifiedAppContent({
       {/* Toast notifications */}
       <ToastRegion toasts={toasts} />
 
-      {/* Controlled Pilot Test Personas Switcher (when enabled) */}
+      {/* Controlled Test Personas Switcher (Collapsed by default in production) */}
       {demoAccounts && demoAccounts.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "rgba(124, 58, 237, 0.12)",
-            border: "1px solid var(--violet-500)",
-            borderRadius: "var(--r-md)",
-            padding: "8px 14px",
-            marginBottom: 16,
-            flexWrap: "wrap",
-            gap: 8,
-            fontSize: "0.82rem",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ fontWeight: 800, color: "var(--violet-200)" }}>
-              Controlled Pilot Test Personas:
-            </span>
-            <span style={{ color: "var(--text-3)", fontSize: "0.75rem" }}>
-              1-click persona switch for end-to-end testing (persisted in PostgreSQL)
-            </span>
-          </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-            {demoAccounts.map((acc) => {
-              const isCurrent = currentUser?.phone?.replace(/[^0-9]/g, "").slice(-7) === acc.phone.replace(/[^0-9]/g, "").slice(-7);
-              return (
-                <button
-                  key={acc.phone}
-                  type="button"
-                  onClick={async () => {
-                    await switchDemoUserAction(acc.phone);
-                    window.location.reload();
-                  }}
-                  className={`btn btn-sm ${isCurrent ? "btn-primary" : "btn-secondary"}`}
-                  style={{ padding: "4px 10px", fontSize: "0.76rem" }}
-                >
-                  {acc.name} ({acc.role})
-                </button>
-              );
-            })}
-            {currentUser && (
+        <div style={{ marginBottom: 16 }}>
+          {!showDemoPersonas ? (
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <button
                 type="button"
-                onClick={async () => {
-                  await logoutAction();
-                  window.location.reload();
+                onClick={() => setShowDemoPersonas(true)}
+                style={{
+                  background: "transparent",
+                  border: "1px dashed var(--line)",
+                  borderRadius: "var(--r-pill)",
+                  padding: "3px 10px",
+                  fontSize: "0.72rem",
+                  color: "var(--text-3)",
+                  cursor: "pointer",
                 }}
-                className="btn btn-ghost btn-sm"
-                style={{ padding: "4px 8px", fontSize: "0.76rem", color: "var(--rose-400)" }}
               >
-                Log Out
+                ⚙️ Automated Test Fixtures ({demoAccounts.length})
               </button>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "var(--graphite-2)",
+                border: "1px solid var(--violet-line)",
+                borderRadius: "var(--r-md)",
+                padding: "8px 14px",
+                flexWrap: "wrap",
+                gap: 8,
+                fontSize: "0.82rem",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ fontWeight: 700, color: "var(--violet-700)" }}>
+                  Automated Test Personas:
+                </span>
+                <span style={{ color: "var(--text-3)", fontSize: "0.75rem" }}>
+                  1-click persona switch for end-to-end verification (PostgreSQL)
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                {demoAccounts.map((acc) => {
+                  const isCurrent = currentUser?.phone?.replace(/[^0-9]/g, "").slice(-7) === acc.phone.replace(/[^0-9]/g, "").slice(-7);
+                  return (
+                    <button
+                      key={acc.phone}
+                      type="button"
+                      onClick={async () => {
+                        await switchDemoUserAction(acc.phone);
+                        window.location.reload();
+                      }}
+                      className={`btn btn-sm ${isCurrent ? "btn-primary" : "btn-secondary"}`}
+                      style={{ padding: "4px 10px", fontSize: "0.76rem" }}
+                    >
+                      {acc.name} ({acc.role})
+                    </button>
+                  );
+                })}
+                {currentUser && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await logoutAction();
+                      window.location.reload();
+                    }}
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: "4px 8px", fontSize: "0.76rem", color: "var(--bad)" }}
+                  >
+                    Log Out
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowDemoPersonas(false)}
+                  className="btn btn-ghost btn-sm"
+                  style={{ padding: "4px 6px", fontSize: "0.76rem", color: "var(--text-3)" }}
+                >
+                  ✕ Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -258,7 +288,7 @@ function UnifiedAppContent({
                 : activeTab === "worker_profile"
                 ? "Technician Profile"
                 : activeTab === "post"
-                ? "Post a Job"
+                ? "Post an Ad"
                 : activeTab.replace("_", " ")}
             </span>
             {currentUser && (
@@ -301,7 +331,7 @@ function UnifiedAppContent({
           </div>
         )}
 
-        {/* VIEW 2: POST A JOB */}
+        {/* VIEW 2: POST AN AD */}
         {activeTab === "post" && (
           <div style={{ maxWidth: 840, margin: "0 auto", width: "100%" }}>
             <PostJobView
@@ -311,7 +341,7 @@ function UnifiedAppContent({
               initialCategory={preselectedCategory}
               onNeedAuth={() => switchTab("auth")}
               onSuccess={(jobId) => {
-                showToast("Job posted successfully! Lahore technicians can now review and bid.");
+                showToast("Listing posted successfully to Lahore marketplace!");
                 switchTab("customer_dashboard");
               }}
               onViewMarketplace={() => switchTab("marketplace")}
