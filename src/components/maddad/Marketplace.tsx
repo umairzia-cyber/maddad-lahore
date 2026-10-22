@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import React, { useMemo, useState } from "react";
 import {
   IconArrowRight,
@@ -53,8 +54,7 @@ export function TradeIcon({ category, size = 18 }: { category: string; size?: nu
 }
 
 /* ---------------------------------------------------------------- */
-/* HERO SECTION                                                     */
-/* Centered on: "I need a plumber or electrician. What do I do next?" */
+/* 2. DIRECT HERO WITH 2-TRADE SERVICES & DOCUMENTARY PHOTOGRAPHY   */
 /* ---------------------------------------------------------------- */
 export function Hero({
   user,
@@ -71,306 +71,247 @@ export function Hero({
   onJoin: () => void;
   compact: boolean;
 }) {
-  const { t, locale, toggleLocale } = useI18n();
+  const { locale, toggleLocale } = useI18n();
 
   return (
-    <section className={`hero ${compact ? "hero-compact" : ""}`} aria-labelledby="hero-title" style={{ position: "relative" }}>
-      <div className="hero-copy" style={{ maxWidth: 840 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-          <span className="hero-eyebrow" style={{ color: "var(--emerald-400)", fontWeight: 800 }}>
-            {t("hero.eyebrow")}
+    <>
+      <section className={`hero ${compact ? "hero-compact" : ""}`} aria-labelledby="hero-title">
+      <div className="hero-split">
+        {/* Left: Direct Copy & Actions */}
+        <div className="hero-copy">
+          <span className="hero-eyebrow">
+            {locale === "ur" ? "لاہور لوکل سروس نیٹ ورک" : "Lahore Household Repair Network"}
           </span>
-          <button
-            type="button"
-            onClick={toggleLocale}
-            className="lang-switcher-btn"
-            aria-label="Switch language / زبان تبدیل کریں"
-          >
-            <span>{locale === "ur" ? "English" : "اردو"}</span>
-          </button>
-        </div>
 
-        <h1 id="hero-title" className="hero-title" style={{ fontSize: compact ? "clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem)" : "clamp(2rem, 1.4rem + 2.2vw, 2.9rem)", lineHeight: 1.25 }}>
-          {t("hero.title")}
-        </h1>
+          <h1 id="hero-title" className="hero-title">
+            {locale === "ur" ? "گھر میں مرمت یا کاریگر کی ضرورت؟" : "Need a repair at home?"}
+          </h1>
 
-        {!compact && (
-          <p className="hero-lead" style={{ fontSize: "1.08rem", color: "var(--text-2)", maxWidth: 680, marginTop: 12, lineHeight: 1.6 }}>
-            {t("hero.subtitle")}
-          </p>
-        )}
-
-        {/* Large 2-Trade Service Choices */}
-        {!compact && (
-          <div className="service-choices-grid" style={{ marginBlock: "24px 20px" }}>
-            <div
-              className="service-choice-card"
-              role="button"
-              tabIndex={0}
-              onClick={() => onPost("plumbing")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") onPost("plumbing");
-              }}
-              aria-label="Request plumbing help in Lahore"
-            >
-              <div className="service-choice-icon">
-                <IconWrench size={26} aria-hidden="true" />
-              </div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800 }}>
-                    {t("cat.plumbing_title")}
-                  </h3>
-                  <span className="pill pill-ok" style={{ fontSize: "0.72rem" }}>
-                    {locale === "ur" ? "لاہور پلمبر" : "Lahore"}
-                  </span>
-                </div>
-                <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "0.88rem", lineHeight: 1.4 }}>
-                  {t("cat.plumbing_desc")}
-                </p>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 8, color: "var(--emerald-400)", fontWeight: 700, fontSize: "0.85rem" }}>
-                  {locale === "ur" ? "پلمبر تلاش کریں ←" : "Find a plumber →"}
-                </span>
-              </div>
-            </div>
-
-            <div
-              className="service-choice-card electrical"
-              role="button"
-              tabIndex={0}
-              onClick={() => onPost("electrical")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") onPost("electrical");
-              }}
-              aria-label="Request electrical help in Lahore"
-            >
-              <div className="service-choice-icon">
-                <IconZap size={26} aria-hidden="true" />
-              </div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800 }}>
-                    {t("cat.electrical_title")}
-                  </h3>
-                  <span className="pill pill-warn" style={{ fontSize: "0.72rem" }}>
-                    {locale === "ur" ? "لاہور الیکٹریشن" : "Lahore"}
-                  </span>
-                </div>
-                <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "0.88rem", lineHeight: 1.4 }}>
-                  {t("cat.electrical_desc")}
-                </p>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 8, color: "var(--amber-400)", fontWeight: 700, fontSize: "0.85rem" }}>
-                  {locale === "ur" ? "الیکٹریشن تلاش کریں ←" : "Find an electrician →"}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="hero-actions" style={{ gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <button
-            type="button"
-            className="btn btn-primary btn-lg"
-            onClick={() => onPost()}
-            style={{ padding: "14px 28px", fontSize: "1.05rem", fontWeight: 700 }}
-          >
-            <IconPlus size={20} aria-hidden="true" />
-            <span>{t("hero.cta_post")}</span>
-          </button>
-          <button
-            type="button"
-            className="btn btn-lg"
-            onClick={onJoin}
-            style={{ padding: "14px 24px", fontSize: "0.95rem" }}
-          >
-            <IconWrench size={18} aria-hidden="true" />
-            <span>{user?.is_worker ? t("nav.technician_portal") : t("hero.cta_worker")}</span>
-          </button>
-        </div>
-
-        {/* Reassurance Callouts */}
-        <div style={{ marginTop: 14 }}>
-          <div style={{ fontSize: "0.85rem", color: "var(--text-2)", fontWeight: 600, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <span>{t("hero.perks")}</span>
-          </div>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              marginTop: 10,
-              padding: "8px 14px",
-              background: "rgba(16, 185, 129, 0.08)",
-              border: "1px solid rgba(16, 185, 129, 0.25)",
-              borderRadius: "var(--r-sm)",
-              fontSize: "0.84rem",
-              color: "var(--emerald-300)",
-            }}
-          >
-            <IconLock size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
-            <span>
-              <strong>{t("hero.privacy_badge")}</strong> {t("hero.privacy_sub")}
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------------------------------------------------------- */
-/* HOW IT WORKS (3 CLEAR STEPS)                                     */
-/* ---------------------------------------------------------------- */
-export function HowItWorks() {
-  const { t } = useI18n();
-
-  const steps = [
-    {
-      num: "1",
-      title: t("hiw.step1_title"),
-      desc: t("hiw.step1_desc"),
-    },
-    {
-      num: "2",
-      title: t("hiw.step2_title"),
-      desc: t("hiw.step2_desc"),
-    },
-    {
-      num: "3",
-      title: t("hiw.step3_title"),
-      desc: t("hiw.step3_desc"),
-    },
-  ];
-
-  return (
-    <section aria-labelledby="how-title" style={{ marginBlock: 24 }}>
-      <h2 id="how-title" style={{ fontSize: "1.35rem", fontWeight: 800, margin: "0 0 16px" }}>
-        {t("hiw.title")}
-      </h2>
-      <div className="steps-grid">
-        {steps.map((s) => (
-          <div key={s.num} className="step-card">
-            <span className="step-number-badge" aria-hidden="true">
-              {s.num}
-            </span>
-            <h3 style={{ margin: "0 0 8px", fontSize: "1.05rem", fontWeight: 800 }}>
-              {s.title}
-            </h3>
-            <p style={{ margin: 0, color: "var(--text-2)", fontSize: "0.88rem", lineHeight: 1.5 }}>
-              {s.desc}
+          {!compact && (
+            <p className="hero-lead">
+              {locale === "ur"
+                ? "اپنا مسئلہ بتائیں اور لاہور کے تصدیق شدہ پلمبرز اور الیکٹریشنز سے براہ راست ریٹس وصول کریں۔ اپنی مرضی کا کاریگر منتخب کریں اور تسلی بخش کام کے بعد براہ راست ادائیگی کریں۔"
+                : "Describe what needs fixing in your Lahore home. Verified local plumbers and electricians send clear labour quotes with arrival times. Compare options, choose who you trust, and pay them directly upon completion."}
             </p>
+          )}
+
+          {/* Primary Action Button & Technician Link */}
+          <div className="hero-actions">
+            <button
+              type="button"
+              className="btn btn-primary btn-lg"
+              onClick={() => onPost()}
+            >
+              <IconPlus size={18} aria-hidden="true" />
+              <span>{locale === "ur" ? "مرمت کی درخواست دیں (مفت)" : "Post a repair request (Free)"}</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-lg"
+              onClick={onJoin}
+            >
+              <IconWrench size={16} aria-hidden="true" />
+              <span>{user?.is_worker ? (locale === "ur" ? "کاریگر پورٹل" : "Technician Portal") : (locale === "ur" ? "بطور کاریگر شامل ہوں" : "Find work as a technician")}</span>
+            </button>
           </div>
-        ))}
+
+          <div className="hero-reassurance">
+            <span>
+              {locale === "ur"
+                ? "مفت پوسٹنگ · ریٹس کا موازنہ · آپ کے گھر کا پتہ کاریگر منتخب کرنے تک خفیہ رہتا ہے"
+                : "Free to post · Compare quotes · Your street address stays private until you hire"}
+            </span>
+          </div>
+        </div>
+
+        {/* Right: Authentic Documentary Photography */}
+        {!compact && (
+          <div className="hero-photo-frame">
+            <Image
+              src="/images/plumber-lahore.jpg"
+              alt="Experienced plumber working on domestic pipe fittings in Lahore"
+              width={600}
+              height={450}
+              priority
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
+            <div className="hero-photo-caption">
+              {locale === "ur"
+                ? "لاہور کے 15 علاقوں میں مقامی پلمبنگ اور الیکٹریکل سروسز: گلبرگ، ڈی ایچ اے، جوہر ٹاؤن، کینٹ، ماڈل ٹاؤن"
+                : "Serving homes across 15 Lahore areas: Gulberg, DHA Defence, Johar Town, Cantt, Model Town & more."}
+            </div>
+          </div>
+        )}
       </div>
     </section>
-  );
+
+    {/* 3. TWO CLEAR SERVICE OPTIONS: PLUMBING & ELECTRICAL */}
+    {!compact && (
+      <section className="services-section" aria-label="Repair services">
+        <div className="services-grid">
+          {/* Plumbing Option */}
+          <div
+            className="service-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => onPost("plumbing")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") onPost("plumbing");
+            }}
+            aria-label="Request plumbing help in Lahore"
+          >
+            <div>
+              <div className="service-card-top">
+                <h3 className="service-card-title">
+                  {locale === "ur" ? "پلمبنگ سروس" : "Plumbing"}
+                </h3>
+                <span className="service-card-urdu">پلمبر</span>
+              </div>
+              <p className="service-card-desc">
+                {locale === "ur"
+                  ? "پانی کی موٹر، گیزر کی مرمت، نل اور مکسر کی تبدیلی، پائپ لائن لیکیج اور سینیٹری فٹنگز۔"
+                  : "Water motors, instant & storage geysers, leaking taps, mixer replacement, pipeline joints & drainage."}
+              </p>
+              <div className="service-card-examples">
+                <strong>{locale === "ur" ? "عام کام:" : "Typical jobs:"}</strong>{" "}
+                {locale === "ur"
+                  ? "موٹر کیپیسٹر تبدیلی، واش روم نل فٹنگ، گیزر سروس، کچن سنک لیکیج"
+                  : "Motor capacitor repair, tap/mixer fitting, geyser servicing, kitchen sink pipe leaks"}
+              </div>
+            </div>
+            <span className="service-card-link">
+              <span>{locale === "ur" ? "پلمبر کی درخواست دیں →" : "Request a plumber →"}</span>
+            </span>
+          </div>
+
+          {/* Electrical Option */}
+          <div
+            className="service-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => onPost("electrical")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") onPost("electrical");
+            }}
+            aria-label="Request electrical help in Lahore"
+          >
+            <div>
+              <div className="service-card-top">
+                <h3 className="service-card-title">
+                  {locale === "ur" ? "الیکٹریکل سروس" : "Electrical"}
+                </h3>
+                <span className="service-card-urdu">الیکٹریشن</span>
+              </div>
+              <p className="service-card-desc">
+                {locale === "ur"
+                  ? "شارٹ سرکٹ ٹریسنگ، سوئچ بورڈ اور بریکر تبدیلی، سیلنگ فین مرمت و انسٹالیشن، وائرنگ اور لائٹس۔"
+                  : "Short circuit repair, main breaker trips, switchboard replacement, ceiling fan wiring, lights & fixtures."}
+              </p>
+              <div className="service-card-examples">
+                <strong>{locale === "ur" ? "عام کام:" : "Typical jobs:"}</strong>{" "}
+                {locale === "ur"
+                  ? "سیلنگ فین وائرنگ، مین بریکر ٹرپ، نیا سوئچ بورڈ، ایس ایم ڈی لائٹ فٹنگ"
+                  : "Ceiling fan installation, main breaker replacement, switchboard rewiring, light fixtures"}
+              </div>
+            </div>
+            <span className="service-card-link">
+              <span>{locale === "ur" ? "الیکٹریشن کی درخواست دیں →" : "Request an electrician →"}</span>
+            </span>
+          </div>
+        </div>
+      </section>
+    )}
+  </>
+);
+}
+
+/** Legacy stub export to preserve any existing component imports without breaking */
+export function HowItWorks() {
+  return null;
 }
 
 /* ---------------------------------------------------------------- */
-/* PROACTIVE TRUST & SAFETY PANEL                                   */
-/* 4 explicit verification levels, privacy, and reporting           */
+/* 5. VERIFIABLE SAFEGUARDS (TRUST & PRIVACY)                       */
+/* Only verified claims: Address privacy, OTP, CNIC check, 0% cut   */
 /* ---------------------------------------------------------------- */
 export function TrustPanel({ onOpenReport }: { onOpenReport: () => void }) {
-  const { t, locale } = useI18n();
-
-  const levels = [
-    {
-      badge: "📱 " + t("trust.phone_title"),
-      desc: t("trust.phone_desc"),
-    },
-    {
-      badge: "🪪 " + t("trust.id_title"),
-      desc: t("trust.id_desc"),
-    },
-    {
-      badge: "🔧 " + t("trust.skills_title"),
-      desc: t("trust.skills_desc"),
-    },
-    {
-      badge: "⭐ " + t("trust.reviews_title"),
-      desc: t("trust.reviews_desc"),
-    },
-  ];
+  const { locale } = useI18n();
 
   return (
-    <section
-      className="plate"
-      style={{
-        padding: "24px 26px",
-        borderRadius: "var(--r-md)",
-        background: "var(--ink-1)",
-        border: "1px solid var(--line)",
-        marginBlock: 28,
-      }}
-      aria-labelledby="trust-section-title"
-    >
-      <div style={{ maxWidth: 760 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--emerald-400)", marginBottom: 6 }}>
-          <IconShieldCheck size={18} aria-hidden="true" />
-          <span style={{ fontSize: "0.8rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            {locale === "ur" ? "لاہور تحفظ اور معیار" : "Trust & Safety Framework"}
-          </span>
-        </div>
-        <h2 id="trust-section-title" style={{ margin: "0 0 6px", fontSize: "1.35rem", fontWeight: 800 }}>
-          {t("trust.title")}
+    <section className="trust-panel" aria-labelledby="trust-section-title">
+      <div>
+        <span className="hero-eyebrow">
+          {locale === "ur" ? "تحفظ اور رازداری" : "Safety & Privacy"}
+        </span>
+        <h2 id="trust-section-title" style={{ margin: "4px 0 8px", fontSize: "1.45rem" }}>
+          {locale === "ur" ? "آپ کے گھر کے لیے تصدیق شدہ حفاظتی اصول" : "Verifiable Safeguards for Your Home"}
         </h2>
-        <p style={{ color: "var(--text-2)", fontSize: "0.92rem", lineHeight: 1.5, margin: "0 0 20px" }}>
-          {t("trust.subtitle")}
+        <p style={{ color: "var(--text-muted)", fontSize: "0.92rem", lineHeight: 1.6, maxWidth: 900, margin: 0 }}>
+          {locale === "ur"
+            ? "مددگار پر کوئی مبہم یا غیر تصدیق شدہ دعویٰ نہیں کیا جاتا۔ ہمارے سسٹم میں درج ذیل حقیقی حفاظتی اقدامات نافذ ہیں:"
+            : "We rely on strict, verifiable controls rather than generic marketing claims. Here is how your home and information are protected:"}
         </p>
 
-        {/* 4 Levels Grid */}
-        <div className="trust-grid">
-          {levels.map((lvl) => (
-            <div key={lvl.badge} className="trust-item-card">
-              <div>
-                <strong style={{ fontSize: "0.95rem", color: "var(--text)" }}>{lvl.badge}</strong>
-                <p style={{ margin: "4px 0 0", fontSize: "0.83rem", color: "var(--text-3)", lineHeight: 1.45 }}>
-                  {lvl.desc}
-                </p>
-              </div>
+        <div className="trust-facts-grid">
+          <div className="trust-fact">
+            <div className="trust-fact-title">
+              {locale === "ur" ? "گھر کا پتہ مکمل طور پر محفوظ" : "Address Privacy by Design"}
             </div>
-          ))}
-        </div>
+            <div className="trust-fact-desc">
+              {locale === "ur"
+                ? "بولی دینے والے کاریگر صرف آپ کا عام علاقہ دیکھ سکتے ہیں۔ آپ کا مکمل پتہ اور فون نمبر صرف اس ایک کاریگر کو ظاہر ہوتا ہے جس کی بولی آپ قبول کرتے ہیں۔"
+                : "Bidders only see your general neighbourhood (e.g. Johar Town, Gulberg). Your exact house number and phone are unlocked strictly for the single technician whose quote you accept."}
+            </div>
+          </div>
 
-        {/* Server-Side Privacy Guarantee Callout */}
-        <div
-          style={{
-            marginTop: 18,
-            padding: "14px 18px",
-            borderRadius: "var(--r-sm)",
-            background: "rgba(16, 185, 129, 0.08)",
-            border: "1px solid rgba(16, 185, 129, 0.25)",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 12,
-          }}
-        >
-          <IconLock size={20} style={{ color: "var(--emerald-400)", flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
-          <div>
-            <strong style={{ fontSize: "0.92rem", color: "var(--emerald-300)" }}>
-              {t("trust.privacy_guarantee_title")}
-            </strong>
-            <p style={{ margin: "4px 0 0", fontSize: "0.84rem", color: "var(--text-2)", lineHeight: 1.45 }}>
-              {t("trust.privacy_guarantee_desc")}
-            </p>
+          <div className="trust-fact">
+            <div className="trust-fact-title">
+              {locale === "ur" ? "فون اور واٹس ایپ تصدیق" : "Phone & WhatsApp Verification"}
+            </div>
+            <div className="trust-fact-desc">
+              {locale === "ur"
+                ? "ہر کسٹمر اور کاریگر کام پوسٹ کرنے یا بولی دینے سے پہلے 6 ہندسوں کے ون ٹائم پن کوڈ (OTP) کے ذریعے اپنے پاکستانی موبائل نمبر کی تصدیق کرتا ہے۔"
+                : "Every customer and technician confirms an active Pakistani mobile number with 6-digit OTP verification via WhatsApp or SMS before posting or submitting bids."}
+            </div>
+          </div>
+
+          <div className="trust-fact">
+            <div className="trust-fact-title">
+              {locale === "ur" ? "شناختی دستاویزات کی دستی جانچ" : "Manual CNIC Document Review"}
+            </div>
+            <div className="trust-fact-desc">
+              {locale === "ur"
+                ? "کاریگر اپنے شناختی کارڈ کی کاپی جمع کروا سکتے ہیں جس کا ہماری لاہور موڈریشن ٹیم دستی معائنہ کرتی ہے۔ (یہ نادرا کا خودکار ریکارڈ چیک نہیں ہے)۔"
+                : "Technicians may submit CNIC documentation for visual inspection by human moderators before receiving badge approval (non-NADRA)."}
+            </div>
+          </div>
+
+          <div className="trust-fact">
+            <div className="trust-fact-title">
+              {locale === "ur" ? "براہ راست ادائیگی · کوئی کمیشن نہیں" : "Direct Settlement · Zero Commission"}
+            </div>
+            <div className="trust-fact-desc">
+              {locale === "ur"
+                ? "کسٹمر اور کاریگر تسلی بخش کام کے بعد آپس میں طے شدہ طریقہ (کیش، جاز کیش، ایزی پیسہ) سے لین دین کرتے ہیں۔ مددگار رقم اپنے پاس نہیں روکتا اور نہ ہی کاریگر سے کمیشن کاٹتا ہے۔"
+                : "Customers settle directly with technicians via cash, JazzCash, or EasyPaisa upon satisfactory completion. Maddadgaar holds no funds, has no escrow wallet, and takes zero commission."}
+            </div>
           </div>
         </div>
 
-        {/* Accountability & Reporting Button */}
-        <div style={{ marginTop: 18, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-3)" }}>
+        <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--line-subtle)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-subtle)" }}>
             {locale === "ur"
-              ? "کسی بھی غیر مناسب رویے یا غلط کوٹیشن پر ہماری لاہور انتظامیہ کو فوری رپورٹ کریں۔"
-              : "Facing an issue, no-show, or overcharging? Our local Lahore team investigates every complaint."}
+              ? "کسی بھی غیر مناسب رویے یا غلط کوٹیشن پر ہماری لاہور انتظامیہ کو فوری مطلع کریں۔"
+              : "Facing an issue, no-show, or overcharging? Our local Lahore moderation team reviews every report."}
           </p>
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-secondary btn-sm"
             onClick={onOpenReport}
-            style={{ color: "var(--bad)", display: "inline-flex", alignItems: "center", gap: 6 }}
+            style={{ color: "var(--bad)" }}
           >
-            <IconAlertCircle size={15} aria-hidden="true" />
-            <span>{t("trust.report_button")}</span>
+            <IconAlertCircle size={14} aria-hidden="true" />
+            <span>{locale === "ur" ? "مسئلہ رپورٹ کریں" : "Report an issue"}</span>
           </button>
         </div>
       </div>
@@ -379,45 +320,159 @@ export function TrustPanel({ onOpenReport }: { onOpenReport: () => void }) {
 }
 
 /* ---------------------------------------------------------------- */
-/* TECHNICIAN RECRUITMENT SECTION                                    */
+/* 6. TECHNICIAN RECRUITMENT SECTION                                */
 /* ---------------------------------------------------------------- */
 export function TechnicianRecruitmentSection({ onJoin }: { onJoin: () => void }) {
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
 
   return (
-    <section
-      style={{
-        padding: "26px 28px",
-        borderRadius: "var(--r-md)",
-        background: "linear-gradient(135deg, rgba(5, 150, 105, 0.12) 0%, rgba(16, 23, 38, 0.95) 100%)",
-        border: "1px solid rgba(16, 185, 129, 0.3)",
-        marginBlock: 24,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flexWrap: "wrap",
-        gap: 18,
-      }}
-      aria-label="Technician recruitment"
-    >
-      <div style={{ maxWidth: 580 }}>
-        <h3 style={{ margin: "0 0 6px", fontSize: "1.2rem", fontWeight: 800, color: "var(--emerald-200)" }}>
-          {t("recruitment.title")}
-        </h3>
-        <p style={{ margin: 0, color: "var(--text-2)", fontSize: "0.9rem", lineHeight: 1.5 }}>
-          {t("recruitment.desc")}
+    <section className="recruitment-banner" aria-label="Technician recruitment">
+      <div className="recruitment-content">
+        <span className="hero-eyebrow">
+          {locale === "ur" ? "لاہور کے کاریگروں کے لیے" : "For Independent Tradespeople"}
+        </span>
+        <h2 style={{ margin: "4px 0 8px", fontSize: "1.45rem" }}>
+          {locale === "ur"
+            ? "کیا آپ لاہور میں پلمبر یا الیکٹریشن ہیں؟"
+            : "Are you a skilled electrician or plumber in Lahore?"}
+        </h2>
+        <p style={{ margin: "0 0 20px", color: "var(--text-muted)", fontSize: "0.92rem", lineHeight: 1.6 }}>
+          {locale === "ur"
+            ? "اپنے قریبی علاقے کے کسٹمرز سے براہ راست جڑیں۔ اپنی مرضی کا ریٹ کوٹ کریں اور اپنی پوری کمائی بغیر کسی کٹوتی کے خود رکھیں۔"
+            : "Connect directly with homeowners in your neighborhood. Submit price quotes, build your local reputation, and keep 100% of your earnings with zero platform cuts or hidden deductions."}
         </p>
+        <div>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={onJoin}
+          >
+            <IconWrench size={16} aria-hidden="true" />
+            <span>{locale === "ur" ? "بطور کاریگر رجسٹریشن کریں" : "Register as a Technician"}</span>
+          </button>
+        </div>
       </div>
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={onJoin}
-        style={{ padding: "12px 24px", fontSize: "0.95rem" }}
-      >
-        <IconWrench size={18} aria-hidden="true" />
-        <span>{t("recruitment.btn")}</span>
-      </button>
+      <div className="recruitment-photo">
+        <Image
+          src="/images/electrician-lahore.jpg"
+          alt="Professional electrician servicing a circuit breaker board in Lahore"
+          width={500}
+          height={380}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
     </section>
+  );
+}
+
+/* ---------------------------------------------------------------- */
+/* 4. INDICATIVE LABOUR PRICE GUIDE                                 */
+/* Clearly labelled as indicative benchmarks, not guaranteed         */
+/* ---------------------------------------------------------------- */
+export function IndicativeRateGuide({ onPost }: { onPost?: () => void }) {
+  const { locale } = useI18n();
+
+  const rates = [
+    {
+      jobEn: "Water pump / motor capacitor replacement or servicing",
+      jobUr: "پانی کی موٹر کیپیسٹر تبدیلی یا سروسنگ",
+      trade: "plumbing",
+      range: "Rs 1,200 – 2,200",
+    },
+    {
+      jobEn: "Washroom mixer or kitchen sink leaking tap repair / replacement",
+      jobUr: "واش روم مکسر یا کچن سنک نل لیکیج مرمت و تبدیلی",
+      trade: "plumbing",
+      range: "Rs 800 – 1,500",
+    },
+    {
+      jobEn: "Instant or storage geyser repair, thermostat, or descaling",
+      jobUr: "انسٹنٹ یا اسٹوریج گیزر مرمت، تھرموسٹیٹ یا صفائی",
+      trade: "plumbing",
+      range: "Rs 1,800 – 3,000",
+    },
+    {
+      jobEn: "Ceiling fan installation, rewiring, or capacitor replacement",
+      jobUr: "سیلنگ فین انسٹالیشن، وائرنگ یا کیپیسٹر تبدیلی",
+      trade: "electrical",
+      range: "Rs 1,000 – 1,800",
+    },
+    {
+      jobEn: "Distribution board circuit breaker replacement or short trip check",
+      jobUr: "مین ڈسٹری بیوشن بورڈ بریکر تبدیلی یا ٹرپنگ فالٹ ٹریسنگ",
+      trade: "electrical",
+      range: "Rs 1,200 – 2,500",
+    },
+    {
+      jobEn: "Room switchboard replacement or ceiling light fixture fitting",
+      jobUr: "کمرے کا سوئچ بورڈ یا سیلنگ لائٹ فٹنگ",
+      trade: "electrical",
+      range: "Rs 800 – 1,600",
+    },
+  ];
+
+  return (
+    <div className="rate-guide-box" aria-labelledby="rate-guide-title">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <span className="rate-guide-disclaimer-badge">
+            {locale === "ur" ? "صرف تخمینی ریٹس · کوئی گارنٹی نہیں" : "Indicative Benchmarks · Not Guaranteed"}
+          </span>
+          <h2 id="rate-guide-title" style={{ margin: "4px 0 8px", fontSize: "1.35rem" }}>
+            {locale === "ur" ? "لاہور میں مرمت کے تخمینی لیبر ریٹس" : "Indicative Repair Labour Rates in Lahore"}
+          </h2>
+          <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.88rem", maxWidth: 900, lineHeight: 1.6 }}>
+            {locale === "ur"
+              ? "لاہور کے عام رہائشی کاموں کے تخمینی لیبر ریٹس۔ حتمی قیمت کاریگر موقع دیکھ کر آپ کے ساتھ طے کرتا ہے۔"
+              : "Common household repair benchmarks across Lahore neighbourhoods. Final labour rates are quoted directly by independent technicians based on actual inspection."}
+          </p>
+        </div>
+
+        {onPost && (
+          <button type="button" className="btn btn-primary btn-sm" onClick={onPost}>
+            <IconPlus size={15} aria-hidden="true" />
+            <span>{locale === "ur" ? "کوٹیشن کے لیے پوسٹ کریں" : "Post to get exact quotes"}</span>
+          </button>
+        )}
+      </div>
+
+      <div className="rate-guide-table-wrap">
+        <table className="rate-guide-table">
+          <thead>
+            <tr>
+              <th>{locale === "ur" ? "کام کی تفصیل" : "Common Repair"}</th>
+              <th style={{ width: 140 }}>{locale === "ur" ? "شعبہ" : "Trade"}</th>
+              <th style={{ width: 180, textAlign: "right" }}>{locale === "ur" ? "تخمینی لیبر (روپے)" : "Typical Labour"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rates.map((r, i) => (
+              <tr key={i}>
+                <td>
+                  <strong>{locale === "ur" ? r.jobUr : r.jobEn}</strong>
+                </td>
+                <td>
+                  <span className={`pill ${r.trade === "plumbing" ? "pill-info" : "pill-warn"}`} style={{ fontSize: "0.75rem" }}>
+                    <TradeIcon category={r.trade} size={12} />
+                    <span>{r.trade === "plumbing" ? (locale === "ur" ? "پلمبنگ" : "Plumbing") : (locale === "ur" ? "الیکٹریکل" : "Electrical")}</span>
+                  </span>
+                </td>
+                <td style={{ textAlign: "right" }}>
+                  <span className="rate-price-tag">{r.range}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="rate-note">
+        <strong>{locale === "ur" ? "اہم وضاحت:" : "Important note:"}</strong>{" "}
+        {locale === "ur"
+          ? "درج بالا ریٹس صرف کاریگر کی اجرت (لیبر) کے تخمینہ کے لیے ہیں۔ اگر سامان (کیپیسٹر، پائپ، بریکر، والو) تبدیل ہونا ہو تو وہ کسٹمر خود فراہم کرتا ہے یا کاریگر مارکیٹ رسید کے مطابق الگ چارج کرتا ہے۔ مددگار قیمت طے نہیں کرتا اور نہ ہی کمیشن کاٹتا ہے۔"
+          : "These figures reflect labour charges only. Replacement parts (pipes, valves, breakers, wire, capacitors) are purchased separately by you or reimbursed with shop receipts. Maddadgaar does not set prices or take any commission."}
+      </div>
+    </div>
   );
 }
 
@@ -441,17 +496,9 @@ export function JobCard({
       className="job-card"
       data-urgent={job.asap}
       onClick={() => onOpen(job)}
-      style={{
-        cursor: "pointer",
-        padding: 20,
-        borderRadius: "var(--r-md)",
-        background: "var(--ink-1)",
-        border: "1px solid var(--line)",
-        transition: "all 0.15s ease",
-      }}
     >
       <div className="job-card-top" style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-        <span className="module module-sm" aria-hidden="true" style={{ background: "var(--graphite-2)" }}>
+        <span className="module module-sm" aria-hidden="true" style={{ background: "var(--bg-surface)", color: "var(--accent-olive)" }}>
           <TradeIcon category={job.category} />
         </span>
         <div style={{ minWidth: 0, flex: 1 }}>
@@ -550,6 +597,7 @@ export function MarketplaceView({
   const [q, setQ] = useState("");
   const [asap, setAsap] = useState(false);
   const [showSamples, setShowSamples] = useState(false);
+  const [showRateGuide, setShowRateGuide] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
   const realJobs = useMemo(() => jobs.filter((j) => !j.is_demo), [jobs]);
@@ -584,22 +632,9 @@ export function MarketplaceView({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Search and Filters Bar */}
-      <div
-        className="plate"
-        style={{
-          padding: "16px 20px",
-          borderRadius: "var(--r-md)",
-          background: "var(--ink-1)",
-          border: "1px solid var(--line)",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 14,
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", flex: 1 }}>
-          <div className="search-bar" role="search" style={{ minWidth: 260, flex: 1, margin: 0 }}>
+      <div className="filter-toolbar">
+        <div className="filter-toolbar-inputs">
+          <div className="search-bar" role="search">
             <IconSearch size={16} aria-hidden="true" />
             <input
               type="search"
@@ -627,7 +662,7 @@ export function MarketplaceView({
           <select
             value={trade}
             onChange={(e) => setTrade(e.target.value)}
-            style={{ padding: "8px 12px", borderRadius: "var(--r-sm)", background: "var(--graphite-2)", border: "1px solid var(--line-strong)", fontSize: "0.85rem", color: "var(--text)" }}
+            aria-label={locale === "ur" ? "شعبہ منتخب کریں" : "Filter by trade"}
           >
             <option value="all">{locale === "ur" ? "تمام کام (پلمبنگ و بجلی)" : "All trades (Plumbing & Electrical)"}</option>
             <option value="plumbing">{locale === "ur" ? "پلمبنگ" : "Plumbing"}</option>
@@ -637,7 +672,7 @@ export function MarketplaceView({
           <select
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            style={{ padding: "8px 12px", borderRadius: "var(--r-sm)", background: "var(--graphite-2)", border: "1px solid var(--line-strong)", fontSize: "0.85rem", color: "var(--text)" }}
+            aria-label={locale === "ur" ? "علاقہ منتخب کریں" : "Filter by area"}
           >
             <option value="all">{locale === "ur" ? "پورے لاہور کے علاقے" : "All Lahore areas"}</option>
             {areas.map((a) => (
@@ -647,11 +682,12 @@ export function MarketplaceView({
             ))}
           </select>
 
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.85rem", cursor: "pointer", color: "var(--text-2)" }}>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: "0.85rem", cursor: "pointer", color: "var(--text-muted)", fontWeight: 600 }}>
             <input
               type="checkbox"
               checked={asap}
               onChange={(e) => setAsap(e.target.checked)}
+              style={{ width: "auto" }}
             />
             <span>{locale === "ur" ? "صرف فوری کام" : "Urgent only"}</span>
           </label>
@@ -660,79 +696,38 @@ export function MarketplaceView({
         {activeFilters && (
           <button type="button" className="btn btn-ghost btn-sm" onClick={reset}>
             <IconRefreshCw size={13} aria-hidden="true" />
-            <span>{locale === "ur" ? "فلٹر ہٹائیں" : "Reset"}</span>
+            <span>{locale === "ur" ? "فلٹر ہٹائیں" : "Reset filters"}</span>
           </button>
         )}
       </div>
 
-      {/* Main Jobs Listing or Useful Empty State */}
+      {/* 4. CONCISE LIVE-JOBS OR INDICATIVE REPAIR RATES */}
       {realJobs.length === 0 ? (
-        <div
-          className="plate"
-          style={{
-            padding: "36px 28px",
-            textAlign: "center",
-            borderRadius: "var(--r-md)",
-            background: "var(--ink-1)",
-            border: "1px solid var(--line)",
-          }}
-        >
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: "50%",
-              background: "rgba(16, 185, 129, 0.12)",
-              color: "var(--emerald-400)",
-              display: "grid",
-              placeItems: "center",
-              margin: "0 auto 16px",
-            }}
-          >
-            <IconWrench size={28} />
-          </div>
-
-          <h3 style={{ margin: "0 0 10px", fontSize: "1.3rem", fontWeight: 800 }}>
-            {t("empty.no_jobs_title")}
-          </h3>
-          <p style={{ maxWidth: 540, margin: "0 auto 24px", color: "var(--text-2)", lineHeight: 1.6, fontSize: "0.95rem" }}>
-            {t("empty.no_jobs_desc")}
-          </p>
-
-          {onPost && (
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={() => onPost()}
-              style={{ margin: "0 auto 28px" }}
-            >
-              <IconPlus size={18} aria-hidden="true" />
-              <span>{t("empty.post_button")}</span>
-            </button>
-          )}
-
-          {/* Useful Real Examples and Rates */}
-          <div
-            style={{
-              maxWidth: 620,
-              margin: "0 auto",
-              textAlign: "left",
-              padding: "18px 22px",
-              borderRadius: "var(--r-md)",
-              background: "var(--graphite-1)",
-              border: "1px solid var(--line-soft)",
-            }}
-          >
-            <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-1)", marginBottom: 12 }}>
-              {t("empty.examples_title")}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="empty-banner">
+            <div>
+              <div className="empty-banner-title">
+                {locale === "ur" ? "لاہور میں کوئی پبلک کام کی درخواست زیر التواء نہیں" : "No active job requests right now in Lahore"}
+              </div>
+              <div className="empty-banner-desc">
+                {locale === "ur"
+                  ? "لاہور میں پلمبنگ یا الیکٹریکل کام کی درخواست دیں، یا نیچے تخمینی ریٹس دیکھیں۔"
+                  : "Post your repair request to receive quotes directly from verified local technicians, or reference the indicative Lahore price guide below."}
+              </div>
             </div>
-            <ul style={{ margin: 0, paddingInlineStart: 20, color: "var(--text-2)", fontSize: "0.86rem", lineHeight: 1.8 }}>
-              <li>{t("empty.ex_motor")}</li>
-              <li>{t("empty.ex_tap")}</li>
-              <li>{t("empty.ex_fan")}</li>
-              <li>{t("empty.ex_geyser")}</li>
-            </ul>
+            {onPost && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => onPost()}
+              >
+                <IconPlus size={16} aria-hidden="true" />
+                <span>{locale === "ur" ? "مرمت کی درخواست دیں" : "Post a repair request"}</span>
+              </button>
+            )}
           </div>
+
+          <IndicativeRateGuide onPost={() => onPost && onPost()} />
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -750,9 +745,22 @@ export function MarketplaceView({
         </EmptyState>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ fontSize: "0.85rem", color: "var(--text-3)", fontWeight: 600 }}>
-            {plural(filtered.length, locale === "ur" ? "ایکٹو کام" : "active job in Lahore")}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ fontSize: "0.88rem", color: "var(--text-muted)", fontWeight: 600 }}>
+              {plural(filtered.length, locale === "ur" ? "ایکٹو کام" : "active job in Lahore")}
+            </div>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setShowRateGuide((v) => !v)}
+              style={{ fontSize: "0.82rem" }}
+            >
+              {showRateGuide ? (locale === "ur" ? "ریٹ گائیڈ چھپائیں" : "Hide rate guide") : (locale === "ur" ? "تخمینی ریٹ گائیڈ دیکھیں" : "View indicative price guide")}
+            </button>
           </div>
+
+          {showRateGuide && <IndicativeRateGuide onPost={() => onPost && onPost()} />}
+
           {filtered.map((j) => (
             <JobCard key={j.id} job={j} onOpen={onOpenJob} ownJob={ownJobIds.has(j.id)} />
           ))}

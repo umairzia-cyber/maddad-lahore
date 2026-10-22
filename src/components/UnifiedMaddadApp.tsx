@@ -287,8 +287,6 @@ function UnifiedAppContent({
               compact={false}
             />
 
-            <HowItWorks />
-
             <MarketplaceView
               jobs={initialPublicJobs}
               areas={areas}

@@ -19,8 +19,8 @@ const I18nContext = createContext<I18nContextType>({
   t: (key: MessageKey) => key,
 });
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
+export function I18nProvider({ children, initialLocale = "en" }: { children: React.ReactNode; initialLocale?: Locale }) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   useEffect(() => {
     if (typeof window !== "undefined") {

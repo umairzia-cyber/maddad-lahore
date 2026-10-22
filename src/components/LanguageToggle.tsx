@@ -17,14 +17,16 @@ export function LanguageToggle() {
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        padding: "5px 12px",
-        borderRadius: "var(--r-md)",
-        fontWeight: 800,
+        padding: "6px 12px",
+        borderRadius: "var(--r-sm)",
+        fontWeight: 700,
         fontSize: "0.82rem",
         cursor: "pointer",
+        background: "var(--bg-white)",
+        border: "1px solid var(--line-mid)",
+        color: "var(--text-ink)",
       }}
     >
-      <span aria-hidden="true">{locale === "ur" ? "🇬🇧" : "🇵🇰"}</span>
       <span>{locale === "ur" ? "English" : "اردو"}</span>
     </button>
   );

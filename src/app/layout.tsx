@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import "./globals.css";
 import { appName } from "@/lib/config";
-import { getLocale, LOCALE_DIR } from "@/lib/i18n";
+import { cookies } from "next/headers";
+import { type Locale, LOCALE_DIR } from "@/lib/i18n";
 import { getUser } from "@/lib/auth";
 import { isPostgresAvailable, q } from "@/lib/db";
 import { store } from "@/lib/store";
@@ -26,11 +27,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0a0b10",
+  themeColor: "#050507",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = getLocale();
+  const cookieStore = cookies();
+  const cookieLocale = cookieStore.get("maddad_locale")?.value;
+  const locale: Locale = cookieLocale === "ur" ? "ur" : "en";
   const user = await getUser();
 
   let unreadCount = 0;
@@ -60,7 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} dir={LOCALE_DIR[locale]}>
       <body>
-        <I18nProvider>
+        <I18nProvider initialLocale={locale}>
           <a href="#main" className="skip-link">
             Skip to content
           </a>
