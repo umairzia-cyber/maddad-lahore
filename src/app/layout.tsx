@@ -17,9 +17,9 @@ import { TrustStrip } from "@/components/TrustStrip";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: { default: `${appName} – Plumbing & electrical jobs in Lahore`, template: `%s · ${appName}` },
+  title: { default: `${appName} – Lahore Classifieds & Local Services`, template: `%s · ${appName}` },
   description:
-    "Post a plumbing or electrical job in Lahore, compare bids from independent technicians and choose who to hire. Payment is arranged directly with the technician.",
+    "Lahore's local classifieds and services marketplace. Buy and sell goods, hire verified tradespeople, offer services, and discover neighborhood work across Lahore.",
   manifest: "/manifest.webmanifest",
   robots: { index: true, follow: true },
 };
@@ -47,17 +47,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   const nav: NavItem[] = [
-    { href: "/", label: "Marketplace" },
+    { href: "/", label: locale === "ur" ? "مارکیٹ پلیس" : "Marketplace" },
     ...(user
       ? ([
-          { href: "/dashboard", label: "My dashboard", match: "prefix" },
-          ...(user.is_worker ? [{ href: "/worker/jobs", label: "Matching jobs", match: "prefix" as const }] : []),
-          { href: "/notifications", label: "Notifications", count: unreadCount, match: "prefix" },
-          { href: "/account", label: "Account", match: "prefix" },
+          { href: "/dashboard", label: locale === "ur" ? "ڈیش بورڈ" : "My Dashboard", match: "prefix" },
+          ...(user.is_worker ? [{ href: "/worker/jobs", label: locale === "ur" ? "ملازمتیں اور کام" : "Jobs & Offers", match: "prefix" as const }] : []),
+          { href: "/notifications", label: locale === "ur" ? "اطلاعات" : "Notifications", count: unreadCount, match: "prefix" },
+          { href: "/account", label: locale === "ur" ? "اکاؤنٹ" : "Account", match: "prefix" },
           ...(user.is_admin ? [{ href: "/admin", label: "Moderation", match: "prefix" as const }] : []),
         ] as NavItem[])
       : []),
-    { href: "/payments", label: "How it works", match: "prefix" },
+    { href: "/safety", label: locale === "ur" ? "سیفٹی گائیڈ" : "Trust & Safety", match: "prefix" },
+    { href: "/payments", label: locale === "ur" ? "طریقہ کار" : "How it works", match: "prefix" },
   ];
 
   return (

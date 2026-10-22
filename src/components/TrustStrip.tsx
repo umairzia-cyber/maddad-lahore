@@ -15,16 +15,16 @@ export function TrustStrip() {
         <span style={{ fontSize: "0.85rem", color: "var(--text-2)" }}>
           {locale === "ur" ? (
             <>
-              <strong style={{ color: "var(--text)" }}>لاہور لوکل سروس نیٹ ورک:</strong> گھر کا پتہ صرف منتخب کاریگر کو دکھایا جاتا ہے · موبائل OTP تصدیق · براہ راست ادائیگی۔{" "}
-              <Link href="/payments" style={{ textDecoration: "underline", color: "var(--violet-300)", fontWeight: 700 }}>
-                طریقہ کار جانیں
+              <strong style={{ color: "var(--text)" }}>لاہور لوکل مارکیٹ پلیس:</strong> مکمل رازداری کے ساتھ کلاسیفائیڈز، گھریلو مرمت، سروسز اور لوکل ملازمتیں۔ پتہ صرف باہمی رضامندی پر ظاہر ہوتا ہے۔{" "}
+              <Link href="/safety" style={{ textDecoration: "underline", color: "var(--violet-300)", fontWeight: 700 }}>
+                سیفٹی اور رازداری کی گائیڈ
               </Link>
             </>
           ) : (
             <>
-              <strong style={{ color: "var(--text)" }}>Lahore Local Repair Network:</strong> Address stays private until you hire · 6-digit OTP verification · Direct settlement with technician.{" "}
-              <Link href="/payments" style={{ textDecoration: "underline", color: "var(--violet-300)", fontWeight: 700 }}>
-                How it works
+              <strong style={{ color: "var(--text)" }}>Lahore Local Marketplace:</strong> Classifieds, home repairs, freelance services &amp; local jobs. Exact street addresses stay strictly private until mutually agreed.{" "}
+              <Link href="/safety" style={{ textDecoration: "underline", color: "var(--violet-300)", fontWeight: 700 }}>
+                Trust &amp; Safety Guide
               </Link>
             </>
           )}

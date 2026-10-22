@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function SafetyPage() {
   return (
     <div style={{ maxWidth: 880, margin: "32px auto", padding: "0 16px" }}>
-      <article className="card" style={{ padding: "clamp(24px, 4vw, 44px)", background: "#FFFFFF", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
+      <article className="card" style={{ padding: "clamp(24px, 4vw, 44px)", background: "var(--graphite-1)", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <div style={{ width: 44, height: 44, borderRadius: "var(--r-sm)", background: "var(--violet-soft)", color: "var(--violet-500)", display: "grid", placeItems: "center" }}>
             <IconShieldCheck size={26} aria-hidden="true" />

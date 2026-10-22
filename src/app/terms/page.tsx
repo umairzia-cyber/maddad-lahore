@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Terms of Service · Maddadgaar Lahor
 export default function Terms() {
   return (
     <div style={{ maxWidth: 840, margin: "32px auto", padding: "0 16px" }}>
-      <article className="card" style={{ padding: "clamp(24px, 4vw, 44px)", background: "#FFFFFF", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
+      <article className="card" style={{ padding: "clamp(24px, 4vw, 44px)", background: "var(--graphite-1)", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
         <h1 style={{ fontSize: "clamp(1.6rem, 2vw, 2.2rem)", fontWeight: 700, margin: "0 0 12px", fontFamily: "var(--font-serif)", color: "var(--text)" }}>
           Terms of Service
         </h1>

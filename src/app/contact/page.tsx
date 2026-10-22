@@ -13,7 +13,7 @@ export default function ContactPage() {
 
   return (
     <div style={{ maxWidth: 880, margin: "32px auto", padding: "0 16px" }}>
-      <article className="card" style={{ padding: "clamp(24px, 4vw, 44px)", background: "#FFFFFF", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
+      <article className="card" style={{ padding: "clamp(24px, 4vw, 44px)", background: "var(--graphite-1)", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
         <div style={{ marginBottom: 24 }}>
           <span style={{ fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--violet-500)", fontWeight: 700 }}>
             Community Support
