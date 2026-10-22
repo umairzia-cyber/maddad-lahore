@@ -1,86 +1,85 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
 
 /* ===================================================================== */
-/* Maddad Lahore — Editorial Humanism & Swiss Minimalism Design System   */
-/* Warm paper, deep ink typography, hairline rules, forest olive brand.   */
+/* Maddad Lahore — "Gunmetal & Violet" design system                      */
+/* Dark metallic surfaces, ridged architectural lines, restrained violet. */
 /* ===================================================================== */
 
 /* ---------- 1. Design tokens ---------- */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* Surfaces: Warm Editorial Paper & Crisp White */
-  --ink-0: #F6F3EC;           /* Canvas background */
-  --ink-1: #FFFFFF;           /* Card & Modal surface */
-  --graphite-1: #FFFFFF;      /* Clean white plates */
-  --graphite-2: #F0ECE1;      /* Elevated warm paper surface */
-  --graphite-3: #E6E1D4;      /* Subdued surface */
-  --gunmetal-1: #D8D2C2;      /* Hairline borders */
-  --gunmetal-2: #C5BEAD;      /* Deeper accents */
-  --steel: #6E7569;           /* Secondary metadata */
+  /* Surfaces: near-black → graphite → gunmetal */
+  --ink-0: #050507;
+  --ink-1: #0a0b10;
+  --graphite-1: #101219;
+  --graphite-2: #161922;
+  --graphite-3: #1d212c;
+  --gunmetal-1: #262b38;
+  --gunmetal-2: #333949;
+  --steel: #4a5266;
 
-  /* Lines & Dividers */
-  --line-soft: #EAE5D9;
-  --line: #DFD9CB;
-  --line-strong: #C4BCAB;
-  --line-lit: rgba(31, 36, 30, 0.04);
+  /* Lines */
+  --line-soft: #1f2330;
+  --line: #2a2f3d;
+  --line-strong: #3c4357;
+  --line-lit: rgba(255, 255, 255, 0.07);
 
-  /* Typography / Ink */
-  --text: #1F241E;            /* Primary Deep Ink */
-  --text-2: #484E44;          /* Secondary Editorial Ink */
-  --text-3: #70766A;          /* Muted metadata */
-  --text-on-violet: #FFFFFF;
+  /* Text (all pass WCAG AA on graphite surfaces) */
+  --text: #f3f4f9;
+  --text-2: #bcc1d0;
+  --text-3: #9097aa;
+  --text-on-violet: #ffffff;
 
-  /* Forest Olive Brand Accents */
-  --violet-700: #263321;
-  --violet-600: #33442C;
-  --violet-500: #44553C;      /* Brand Olive Primary */
-  --violet-400: #596D50;
-  --violet-300: #7C9172;
-  --violet-soft: rgba(68, 85, 60, 0.08);
-  --violet-line: rgba(68, 85, 60, 0.25);
-  --violet-glow: rgba(68, 85, 60, 0.12);
+  /* Violet accents */
+  --violet-700: #5b21b6;
+  --violet-600: #7c3aed;
+  --violet-500: #8b5cf6;
+  --violet-400: #a78bfa;
+  --violet-300: #c4b5fd;
+  --violet-soft: rgba(139, 92, 246, 0.14);
+  --violet-line: rgba(167, 139, 250, 0.38);
+  --violet-glow: rgba(124, 58, 237, 0.35);
 
   /* Status */
-  --ok: #2A6840;              /* Verified Green */
-  --ok-soft: rgba(42, 104, 64, 0.09);
-  --warn: #965B00;            /* Warm Amber */
-  --warn-soft: rgba(150, 91, 0, 0.09);
-  --bad: #9B2C2C;             /* Editorial Crimson */
-  --bad-soft: rgba(155, 44, 44, 0.09);
-  --info: #2B577E;            /* Slate Blue */
-  --info-soft: rgba(43, 87, 126, 0.09);
+  --ok: #5fd39a;
+  --ok-soft: rgba(95, 211, 154, 0.12);
+  --warn: #f2c264;
+  --warn-soft: rgba(242, 194, 100, 0.12);
+  --bad: #ff8a8a;
+  --bad-soft: rgba(255, 106, 106, 0.12);
+  --info: #7cc4ff;
+  --info-soft: rgba(124, 196, 255, 0.11);
 
-  /* Brand button styling */
-  --emerald-800: #263321;
-  --emerald-700: #33442C;
-  --emerald-600: #44553C;
-  --emerald-500: #44553C;
-  --emerald-400: #596D50;
-  --emerald-300: #7C9172;
-  --emerald-soft: rgba(68, 85, 60, 0.08);
-  --emerald-btn: #44553C;
+  /* Emerald trustworthy brand colors (Local Lahore service) */
+  --emerald-800: #065f46;
+  --emerald-700: #047857;
+  --emerald-600: #059669;
+  --emerald-500: #10b981;
+  --emerald-400: #34d399;
+  --emerald-300: #6ee7b7;
+  --emerald-soft: rgba(16, 185, 129, 0.12);
+  --emerald-btn: linear-gradient(180deg, #059669 0%, #047857 100%);
 
-  /* Plates and Surfaces */
-  --metal-plate: #FFFFFF;
-  --metal-plate-hi: #F9F7F2;
-  --metal-edge: #DFD9CB;
-  --metal-btn: #EFECE3;
-  --violet-btn: #44553C;
+  /* Metallic gradients */
+  --metal-plate: linear-gradient(160deg, #202432 0%, #161922 46%, #12141c 100%);
+  --metal-plate-hi: linear-gradient(160deg, #2b3040 0%, #1c202b 50%, #151822 100%);
+  --metal-edge: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02) 40%, rgba(255, 255, 255, 0.05));
+  --metal-btn: linear-gradient(180deg, #2f3545 0%, #222735 100%);
+  --violet-btn: linear-gradient(180deg, #059669 0%, #047857 100%);
 
   /* Type */
-  --font-sans: "Inter", "Segoe UI Variable Text", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  --font-display: "Playfair Display", "Georgia", "Times New Roman", serif;
-  --font-serif: "Playfair Display", "Georgia", "Times New Roman", serif;
-  --font-urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Urdu Typesetting", serif;
+  --font-sans: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Inter Tight", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Urdu Typesetting", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
   --fs-xs: 0.78rem;
   --fs-sm: 0.875rem;
-  --fs-base: 0.95rem;
+  --fs-base: 0.9375rem;
   --fs-md: 1.0625rem;
   --fs-lg: 1.25rem;
-  --fs-xl: clamp(1.5rem, 1.1rem + 1.6vw, 2.1rem);
-  --fs-hero: clamp(2.1rem, 1.3rem + 3.4vw, 3.5rem);
+  --fs-xl: clamp(1.5rem, 1.1rem + 1.6vw, 2rem);
+  --fs-hero: clamp(2rem, 1.2rem + 3.4vw, 3.4rem);
 
   /* Spacing (4px base) */
   --s-1: 4px;
@@ -95,58 +94,61 @@
 
   /* Radii */
   --r-xs: 6px;
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 20px;
+  --r-sm: 9px;
+  --r-md: 13px;
+  --r-lg: 18px;
+  --r-xl: 24px;
   --r-pill: 999px;
 
-  /* Shadows (warm and natural) */
-  --sh-1: 0 1px 3px rgba(31, 36, 30, 0.05), 0 1px 2px rgba(31, 36, 30, 0.03);
-  --sh-2: 0 4px 14px -2px rgba(31, 36, 30, 0.07), 0 2px 6px -1px rgba(31, 36, 30, 0.04);
-  --sh-3: 0 12px 28px -4px rgba(31, 36, 30, 0.10), 0 4px 10px -2px rgba(31, 36, 30, 0.05);
-  --sh-glow: 0 0 0 1px var(--violet-line), 0 4px 16px -2px var(--violet-glow);
+  /* Shadows */
+  --sh-1: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
+  --sh-2: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 8px 22px -8px rgba(0, 0, 0, 0.7);
+  --sh-3: 0 1px 0 rgba(255, 255, 255, 0.07) inset, 0 24px 50px -18px rgba(0, 0, 0, 0.85);
+  --sh-glow: 0 0 0 1px var(--violet-line), 0 8px 28px -10px var(--violet-glow);
 
   /* Focus ring */
-  --focus: 0 0 0 2px var(--ink-0), 0 0 0 4px var(--violet-500);
+  --focus: 0 0 0 2px var(--ink-0), 0 0 0 4px var(--violet-300);
 
-  --header-h: 70px;
+  --header-h: 68px;
   --content-w: min(1560px, 95vw);
-
-  /* Editorial & Paper aliases */
+  /* Compatibility aliases for components using paper/editorial variables */
   --bg-paper: var(--ink-0);
   --bg-surface: var(--graphite-1);
   --bg-surface-alt: var(--graphite-2);
-  --bg-white: #FFFFFF;
+  --bg-white: var(--graphite-2);
   --text-ink: var(--text);
   --text-muted: var(--text-2);
   --text-subtle: var(--text-3);
-  --text-inverse: #FFFFFF;
-  --accent-olive: var(--violet-500);
-  --accent-olive-hover: var(--violet-600);
-  --accent-olive-light: rgba(68, 85, 60, 0.08);
+  --text-inverse: #050507;
+  --accent-olive: var(--violet-400);
+  --accent-olive-hover: var(--violet-300);
+  --accent-olive-light: rgba(139, 92, 246, 0.16);
   --accent-clay: var(--warn);
-  --accent-clay-light: rgba(150, 91, 0, 0.08);
+  --accent-clay-light: rgba(242, 194, 100, 0.14);
   --whatsapp: #25D366;
   --whatsapp-dark: #128C7E;
-  --whatsapp-soft: rgba(37, 211, 102, 0.12);
+  --whatsapp-soft: rgba(37, 211, 102, 0.14);
+  --font-serif: var(--font-display);
 
-  /* Legacy aliases mapped to warm editorial scheme */
+
+  /* ---- Legacy aliases (used by older route markup & inline styles) ---- */
   --bg-page: var(--ink-0);
-  --bg-canvas: var(--ink-0);
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #FDFCF8;
-  --bg-input: #FFFFFF;
+  --bg-canvas: var(--ink-1);
+  --bg-surface: var(--graphite-2);
+  --bg-card: var(--graphite-2);
+  --bg-card-hover: var(--graphite-3);
+  --bg-input: var(--ink-1);
   --line-subtle: var(--line-soft);
-  --line-focus: var(--violet-500);
-  --brand-purple: var(--violet-500);
-  --brand-purple-hover: var(--violet-600);
-  --brand-purple-text: var(--violet-600);
+  --line-focus: var(--violet-400);
+  --brand-purple: var(--violet-600);
+  --brand-purple-hover: var(--violet-500);
+  --brand-purple-text: var(--violet-300);
   --brand-purple-soft: var(--violet-soft);
   --brand-purple-glow: var(--violet-glow);
   --text-primary: var(--text);
   --text-secondary: var(--text-2);
-  --surface: #FFFFFF;
+  --text-muted: var(--text-3);
+  --surface: var(--graphite-2);
   --muted: var(--text-3);
   --accent-green: var(--ok);
   --accent-green-soft: var(--ok-soft);
@@ -179,10 +181,14 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   font-size: var(--fs-base);
-  line-height: 1.6;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   background-color: var(--ink-0);
-  background-image: none;
+  background-image:
+    radial-gradient(900px 420px at 85% -8%, rgba(124, 58, 237, 0.16), transparent 70%),
+    radial-gradient(700px 380px at -5% 12%, rgba(70, 76, 110, 0.18), transparent 70%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 7px);
+  background-attachment: fixed;
 }
 img,
 svg {
@@ -312,14 +318,19 @@ a:hover {
   position: sticky;
   top: 0;
   z-index: 200;
-  background: rgba(246, 243, 236, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: linear-gradient(180deg, rgba(22, 25, 34, 0.94), rgba(10, 11, 16, 0.92));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
-  box-shadow: 0 1px 4px rgba(31, 36, 30, 0.04);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px -14px rgba(0, 0, 0, 0.9);
 }
 .app-header::after {
-  display: none;
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--violet-line), transparent);
+  opacity: 0.7;
 }
 .header-inner {
   width: 100%;
@@ -350,41 +361,43 @@ a:hover {
   border-radius: var(--r-sm);
 }
 .brand-avatar {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   font-family: var(--font-urdu);
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   line-height: 1;
   color: #fff;
-  background: var(--violet-500);
-  border-radius: var(--r-sm);
-  box-shadow: 0 2px 8px rgba(68, 85, 60, 0.22);
+  background:
+    linear-gradient(135deg, rgba(167, 139, 250, 0.9), rgba(91, 33, 182, 0.95)) padding-box,
+    var(--metal-edge) border-box;
+  clip-path: polygon(30% 0, 100% 0, 100% 70%, 70% 100%, 0 100%, 0 30%);
+  box-shadow: 0 6px 18px -4px var(--violet-glow);
 }
 .brand-title {
   display: flex;
   align-items: baseline;
   gap: var(--s-2);
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
 }
 .brand-urdu {
   font-family: var(--font-urdu);
-  color: var(--violet-500);
-  font-size: 1.05rem;
-  font-weight: 600;
+  color: var(--violet-300);
+  font-size: 1rem;
+  font-weight: 500;
 }
 .brand-tag {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-3);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-top: -1px;
+  margin-top: -2px;
 }
 @media (max-width: 520px) {
   .brand-tag {
@@ -430,11 +443,11 @@ a:hover {
 }
 .nav-link:hover {
   color: var(--text);
-  background: rgba(68, 85, 60, 0.06);
+  background: rgba(255, 255, 255, 0.05);
 }
 .nav-link[aria-current="page"] {
-  color: var(--violet-500);
-  background: rgba(68, 85, 60, 0.1);
+  color: #fff;
+  background: var(--violet-soft);
   box-shadow: inset 0 0 0 1px var(--violet-line);
 }
 .nav-count {
@@ -446,7 +459,7 @@ a:hover {
   border-radius: var(--r-pill);
   font-size: 0.7rem;
   font-weight: 800;
-  background: var(--violet-500);
+  background: var(--violet-600);
   color: #fff;
 }
 .header-actions {
@@ -784,9 +797,9 @@ select {
   min-height: 46px;
   padding: 10px var(--s-3);
   border-radius: var(--r-sm);
-  border: 1px solid var(--line);
-  background: #FFFFFF;
-  box-shadow: 0 1px 2px rgba(31, 36, 30, 0.04);
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, #0a0b10, #0d0f15);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55) inset;
   color: var(--text);
   font-size: 1rem; /* 16px avoids iOS zoom */
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -800,41 +813,42 @@ select {
   appearance: none;
   -webkit-appearance: none;
   padding-inline-end: 38px;
-  background-color: #FFFFFF;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2344553C' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 14px;
+  background-image:
+    linear-gradient(180deg, #0a0b10, #0d0f15),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 0, right 12px center;
+  background-size: auto, 14px;
 }
 [dir="rtl"] select {
-  background-position: left 14px center;
+  background-position: 0 0, left 12px center;
   padding-inline-start: 38px;
 }
 option {
-  background: #FFFFFF;
+  background: var(--graphite-2);
   color: var(--text);
 }
 input::placeholder,
 textarea::placeholder {
-  color: var(--text-3);
+  color: #6f7589;
 }
 input:hover,
 textarea:hover,
 select:hover {
-  border-color: var(--line-strong);
+  border-color: var(--steel);
 }
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: var(--violet-500);
-  box-shadow: 0 0 0 3px var(--violet-soft);
+  border-color: var(--violet-400);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55) inset, 0 0 0 3px rgba(139, 92, 246, 0.35);
 }
 input[aria-invalid="true"],
 textarea[aria-invalid="true"],
 select[aria-invalid="true"] {
   border-color: var(--bad);
-  box-shadow: 0 0 0 3px var(--bad-soft);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.55) inset, 0 0 0 3px rgba(255, 106, 106, 0.18);
 }
 input:disabled,
 select:disabled,
@@ -1963,14 +1977,14 @@ dialog.dialog::backdrop {
     left: 0;
     right: 0;
     z-index: 100;
-    background: rgba(246, 243, 236, 0.96);
+    background: rgba(10, 11, 16, 0.94);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--line);
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
     justify-content: space-around;
     align-items: center;
-    box-shadow: 0 -4px 16px rgba(31, 36, 30, 0.06);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45);
   }
 
   .app-canvas {
@@ -1998,23 +2012,23 @@ dialog.dialog::backdrop {
 
   .mobile-dock-btn:hover,
   .mobile-dock-btn.is-active {
-    color: var(--violet-500);
+    color: var(--violet-300);
   }
 
   .mobile-dock-btn.is-active svg {
-    stroke: var(--violet-500);
+    stroke: var(--violet-400);
   }
 
   .mobile-dock-plus {
     width: 32px;
     height: 32px;
     border-radius: var(--r-pill);
-    background: var(--violet-500);
+    background: var(--violet-btn);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    box-shadow: 0 2px 8px var(--violet-glow);
+    box-shadow: 0 2px 10px var(--violet-glow);
   }
 
   .mobile-dock-badge {
@@ -2025,7 +2039,7 @@ dialog.dialog::backdrop {
     height: 8px;
     border-radius: 50%;
     background: var(--bad);
-    box-shadow: 0 0 0 2px #FFFFFF;
+    box-shadow: 0 0 0 2px var(--ink-1);
   }
 }
 
