@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   IconCheck,
@@ -66,6 +66,25 @@ export function PostJobView({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("maddad_saved_job_draft");
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d.step) setStep(d.step);
+        if (d.selectedTrade) setSelectedTrade(d.selectedTrade);
+        if (d.selectedProblem) setSelectedProblem(d.selectedProblem);
+        if (d.areaId) setAreaId(d.areaId);
+        if (d.urgency) setUrgency(d.urgency);
+        if (d.landmark) setLandmark(d.landmark);
+        if (d.description) setDescription(d.description);
+        if (d.budgetMin) setBudgetMin(d.budgetMin);
+        if (d.budgetMax) setBudgetMax(d.budgetMax);
+      }
+    } catch {}
+  }, []);
 
   const plumbingProblems = [
     { id: "pipe_leak", en: "Leaking tap or pipe", ur: "نل یا پائپ لیکیج" },
@@ -137,6 +156,24 @@ export function PostJobView({
   // Final Submit Action
   const handleSubmitJob = async () => {
     if (!user) {
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(
+            "maddad_saved_job_draft",
+            JSON.stringify({
+              step,
+              selectedTrade,
+              selectedProblem,
+              areaId,
+              urgency,
+              landmark,
+              description,
+              budgetMin,
+              budgetMax,
+            })
+          );
+        } catch {}
+      }
       onNeedAuth();
       return;
     }
@@ -168,6 +205,11 @@ export function PostJobView({
       if (res?.error) {
         setServerError(res.error);
       } else if (res?.jobId) {
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem("maddad_saved_job_draft");
+          } catch {}
+        }
         setCreatedJobId(res.jobId);
         onSuccess(res.jobId);
       } else {

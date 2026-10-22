@@ -97,6 +97,7 @@ export async function progress(user: SessionUser, bookingId: string, action: Act
             await nt("completed", "Job marked completed", "The completion code was entered. You can now leave a review.");
             break;
           }
+          await q("UPDATE bookings SET completion_code_attempts = completion_code_attempts + 1 WHERE id=$1", [b.id]);
           throw new AppError("Incorrect completion code.");
         }
         await nt("completion_requested", "Worker says the job is done", "Please confirm completion, or report a problem.");

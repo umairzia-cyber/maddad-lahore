@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getCustomerJob } from "@/lib/jobs";
@@ -27,7 +28,7 @@ export default async function Preview({ params }: { params: { id: string } }) {
         <p style={{ whiteSpace: "pre-wrap" }}>{job.description}</p>
         <p><strong>Budget:</strong> {budgetText(job.budget_min, job.budget_max)}</p>
         {job.photo_ids.length > 0 && (
-          <div className="photos">{job.photo_ids.map((id) => /* eslint-disable-next-line @next/next/no-img-element */ <img key={id} src={`/files/job-photo/${id}`} alt="Job photo" />)}</div>
+          <div className="photos">{job.photo_ids.map((id) => <Image key={id} src={`/files/job-photo/${id}`} alt="Job photo" width={400} height={300} style={{ width: "100%", height: "auto", borderRadius: 8 }} unoptimized />)}</div>
         )}
       </article>
       <p className="notice"><strong>Private to the chosen worker only:</strong> {priv?.address_text}. Other workers see just &quot;{job.area}&quot;.</p>
