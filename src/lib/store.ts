@@ -198,11 +198,11 @@ const CATEGORIES: Category[] = [
   { id: 1, slug: "plumbing", name: "Plumbing", name_ur: "پلمبنگ", sort_order: 1, active: true },
   { id: 2, slug: "electrical", name: "Electrical", name_ur: "الیکٹریکل", sort_order: 2, active: true },
   { id: 3, slug: "home-repairs", name: "Home Repairs & Maintenance", name_ur: "گھریلو مرمت و سروسز", sort_order: 3, active: true },
-  { id: 4, slug: "electronics", name: "Electronics & Appliances", name_ur: "الیکٹرانکس اور ہوم اپلائنسز", sort_order: 4, active: true },
-  { id: 5, slug: "furniture", name: "Furniture & Household", name_ur: "فرنیچر اور گھریلو سامان", sort_order: 5, active: true },
-  { id: 6, slug: "vehicles", name: "Vehicles & Transport", name_ur: "گاڑیاں اور ٹرانسپورٹ", sort_order: 6, active: true },
-  { id: 7, slug: "education", name: "Tutoring & Education", name_ur: "ٹیوشن اور تعلیم", sort_order: 7, active: true },
-  { id: 8, slug: "jobs-work", name: "Jobs & Skilled Work", name_ur: "مقامی ملازمتیں اور ہنر مند کام", sort_order: 8, active: true },
+  { id: 4, slug: "appliances", name: "AC & Appliance Repair", name_ur: "اے سی اور گھریلو اپلائنسز مرمت", sort_order: 4, active: true },
+  { id: 5, slug: "carpentry", name: "Carpentry & Woodwork", name_ur: "کارپینٹری اور لکڑی کا کام", sort_order: 5, active: true },
+  { id: 6, slug: "painting", name: "Painting & Renovation", name_ur: "پینٹنگ اور تزئین و آرائش", sort_order: 6, active: true },
+  { id: 7, slug: "education", name: "Tutoring & Lessons", name_ur: "ٹیوشن اور تعلیم", sort_order: 7, active: true },
+  { id: 8, slug: "jobs-work", name: "Skilled Jobs & Gigs", name_ur: "مقامی ملازمتیں اور ہنر مند کام", sort_order: 8, active: true },
 ];
 
 const AREAS_RAW: [string, string, number, number][] = [

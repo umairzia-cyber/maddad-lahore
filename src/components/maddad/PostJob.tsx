@@ -52,13 +52,12 @@ export function PostJobView({
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Step 1: Listing Type
-  const [listingType, setListingType] = useState<"item_sale" | "service_request" | "service_offer" | "job_opportunity">("item_sale");
+  const [listingType, setListingType] = useState<"service_request" | "service_offer" | "job_opportunity">("service_request");
 
   // Step 2: Details
   const [categoryId, setCategoryId] = useState<string>(categories[0]?.id ? String(categories[0].id) : "1");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [itemCondition, setItemCondition] = useState<string>("Used - Good");
 
   // Step 3: Pricing & Terms
   const [pricingModel, setPricingModel] = useState<"fixed" | "negotiable" | "budget_range" | "quote_requested" | "contact_for_price">("fixed");
@@ -148,7 +147,6 @@ export function PostJobView({
     fd.set("addressText", landmark.trim() ? `Near ${landmark.trim()}` : "Lahore Neighborhood");
     fd.set("listingType", listingType);
     fd.set("pricingModel", pricingModel);
-    fd.set("itemCondition", listingType === "item_sale" ? itemCondition : "");
     fd.set("asap", urgency === "asap" ? "true" : "false");
     fd.set("preferredTiming", urgency);
 
@@ -162,7 +160,7 @@ export function PostJobView({
     }
 
     // Resolve category name
-    const catName = categories.find((c) => String(c.id) === categoryId)?.name || "Classifieds";
+    const catName = categories.find((c) => String(c.id) === categoryId)?.name || "Services";
     fd.set("categoryName", catName);
 
     try {
@@ -222,35 +220,11 @@ export function PostJobView({
             </h2>
             <p style={{ color: "var(--text-2)", fontSize: "0.95rem", margin: "0 0 24px" }}>
               {locale === "ur"
-                ? "درست زمرہ منتخب کریں تاکہ لاہور کے متعلقہ خریدار اور افراد آپ سے آسانی سے رابطہ کر سکیں۔"
-                : "Choose the type of advertisement that best matches your goal in Lahore."}
+                ? "منتخب کریں کہ کیا آپ کو کسی سروس کی ضرورت ہے، آپ اپنی سروس پیش کر رہے ہیں، یا ملازم ہائر کر رہے ہیں۔"
+                : "Choose whether you need a service, offer professional skills, or are hiring."}
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 28 }}>
-              {/* Type 1: Item for Sale */}
-              <div
-                onClick={() => setListingType("item_sale")}
-                style={{
-                  padding: "20px",
-                  borderRadius: "var(--r-md)",
-                  border: listingType === "item_sale" ? "2px solid var(--violet-500)" : "1px solid var(--line)",
-                  background: listingType === "item_sale" ? "var(--violet-soft)" : "var(--graphite-2)",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                  <IconTag size={20} style={{ color: "var(--violet-500)" }} />
-                  <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)" }}>
-                    {locale === "ur" ? "سامان برائے فروخت" : "Item for Sale"}
-                  </span>
-                </div>
-                <p style={{ margin: 0, fontSize: "0.86rem", color: "var(--text-2)", lineHeight: 1.5 }}>
-                  {locale === "ur"
-                    ? "موبائل فونز، لیپ ٹاپس، فرنیچر، گاڑیاں، الیکٹرانکس اور گھریلو سامان۔"
-                    : "Mobiles, laptops, appliances, furniture, cars, bikes, and physical goods."}
-                </p>
-              </div>
 
               {/* Type 2: Service Request */}
               <div
@@ -379,13 +353,11 @@ export function PostJobView({
                 <input
                   type="text"
                   placeholder={
-                    listingType === "item_sale"
-                      ? "e.g. iPhone 13 128GB PTA Approved Midnight Blue"
-                      : listingType === "service_request"
+                    listingType === "service_request"
                       ? "e.g. Need Plumber for Leaking Bathroom Motor in Gulberg"
                       : listingType === "service_offer"
-                      ? "e.g. Experienced Math & Physics Tutor for O/A Levels"
-                      : "e.g. Hiring Full-Time Family Driver in DHA Phase 5"
+                      ? "e.g. Professional AC Installation & Gas Refill Services"
+                      : "e.g. Hiring Experienced Office Electrician / Maintenance Staff"
                   }
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -394,25 +366,6 @@ export function PostJobView({
                 {errors.title && <span style={{ color: "var(--bad)", fontSize: "0.8rem", marginTop: 4, display: "block" }}>{errors.title}</span>}
               </div>
 
-              {/* Condition (if item sale) */}
-              {listingType === "item_sale" && (
-                <div>
-                  <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                    Item Condition
-                  </label>
-                  <select
-                    value={itemCondition}
-                    onChange={(e) => setItemCondition(e.target.value)}
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-2)", fontSize: "0.92rem" }}
-                  >
-                    <option value="Brand New (Box Pack)">Brand New (Box Pack)</option>
-                    <option value="Like New (Flawless)">Like New (Flawless)</option>
-                    <option value="Used - Good">Used - Good</option>
-                    <option value="Used - Fair">Used - Fair (Minor Wear)</option>
-                  </select>
-                </div>
-              )}
-
               {/* Detailed Description */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
@@ -420,7 +373,7 @@ export function PostJobView({
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="Describe specifications, reason for selling, exact problem details, or requirements..."
+                  placeholder="Describe the issue, work scope, preferred schedule, or job requirements..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.92rem" }}

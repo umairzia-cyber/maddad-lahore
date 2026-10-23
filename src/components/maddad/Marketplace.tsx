@@ -141,13 +141,13 @@ export function Hero({
   const { locale } = useI18n();
 
   const curatedCategories = [
-    { slug: "electronics", en: "Electronics & Mobiles", ur: "الیکٹرانکس و فون", icon: "📱" },
-    { slug: "plumbing", en: "Home Repairs & Trades", ur: "پلمبنگ و مرمت", icon: "🛠️" },
-    { slug: "vehicles", en: "Vehicles & Parts", ur: "گاڑیاں و موٹر سائیکل", icon: "🚗" },
-    { slug: "furniture", en: "Furniture & Home", ur: "فرنیچر و ہوم سامان", icon: "🛋️" },
-    { slug: "services", en: "Freelance & Services", ur: "سروسز و کاریگر", icon: "💼" },
-    { slug: "jobs", en: "Local Jobs & Hiring", ur: "ملازمتیں و روزگار", icon: "👔" },
-    { slug: "education", en: "Tutors & Lessons", ur: "ٹیوشن و تعلیم", icon: "📚" },
+    { slug: "home-repairs", en: "Home Repairs & Handyman", ur: "گھریلو مرمت و ہینڈی مین", icon: "🛠️" },
+    { slug: "plumbing", en: "Plumbing & Sanitary", ur: "پلمبنگ و سینیٹری", icon: "🚿" },
+    { slug: "electrical", en: "Electrical & Wiring", ur: "الیکٹریکل و وائرنگ", icon: "⚡" },
+    { slug: "appliances", en: "AC & Appliances", ur: "اے سی و ہوم اپلائنسز", icon: "❄️" },
+    { slug: "carpentry", en: "Carpentry & Woodwork", ur: "کارپینٹری و فرنیچر مرمت", icon: "🪚" },
+    { slug: "painting", en: "Painting & Renovation", ur: "پینٹنگ و تزئین", icon: "🎨" },
+    { slug: "jobs-work", en: "Skilled Gigs & Jobs", ur: "ہنر مند کام و جابز", icon: "👔" },
   ];
 
   return (
@@ -156,20 +156,20 @@ export function Hero({
         {/* Left: Copy & Actions */}
         <div className="hero-copy">
           <span className="hero-eyebrow">
-            {locale === "ur" ? "لاہور لوکل کلاسیفائیڈز اور سروسز" : "Lahore Local Classifieds & Services"}
+            {locale === "ur" ? "لاہور لوکل سروسز مارکیٹ پلیس" : "Lahore Local Services Marketplace"}
           </span>
 
           <h1 id="hero-title" className="hero-title">
             {locale === "ur"
-              ? "لاہور کی مقامی اشیاء، ماہر کاریگر اور قابل اعتماد سروسز"
-              : "Need a repair, item, or trusted service in Lahore?"}
+              ? "لاہور میں ماہر پلمبر، الیکٹریشن یا کسی سروس کی ضرورت ہے؟"
+              : "Need a repair, technician, or trusted service in Lahore?"}
           </h1>
 
           {!compact && (
             <p className="hero-lead">
               {locale === "ur"
-                ? "چند منٹوں میں اپنا اشتہار لگائیں: استعمال شدہ اشیاء فروخت کریں، پلمبر یا الیکٹریشن بلوائیں، اپنی پیشہ ورانہ سروس پیش کریں، یا لاہور کے 20 سے زائد علاقوں میں لوکل ملازمین تلاش کریں۔"
-                : "Buy and sell second-hand goods, request home repairs, hire independent service providers, or discover local work across 20+ Lahore neighbourhoods with zero commission."}
+                ? "چند منٹوں میں سروس کی درخواست دیں: گھریلو مرمت کروائیں، پلمبر، الیکٹریشن یا اے سی ٹیکنیشن بلوائیں، یا اپنی سروس پیش کر کے لاہور میں کام حاصل کریں — بغیر کسی کمیشن کے۔"
+                : "Request home repairs, hire independent technicians and service providers, or find skilled work across 20+ Lahore neighbourhoods with zero commission."}
             </p>
           )}
 
@@ -181,7 +181,7 @@ export function Hero({
               onClick={() => onPost()}
             >
               <IconPlus size={18} aria-hidden="true" />
-              <span>{locale === "ur" ? "نیا اشتہار لگائیں (مفت)" : "Post an Ad / Job (Free)"}</span>
+              <span>{locale === "ur" ? "سروس کی درخواست دیں (مفت)" : "Request a Service / Post Job"}</span>
             </button>
             <button
               type="button"
@@ -189,7 +189,7 @@ export function Hero({
               onClick={onJoin}
             >
               <IconBriefcase size={16} aria-hidden="true" />
-              <span>{user?.is_worker ? (locale === "ur" ? "پرووائیڈر پورٹل" : "Provider Portal") : (locale === "ur" ? "سروس پیش کریں" : "Offer a Service / Find Work")}</span>
+              <span>{user?.is_worker ? (locale === "ur" ? "ٹیکنیشن پورٹل" : "Technician Portal") : (locale === "ur" ? "سروس پیش کریں / کام تلاش کریں" : "Offer a Service / Find Work")}</span>
             </button>
           </div>
 
@@ -471,11 +471,10 @@ export function MarketplaceView({
   }, [realJobs, selectedType, selectedCategory, selectedArea, q]);
 
   const typeTabs = [
-    { id: "all", labelEn: "All Listings", labelUr: "تمام اشتہارات" },
-    { id: "item_sale", labelEn: "🏷️ Items for Sale", labelUr: "🏷️ سامان برائے فروخت" },
-    { id: "service_request", labelEn: "🛠️ Services Needed", labelUr: "🛠️ کاریگر کی ضرورت" },
-    { id: "service_offer", labelEn: "👨‍🔧 Services Offered", labelUr: "👨‍🔧 سروس کی پیشکش" },
-    { id: "job_opportunity", labelEn: "💼 Jobs & Hiring", labelUr: "💼 ملازمت اور روزگار" },
+    { id: "all", labelEn: "All Services", labelUr: "تمام سروسز" },
+    { id: "service_request", labelEn: "🛠️ Services Needed (Hire)", labelUr: "🛠️ کاریگر کی ضرورت" },
+    { id: "service_offer", labelEn: "👨‍🔧 Services Offered (Find Providers)", labelUr: "👨‍🔧 سروس کی پیشکش" },
+    { id: "job_opportunity", labelEn: "💼 Service Jobs & Gigs", labelUr: "💼 ملازمت اور روزگار" },
   ];
 
   return (
@@ -517,8 +516,8 @@ export function MarketplaceView({
             type="search"
             placeholder={
               locale === "ur"
-                ? "لاہور میں اشیاء، سروسز یا نوکریاں تلاش کریں..."
-                : "Search Lahore items, services, technicians, jobs..."
+                ? "لاہور میں سروسز، پلمبر، الیکٹریشن یا کام تلاش کریں..."
+                : "Search Lahore repairs, technicians, services, jobs..."
             }
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -579,7 +578,7 @@ export function MarketplaceView({
       {/* Grid count header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)" }}>
-          {filtered.length} {locale === "ur" ? "اشتہارات لاہور میں" : "listings found across Lahore"}
+          {filtered.length} {locale === "ur" ? "سروسز لاہور میں" : "services found across Lahore"}
         </div>
       </div>
 
@@ -590,15 +589,15 @@ export function MarketplaceView({
             <IconSearch size={22} />
           </div>
           <h3 style={{ fontFamily: "var(--font-serif)", fontSize: "1.25rem", margin: "0 0 8px" }}>
-            {locale === "ur" ? "کوئی اشتہار نہیں ملا" : "No listings match your search"}
+            {locale === "ur" ? "آپ کی تلاش کے مطابق کوئی سروس نہیں ملی" : "No services match your search"}
           </h3>
           <p style={{ color: "var(--text-3)", fontSize: "0.92rem", margin: "0 0 20px" }}>
-            {locale === "ur" ? "فلٹرز تبدیل کر کے دوبارہ کوشش کریں یا نیا اشتہار لگائیں۔" : "Try resetting your search query or neighborhood filter."}
+            {locale === "ur" ? "فلٹرز تبدیل کر کے دوبارہ کوشش کریں یا نئی سروس کی درخواست دیں۔" : "Try resetting your search query or neighborhood filter."}
           </p>
           {onPost && (
             <button type="button" className="btn btn-primary btn-sm" onClick={() => onPost()}>
               <IconPlus size={16} />
-              <span>{locale === "ur" ? "نیا اشتہار لگائیں" : "Post a New Ad"}</span>
+              <span>{locale === "ur" ? "نئی سروس کی درخواست دیں" : "Post a Service Request"}</span>
             </button>
           )}
         </div>

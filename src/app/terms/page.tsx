@@ -11,15 +11,15 @@ export default function Terms() {
           Terms of Service
         </h1>
         <p style={{ marginBottom: 24, fontSize: "1.02rem", color: "var(--text-2)", lineHeight: 1.6 }}>
-          Welcome to {appName}. By using our website to browse listings, post classified advertisements (for items, services, or jobs), submit quotes, or communicate with counterparts across Lahore, you agree to these Terms of Service.
+          Welcome to {appName}. By using our website to browse services, post service requests or offerings, submit bids and quotes, or communicate with counterparts across Lahore, you agree to these Terms of Service.
         </p>
 
         <ol style={{ color: "var(--text)", lineHeight: 1.75, paddingLeft: 22, display: "grid", gap: 16 }}>
           <li>
-            <strong>Local Classifieds &amp; Technology Bulletin Board:</strong> {appName} operates exclusively as an online communications and listing platform facilitating connections between buyers, sellers, clients, and service providers in Lahore. {appName} is not an employer, broker, agent, or party to any contract, sale, or agreement formed between users.
+            <strong>Local Services Marketplace &amp; Technology Platform:</strong> {appName} operates exclusively as an online communications and listing platform connecting clients and households with independent service providers, tradespeople, and technicians in Lahore. {appName} is not an employer, contractor, or guarantor of any service performed.
           </li>
           <li>
-            <strong>Physical Items for Sale:</strong> Users listing physical goods (electronics, mobile phones, furniture, vehicles, household items) warrant that they have lawful ownership and provide accurate descriptions of item condition. Buyers are solely responsible for inspecting and testing items in person prior to payment.
+            <strong>Service Requests &amp; Work Scope:</strong> Clients posting service requests warrant that they have lawful authority over the premises where work is to be performed. Clients and technicians are responsible for confirming the scope of work and pricing prior to commencement.
           </li>
           <li>
             <strong>Independent Service Providers:</strong> Plumbers, electricians, cleaners, tutors, and freelance contractors offering services through {appName} are independent contractors and not employees of {appName}. {appName} does not supervise, schedule, direct, or insure their work.
@@ -31,7 +31,7 @@ export default function Terms() {
             <strong>Verification &amp; Badges:</strong> An &quot;ID Reviewed&quot; status signifies only that our moderators conducted a visual inspection of submitted documentation to deter duplicate accounts. It does NOT constitute a police character clearance, NADRA database verification, or trade certification.
           </li>
           <li>
-            <strong>Prohibited Content &amp; Conduct:</strong> Listings involving illegal goods, counterfeit items, harassment, fraud, bait-and-switch pricing, or hazardous materials are strictly banned. Accounts violating community standards will be warned, suspended, or permanently terminated.
+            <strong>Prohibited Content &amp; Conduct:</strong> Listings involving fraudulent services, extortion, harassment, unlicensed hazardous electrical/gas work, or bait-and-switch pricing are strictly banned. Accounts violating community standards will be warned, suspended, or permanently terminated.
           </li>
           <li>
             <strong>Dispute Reporting:</strong> Users may file reports through the platform for no-shows, offensive conduct, or fraudulent listings. While {appName} investigates policy violations, it does not act as a court or arbitrate monetary disputes.

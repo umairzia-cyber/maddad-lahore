@@ -5,7 +5,7 @@ import { IconShieldCheck, IconLock, IconMapPin, IconAlertCircle, IconCheck } fro
 
 export const metadata: Metadata = {
   title: "Trust & Safety Guide · Maddadgaar Lahore",
-  description: "Essential safety advice for buying, selling, and hiring services locally across Lahore.",
+  description: "Essential safety advice for hiring technicians, requesting home repairs, and booking services locally across Lahore.",
 };
 
 export default function SafetyPage() {
@@ -27,7 +27,7 @@ export default function SafetyPage() {
         </div>
 
         <p style={{ fontSize: "1.05rem", lineHeight: 1.65, color: "var(--text-2)", marginBottom: 28 }}>
-          {appName} is built on community transparency, strict data privacy, and direct communication. Whether you are buying an electronic device in Gulberg, selling furniture in DHA, or hiring an electrician in Model Town, following these practical guidelines ensures a smooth, secure transaction.
+          {appName} is built on community transparency, strict data privacy, and direct communication. Whether you are booking a plumber in Gulberg, hiring an electrician in DHA, or finding carpentry work in Model Town, following these practical guidelines ensures a smooth, secure service experience.
         </p>
 
         <div style={{ display: "grid", gap: 24, marginBottom: 32 }}>
@@ -35,10 +35,10 @@ export default function SafetyPage() {
           <div style={{ padding: 20, background: "var(--graphite-2)", borderRadius: "var(--r-sm)", border: "1px solid var(--line-soft)" }}>
             <h2 style={{ fontSize: "1.18rem", margin: "0 0 8px", fontFamily: "var(--font-serif)", display: "flex", alignItems: "center", gap: 8 }}>
               <IconMapPin size={20} style={{ color: "var(--violet-500)" }} />
-              1. Meet in Well-Lit, Busy Public Places
+              1. Agree on Scope of Work &amp; Pricing Upfront
             </h2>
             <p style={{ margin: 0, color: "var(--text-2)", lineHeight: 1.6, fontSize: "0.93rem" }}>
-              For physical item exchanges (smartphones, laptops, bikes, cameras), arrange handovers in public, secure locations during daylight hours. Ideal spots in Lahore include reputable shopping malls (Packages Mall, Emporium Mall, Gulberg Main Boulevard) or designated bank branch parking areas. Never send an item via courier without guaranteed in-person verification.
+              Before work begins, clarify the exact repair needed, whether replacement parts are included in the quote, and the labor fee. For home service visits, ensure an adult is present at the premises when the technician arrives.
             </p>
           </div>
 
@@ -49,7 +49,7 @@ export default function SafetyPage() {
               2. Inspect &amp; Test Before Settling Payment
             </h2>
             <p style={{ margin: 0, color: "var(--text-2)", lineHeight: 1.6, fontSize: "0.93rem" }}>
-              Always inspect physical goods thoroughly before parting with payment. Check PTA status on mobile phones (*#06# via DIRBS), battery health, screen condition, and serial numbers. For services (repairs, painting, carpentry), test water flow, electrical breakers, or finish quality before releasing payment to the technician.
+              Always inspect repairs and workmanship thoroughly before making payment. Test water flow, pipe joints, circuit breakers, AC cooling, or finish quality in the presence of the technician before settling the bill.
             </p>
           </div>
 
@@ -71,7 +71,7 @@ export default function SafetyPage() {
               4. Beware of Advance Payment &amp; Escrow Scams
             </h2>
             <p style={{ margin: 0, color: "var(--text-2)", lineHeight: 1.6, fontSize: "0.93rem" }}>
-              <strong>Important:</strong> {appName} operates exclusively as a technology bulletin board and direct connection marketplace. <em>We do NOT hold escrow, hold customer money, operate bank wallets, or provide payment protection guarantees.</em> Anyone claiming that &quot;Maddadgaar holds your funds until delivery&quot; is attempting a scam. Always settle directly in cash or Raast once goods or repairs are verified in person.
+              <strong>Important:</strong> {appName} operates exclusively as a technology bulletin board and direct connection marketplace. <em>We do NOT hold escrow, hold customer money, operate bank wallets, or provide payment protection guarantees.</em> Anyone claiming that &quot;Maddadgaar holds your funds until delivery&quot; is attempting a scam. Always settle directly in cash or Raast once the service or repair is inspected and completed to your satisfaction.
             </p>
           </div>
         </div>

@@ -35,17 +35,17 @@ export default function Privacy() {
               </tr>
               <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
                 <td style={{ padding: "12px", fontWeight: 600 }}>Neighborhood &amp; Approximate Area</td>
-                <td style={{ padding: "12px", color: "var(--text-2)" }}>Helps nearby buyers and service providers discover relevant Lahore listings</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Helps nearby clients and service technicians discover relevant Lahore listings</td>
                 <td style={{ padding: "12px", color: "var(--text-2)" }}>Publicly visible (e.g. &quot;Gulberg III&quot;, &quot;DHA Phase 5&quot;)</td>
               </tr>
               <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
                 <td style={{ padding: "12px", fontWeight: 600 }}>Exact Street Address &amp; House Details</td>
-                <td style={{ padding: "12px", color: "var(--text-2)" }}>Enables the chosen service technician or buyer to reach the premises</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Enables the confirmed service technician or provider to reach the premises</td>
                 <td style={{ padding: "12px", color: "var(--text-2)" }}><strong>Strictly Isolated:</strong> Never exposed publicly or to quoting bidders. Unlocked only upon mutual agreement</td>
               </tr>
               <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
                 <td style={{ padding: "12px", fontWeight: 600 }}>Listing Photos &amp; Descriptions</td>
-                <td style={{ padding: "12px", color: "var(--text-2)" }}>Provides clear condition of items or visual details of repairs needed</td>
+                <td style={{ padding: "12px", color: "var(--text-2)" }}>Provides visual details of repairs or service work needed</td>
                 <td style={{ padding: "12px", color: "var(--text-2)" }}>Public on the marketplace listing</td>
               </tr>
               <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>

@@ -17,9 +17,9 @@ import { TrustStrip } from "@/components/TrustStrip";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: { default: `${appName} – Lahore Classifieds & Local Services`, template: `%s · ${appName}` },
+  title: { default: `${appName} – Lahore Local Services Marketplace`, template: `%s · ${appName}` },
   description:
-    "Lahore's local classifieds and services marketplace. Buy and sell goods, hire verified tradespeople, offer services, and discover neighborhood work across Lahore.",
+    "Lahore's trusted local services marketplace. Request home repairs, hire verified technicians, offer professional services, and discover skilled work across Lahore.",
   manifest: "/manifest.webmanifest",
   robots: { index: true, follow: true },
 };

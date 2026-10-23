@@ -5,22 +5,22 @@ import { IconInfo, IconPlus, IconWrench, IconCheck, IconShieldCheck } from "@/co
 
 export const metadata: Metadata = {
   title: "Help Center & FAQ · Maddadgaar Lahore",
-  description: "Answers to common questions about posting classifieds, hiring technicians, and selling goods on Maddadgaar Lahore.",
+  description: "Answers to common questions about requesting services, hiring technicians, and offering skilled work on Madadgaar Lahore.",
 };
 
 export default function HelpPage() {
   const faqs = [
     {
-      q: "How does posting an ad work?",
-      a: "Click 'Post an Ad' at the top of any page. Select whether you are selling an item, requesting a service, offering your own service, or hiring for a local job. Fill out the simple 4-step wizard with your title, category, price, and neighborhood in Lahore. Your ad goes live immediately to local viewers.",
+      q: "How does requesting a service or posting work?",
+      a: "Click 'Request a Service / Post Job' at the top of any page. Select whether you need a repair or service, are offering your professional services, or are hiring for a local service role. Fill out the simple wizard with your title, category, budget, and neighborhood in Lahore. Your request goes live immediately to qualified local technicians.",
     },
     {
-      q: "How much does it cost to use Maddadgaar?",
-      a: "Posting ads, browsing listings, submitting quotes, and contacting sellers/providers is completely free. We do not charge listing fees or sales commissions.",
+      q: "How much does it cost to use Madadgaar?",
+      a: "Posting service requests, browsing technicians, submitting quotes, and contacting providers is completely free. We do not charge posting fees or commissions on your work.",
     },
     {
-      q: "Who pays for the service or item, and how?",
-      a: "All financial transactions are handled directly between the buyer/poster and the seller/provider. Most users in Lahore pay via cash on delivery or instant Raast / JazzCash / EasyPaisa transfer after verifying the item or inspection of the completed job. Maddadgaar never touches or holds user funds.",
+      q: "Who pays for the service, and how?",
+      a: "All payments are made directly between the client and the technician or service provider. Most users in Lahore pay via cash in hand or instant Raast / JazzCash / EasyPaisa transfer after inspection of the completed job. Madadgaar never touches or holds user funds.",
     },
     {
       q: "Why is my exact address kept private?",
@@ -58,7 +58,7 @@ export default function HelpPage() {
         </div>
 
         <p style={{ fontSize: "1.05rem", lineHeight: 1.65, color: "var(--text-2)", marginBottom: 32 }}>
-          Everything you need to know about using {appName} for local classifieds, home maintenance, freelance jobs, and buying or selling in Lahore.
+          Everything you need to know about using {appName} for home maintenance, technician bookings, skilled trades, and local service jobs in Lahore.
         </p>
 
         <div style={{ display: "grid", gap: 20, marginBottom: 36 }}>

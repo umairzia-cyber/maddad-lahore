@@ -15,14 +15,14 @@ export function TrustStrip() {
         <span style={{ fontSize: "0.85rem", color: "var(--text-2)" }}>
           {locale === "ur" ? (
             <>
-              <strong style={{ color: "var(--text)" }}>لاہور لوکل مارکیٹ پلیس:</strong> مکمل رازداری کے ساتھ کلاسیفائیڈز، گھریلو مرمت، سروسز اور لوکل ملازمتیں۔ پتہ صرف باہمی رضامندی پر ظاہر ہوتا ہے۔{" "}
+              <strong style={{ color: "var(--text)" }}>لاہور لوکل سروسز مارکیٹ:</strong> مکمل رازداری کے ساتھ گھریلو مرمت، کاریگر سروسز اور لوکل کام۔ پتہ صرف باہمی رضامندی پر ظاہر ہوتا ہے۔{" "}
               <Link href="/safety" style={{ textDecoration: "underline", color: "var(--violet-300)", fontWeight: 700 }}>
                 سیفٹی اور رازداری کی گائیڈ
               </Link>
             </>
           ) : (
             <>
-              <strong style={{ color: "var(--text)" }}>Lahore Local Marketplace:</strong> Classifieds, home repairs, freelance services &amp; local jobs. Exact street addresses stay strictly private until mutually agreed.{" "}
+              <strong style={{ color: "var(--text)" }}>Lahore Services Marketplace:</strong> Home repairs, technician services, skilled trades &amp; local work. Exact street addresses stay strictly private until mutually agreed.{" "}
               <Link href="/safety" style={{ textDecoration: "underline", color: "var(--violet-300)", fontWeight: 700 }}>
                 Trust &amp; Safety Guide
               </Link>
