@@ -72,18 +72,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="app-canvas">
               <header className="app-header">
                 <div className="header-inner">
-                  <Link href="/" className="brand-badge" aria-label="Maddadgaar Lahore home">
+                  <Link href="/" className="brand-badge" aria-label="Madadgaar home">
                     <div className="brand-avatar" aria-hidden="true">
                       مددگار
                     </div>
-                    <div>
-                      <div className="brand-title">
-                        <span>Maddadgaar</span>
-                        <span className="brand-urdu" lang="ur">
-                          مددگار لاہور
-                        </span>
-                      </div>
-                      <span className="brand-tag">Lahore · Plumbing &amp; Electrical</span>
+                    <div className="brand-title">
+                      <span>Madadgaar</span>
+                      <span className="brand-urdu" lang="ur">
+                        مددگار
+                      </span>
                     </div>
                   </Link>
 

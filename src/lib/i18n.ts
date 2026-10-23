@@ -8,7 +8,7 @@ export const LOCALE_DIR: Record<Locale, "ltr" | "rtl"> = { en: "ltr", ur: "rtl" 
 
 export const en = {
   // Brand & Header
-  "brand.name": "Maddadgaar",
+  "brand.name": "Madadgaar",
   "brand.urdu": "مددگار",
   "brand.tagline": "Lahore · Local help, made simple",
   "nav.marketplace": "Find help",
@@ -143,7 +143,7 @@ export const en = {
 export const ur: Record<keyof typeof en, string> = {
   // Brand & Header
   "brand.name": "مددگار",
-  "brand.urdu": "مددگار لاہور",
+  "brand.urdu": "مددگار",
   "brand.tagline": "لاہور · گھریلو مرمت کا بااعتماد نیٹ ورک",
   "nav.marketplace": "کام تلاش کریں",
   "nav.post": "مرمت کی درخواست دیں",
