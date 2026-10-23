@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   IconStar,
   IconShieldCheck,
@@ -188,6 +188,7 @@ interface TechnicianRateCardsProps {
   areas: AreaOption[];
   onOpenChatWithProvider: (provider: VerifiedProviderCard, service?: ServiceRateCardItem) => void;
   onPostCustomRequest: (categorySlug?: string) => void;
+  initialCategory?: string;
 }
 
 export function TechnicianRateCards({
@@ -195,10 +196,17 @@ export function TechnicianRateCards({
   areas,
   onOpenChatWithProvider,
   onPostCustomRequest,
+  initialCategory,
 }: TechnicianRateCardsProps) {
   const { locale } = useI18n();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || "all");
+
+  useEffect(() => {
+    if (initialCategory) {
+      setSelectedCategory(initialCategory);
+    }
+  }, [initialCategory]);
   const [selectedArea, setSelectedArea] = useState<string>("all");
   const [femaleOnlyFilter, setFemaleOnlyFilter] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");

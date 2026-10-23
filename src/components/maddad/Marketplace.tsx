@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   IconArrowRight,
   IconBanknote,
@@ -134,6 +134,7 @@ export function Hero({
   onPost,
   onJoin,
   compact,
+  onBrowseCategoryRateCards,
 }: {
   user: AppUser | null;
   realOpenCount: number;
@@ -141,14 +142,23 @@ export function Hero({
   onPost: (category?: any) => void;
   onJoin: () => void;
   compact: boolean;
+  onBrowseCategoryRateCards?: (categorySlug: string) => void;
 }) {
   const { locale } = useI18n();
+  const [selectedCategoryModal, setSelectedCategoryModal] = useState<{
+    slug: string;
+    en: string;
+    ur: string;
+    icon: string;
+  } | null>(null);
 
   const curatedCategories = [
-    { slug: "home-repairs", en: "Home Repairs & Handyman", ur: "گھریلو مرمت و ہینڈی مین", icon: "🛠️" },
-    { slug: "plumbing", en: "Plumbing & Sanitary", ur: "پلمبنگ و سینیٹری", icon: "🚿" },
     { slug: "electrical", en: "Electrical & Wiring", ur: "الیکٹریکل و وائرنگ", icon: "⚡" },
+    { slug: "plumbing", en: "Plumbing & Sanitary", ur: "پلمبنگ و سینیٹری", icon: "🚿" },
     { slug: "appliances", en: "AC & Appliances", ur: "اے سی و ہوم اپلائنسز", icon: "❄️" },
+    { slug: "beauty-salon", en: "Home Salon & Mehndi", ur: "ہوم سیلون و مہندی", icon: "💄" },
+    { slug: "home-care", en: "Maids & Deep Cleaning", ur: "صفائی و گھریلو ملازمہ", icon: "🧹" },
+    { slug: "home-repairs", en: "Home Repairs & Handyman", ur: "گھریلو مرمت و ہینڈی مین", icon: "🛠️" },
     { slug: "carpentry", en: "Carpentry & Woodwork", ur: "کارپینٹری و فرنیچر مرمت", icon: "🪚" },
     { slug: "painting", en: "Painting & Renovation", ur: "پینٹنگ و تزئین", icon: "🎨" },
     { slug: "jobs-work", en: "Skilled Gigs & Jobs", ur: "ہنر مند کام و جابز", icon: "👔" },
@@ -327,7 +337,7 @@ export function Hero({
             <button
               key={cat.slug}
               type="button"
-              onClick={() => onPost(cat.slug)}
+              onClick={() => setSelectedCategoryModal(cat)}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -350,6 +360,136 @@ export function Hero({
           ))}
         </div>
       </div>
+
+      {/* Category Action Fork Dialog */}
+      {selectedCategoryModal && (
+        <Dialog
+          open={Boolean(selectedCategoryModal)}
+          onClose={() => setSelectedCategoryModal(null)}
+          title={
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: "1.5rem" }}>{selectedCategoryModal.icon}</span>
+              <span>{locale === "ur" ? selectedCategoryModal.ur : selectedCategoryModal.en}</span>
+            </div>
+          }
+          eyebrow={
+            <span className="pill pill-violet" style={{ fontSize: "0.74rem", fontWeight: 700 }}>
+              {locale === "ur" ? "لاہور لوکل سروسز" : "Lahore Local Services"}
+            </span>
+          }
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-2)", lineHeight: 1.5 }}>
+              {locale === "ur"
+                ? "آپ اس سروس کے لیے کس طرح کام کروانا چاہتے ہیں؟ اپنی سہولت کے مطابق منتخب کریں:"
+                : "How would you like to hire in Lahore? Choose the option that fits your needs best:"}
+            </p>
+
+            {/* Option 1: Direct Hire & Rate Cards */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                const slug = selectedCategoryModal.slug;
+                setSelectedCategoryModal(null);
+                if (onBrowseCategoryRateCards) {
+                  onBrowseCategoryRateCards(slug);
+                } else {
+                  const el = document.getElementById("providers-catalog");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  const slug = selectedCategoryModal.slug;
+                  setSelectedCategoryModal(null);
+                  if (onBrowseCategoryRateCards) onBrowseCategoryRateCards(slug);
+                }
+              }}
+              style={{
+                padding: "16px 18px",
+                borderRadius: "var(--r-md)",
+                background: "var(--graphite-2)",
+                border: "1px solid rgba(16, 185, 129, 0.4)",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: "1.3rem" }}>👨‍🔧</span>
+                  <span style={{ fontWeight: 800, fontSize: "1rem", color: "#FFFFFF" }}>
+                    {locale === "ur" ? "کاریگروں کے ریٹ کارڈز دیکھیں" : "Browse Verified Ustads & Rate Cards"}
+                  </span>
+                </div>
+                <span className="pill pill-ok" style={{ fontSize: "0.72rem", fontWeight: 700 }}>
+                  {locale === "ur" ? "فوری رابطہ" : "Fastest Hire"}
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--text-2)", lineHeight: 1.5 }}>
+                {locale === "ur"
+                  ? "لاہور کے تصدیق شدہ کاریگروں کے فکس ریٹ کارڈز دیکھیں۔ 1 کلک پر واٹس ایپ یا ان-ایپ چیٹ سے براہ راست رابطہ کریں۔"
+                  : "View standard rate-cards (fan install, AC service, deep clean, mehndi). 1-tap direct WhatsApp or In-App Chat."}
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", fontWeight: 700, color: "var(--emerald-400)", marginTop: 4 }}>
+                <span>{locale === "ur" ? "ریٹ کارڈز کھولیں →" : "View Providers & Rates →"}</span>
+              </div>
+            </div>
+
+            {/* Option 2: Post a Problem & Get Bids */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                const slug = selectedCategoryModal.slug;
+                setSelectedCategoryModal(null);
+                onPost(slug);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  const slug = selectedCategoryModal.slug;
+                  setSelectedCategoryModal(null);
+                  onPost(slug);
+                }
+              }}
+              style={{
+                padding: "16px 18px",
+                borderRadius: "var(--r-md)",
+                background: "var(--graphite-2)",
+                border: "1px solid rgba(139, 92, 246, 0.4)",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: "1.3rem" }}>⚡</span>
+                  <span style={{ fontWeight: 800, fontSize: "1rem", color: "#FFFFFF" }}>
+                    {locale === "ur" ? "مسئلہ پوسٹ کریں اور بولیاں حاصل کریں" : "Post a Request & Get Bids (24h)"}
+                  </span>
+                </div>
+                <span className="pill pill-violet" style={{ fontSize: "0.72rem", fontWeight: 700 }}>
+                  {locale === "ur" ? "ریورس آکشن" : "Best Price"}
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--text-2)", lineHeight: 1.5 }}>
+                {locale === "ur"
+                  ? "اپنا مسئلہ 30 سیکنڈ میں پوسٹ کریں۔ آپ کے علاقے کے کاریگر مسابقتی ریٹ بھیجیں گے۔ فون نمبر اور پتہ محفوظ رہتا ہے۔"
+                  : "Describe your issue in 30 seconds. Local technicians in your area send custom counter-quotes. Exact address stays private."}
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", fontWeight: 700, color: "var(--violet-300)", marginTop: 4 }}>
+                <span>{locale === "ur" ? "درخواست پوسٹ کریں →" : "Post Request in this Category →"}</span>
+              </div>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </section>
   );
 }
@@ -519,6 +659,8 @@ export function MarketplaceView({
   ownJobIds,
   onOpenJob,
   onPost,
+  initialMode,
+  initialCategory,
 }: {
   jobs: PublicJobItem[];
   areas: AreaOption[];
@@ -526,15 +668,25 @@ export function MarketplaceView({
   ownJobIds: Set<string>;
   onOpenJob: (j: PublicJobItem) => void;
   onPost?: (cat?: any) => void;
+  initialMode?: "requests" | "rate_cards";
+  initialCategory?: string;
 }) {
   const { locale } = useI18n();
-  const [marketplaceMode, setMarketplaceMode] = useState<"requests" | "rate_cards">("requests");
+  const [marketplaceMode, setMarketplaceMode] = useState<"requests" | "rate_cards">(initialMode || "requests");
   const [chatProvider, setChatProvider] = useState<VerifiedProviderCard | null>(null);
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || "all");
   const [selectedArea, setSelectedArea] = useState<string>("all");
   const [q, setQ] = useState("");
   const [reportModalOpen, setReportModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialMode) setMarketplaceMode(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (initialCategory) setSelectedCategory(initialCategory);
+  }, [initialCategory]);
 
   const realJobs = useMemo(() => jobs.filter((j) => !j.is_demo), [jobs]);
 
@@ -663,6 +815,7 @@ export function MarketplaceView({
         <TechnicianRateCards
           user={user}
           areas={areas}
+          initialCategory={selectedCategory !== "all" ? selectedCategory : undefined}
           onOpenChatWithProvider={(p) => setChatProvider(p)}
           onPostCustomRequest={(catSlug) => onPost && onPost(catSlug)}
         />
