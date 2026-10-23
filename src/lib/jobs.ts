@@ -151,7 +151,9 @@ export async function cancelJob(user: SessionUser, jobId: string): Promise<void>
 export type PublicJob = {
   id: string; title: string; description: string; category: string; area: string; status: JobStatus;
   budget_min: number | null; budget_max: number | null; asap: boolean; preferred_at: Date | null;
-  created_at: Date; expires_at: Date; bid_count: number; my_bid_status: string | null;
+  created_at: Date; expires_at: Date; bid_count: number;
+  min_bid?: number | null; max_bid?: number | null;
+  my_bid_status: string | null;
   is_demo?: boolean;
   listing_type?: string | null;
   pricing_model?: string | null;
@@ -172,6 +174,8 @@ export async function browsePublicJobs(): Promise<PublicJob[]> {
   return q<PublicJob>(
     `SELECT ${PUBLIC_COLS},
        (SELECT count(*)::int FROM bids b WHERE b.job_id=j.id AND b.status IN ('active','accepted')) AS bid_count,
+       (SELECT min(b.amount)::int FROM bids b WHERE b.job_id=j.id AND b.status IN ('active','accepted')) AS min_bid,
+       (SELECT max(b.amount)::int FROM bids b WHERE b.job_id=j.id AND b.status IN ('active','accepted')) AS max_bid,
        NULL::text AS my_bid_status
      FROM jobs j JOIN service_categories c ON c.id=j.category_id JOIN service_areas a ON a.id=j.area_id
      WHERE j.status='open' AND j.hidden_at IS NULL AND j.expires_at > now()

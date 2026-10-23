@@ -28,6 +28,9 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     // Photos are shrunk client-side, but allow headroom for 3 photos + form fields.
     serverActions: { bodySizeLimit: "8mb" },

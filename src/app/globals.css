@@ -2725,3 +2725,36 @@ dialog.dialog::backdrop {
   gap: var(--s-6);
 }
 
+/* Live Radar Glowing Banner Animation */
+@keyframes pulse-radar {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.radar-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #10b981;
+  display: inline-block;
+  animation: pulse-radar 2s infinite ease-out;
+}
+
+.radar-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(13, 17, 23, 0.95) 50%, rgba(139, 92, 246, 0.1) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15), 0 0 30px rgba(139, 92, 246, 0.1);
+  border-radius: var(--r-md);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.radar-banner:hover {
+  border-color: rgba(16, 185, 129, 0.65);
+}
+

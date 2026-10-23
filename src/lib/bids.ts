@@ -50,8 +50,16 @@ export async function submitBid(user: SessionUser, jobId: string, form: FormData
     await audit(user.id, "bid.created", "bid", b!.id, {}, c);
     return j.customer_id;
   });
-  if (customerId)
-    await notify(customerId, "new_bid", "New bid on your job", `A worker bid Rs ${v.amount.toLocaleString("en-PK")} on "${job.title}".`, { type: "job", id: jobId });
+  if (customerId) {
+    const workerName = user.display_name || "A technician";
+    await notify(
+      customerId,
+      "new_bid",
+      `New Quote from ${workerName}`,
+      `${workerName} quoted Rs ${v.amount.toLocaleString("en-PK")} (ETA: ${v.timingText}) on "${job.title}". Tap to review and hire.`,
+      { type: "job", id: jobId }
+    );
+  }
 }
 
 export async function withdrawBid(user: SessionUser, bidId: string): Promise<void> {

@@ -1033,6 +1033,41 @@ export function JobDialog({
   // State for customer live bids
   const [bids, setBids] = useState<BidCard[]>([]);
   const [loadingBids, setLoadingBids] = useState(false);
+  const [bidSort, setBidSort] = useState<"lowest" | "fastest" | "rating" | "newest">("lowest");
+
+  // Bid stats for Price Radar
+  const bidStats = useMemo(() => {
+    if (!bids || bids.length === 0) return null;
+    const amounts = bids.map((b) => b.amount).filter((a) => typeof a === "number" && a > 0);
+    if (amounts.length === 0) return null;
+    const min = Math.min(...amounts);
+    const max = Math.max(...amounts);
+    const avg = Math.round(amounts.reduce((sum, a) => sum + a, 0) / amounts.length);
+    return { min, max, avg, count: amounts.length };
+  }, [bids]);
+
+  // Sorted bids for customer comparison
+  const sortedBids = useMemo(() => {
+    const copy = [...bids];
+    if (bidSort === "lowest") {
+      return copy.sort((a, b) => a.amount - b.amount);
+    }
+    if (bidSort === "fastest") {
+      return copy.sort((a, b) => {
+        const getMins = (t: string) => {
+          const m = (t || "").match(/(\d+)\s*(min|hour|hr)/i);
+          if (!m) return 999;
+          const val = parseInt(m[1], 10);
+          return m[2].toLowerCase().startsWith("h") ? val * 60 : val;
+        };
+        return getMins(a.timing_text) - getMins(b.timing_text);
+      });
+    }
+    if (bidSort === "rating") {
+      return copy.sort((a, b) => (b.rep?.rating_avg ?? 0) - (a.rep?.rating_avg ?? 0));
+    }
+    return copy.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [bids, bidSort]);
 
   // Chat & Hire modal state
   const [chatOpen, setChatOpen] = useState(false);
@@ -1233,6 +1268,57 @@ export function JobDialog({
 
               {/* Received Quotes Stream */}
               <div>
+                {/* 1. Live Market Price Radar */}
+                {bidStats && bidStats.count >= 2 && (
+                  <div
+                    style={{
+                      padding: "14px 18px",
+                      borderRadius: "var(--r-md)",
+                      background: "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 17, 23, 0.95) 100%)",
+                      border: "1px solid rgba(16, 185, 129, 0.35)",
+                      marginBottom: 14,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <span style={{ fontSize: "0.84rem", fontWeight: 800, color: "var(--emerald-300)", display: "flex", alignItems: "center", gap: 6 }}>
+                        <span>📊</span>
+                        <span>{locale === "ur" ? "مارکیٹ پرائس ریڈار" : "Market Price Radar"} ({bidStats.count} {locale === "ur" ? "کوٹیشنز" : "Quotes"})</span>
+                      </span>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text-3)" }}>
+                        {locale === "ur" ? "مارکیٹ اوسط کا تخمینہ" : "Real-time quote spread"}
+                      </span>
+                    </div>
+
+                    {/* Visual Price Spread */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, textAlign: "center" }}>
+                      <div style={{ padding: "8px", borderRadius: "var(--r-sm)", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.25)" }}>
+                        <div style={{ fontSize: "0.72rem", color: "var(--emerald-300)", textTransform: "uppercase", fontWeight: 700 }}>
+                          {locale === "ur" ? "سب سے کم" : "Lowest Quote"}
+                        </div>
+                        <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
+                          {pkr(bidStats.min)}
+                        </div>
+                      </div>
+                      <div style={{ padding: "8px", borderRadius: "var(--r-sm)", background: "rgba(139, 92, 246, 0.12)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
+                        <div style={{ fontSize: "0.72rem", color: "var(--violet-300)", textTransform: "uppercase", fontWeight: 700 }}>
+                          {locale === "ur" ? "اوسط ریٹ" : "Average Rate"}
+                        </div>
+                        <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
+                          {pkr(bidStats.avg)}
+                        </div>
+                      </div>
+                      <div style={{ padding: "8px", borderRadius: "var(--r-sm)", background: "rgba(255, 255, 255, 0.05)", border: "1px solid var(--line)" }}>
+                        <div style={{ fontSize: "0.72rem", color: "var(--text-3)", textTransform: "uppercase", fontWeight: 700 }}>
+                          {locale === "ur" ? "سب سے زیادہ" : "Highest Quote"}
+                        </div>
+                        <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
+                          {pkr(bidStats.max)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <div style={{ fontSize: "0.85rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-3)" }}>
                     {locale === "ur" ? "کاریگروں کے ریٹس" : "Received Technician Quotes"} ({bids.length})
@@ -1252,6 +1338,47 @@ export function JobDialog({
                     💬 {locale === "ur" ? "چیٹ کھولیں" : "Open In-App Chat"}
                   </button>
                 </div>
+
+                {/* 2. Quick 1-Tap Sorting Pills */}
+                {bids.length > 1 && (
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+                    <span style={{ fontSize: "0.74rem", color: "var(--text-3)", marginRight: 2 }}>
+                      {locale === "ur" ? "ترتیب:" : "Sort:"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setBidSort("lowest")}
+                      className={`btn btn-sm ${bidSort === "lowest" ? "btn-primary" : "btn-secondary"}`}
+                      style={{ padding: "3px 8px", fontSize: "0.76rem", fontWeight: 700 }}
+                    >
+                      💰 {locale === "ur" ? "سب سے کم ریٹ" : "Lowest Price"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBidSort("fastest")}
+                      className={`btn btn-sm ${bidSort === "fastest" ? "btn-primary" : "btn-secondary"}`}
+                      style={{ padding: "3px 8px", fontSize: "0.76rem" }}
+                    >
+                      ⚡ {locale === "ur" ? "جلد آمد (ETA)" : "Fastest Arrival"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBidSort("rating")}
+                      className={`btn btn-sm ${bidSort === "rating" ? "btn-primary" : "btn-secondary"}`}
+                      style={{ padding: "3px 8px", fontSize: "0.76rem" }}
+                    >
+                      ⭐ {locale === "ur" ? "اعلی ریٹنگ" : "Top Rated"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBidSort("newest")}
+                      className={`btn btn-sm ${bidSort === "newest" ? "btn-primary" : "btn-secondary"}`}
+                      style={{ padding: "3px 8px", fontSize: "0.76rem" }}
+                    >
+                      🕒 {locale === "ur" ? "تازہ ترین" : "Newest"}
+                    </button>
+                  </div>
+                )}
 
                 {loadingBids ? (
                   <div style={{ padding: 20, textAlign: "center", color: "var(--text-3)", fontSize: "0.85rem" }}>
@@ -1294,7 +1421,7 @@ export function JobDialog({
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    {bids.map((b) => (
+                    {sortedBids.map((b) => (
                       <div
                         key={b.id}
                         style={{
@@ -1421,7 +1548,66 @@ export function JobDialog({
                   ✓ Your quote of {pkr(Number(bidAmount))} has been sent to the customer! They can compare bids and chat privately with you.
                 </div>
               ) : (
-                <form onSubmit={handleBidSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <>
+                  {/* InDrive-style Live Market Spread Guidance */}
+                  {job.bid_count > 0 && job.min_bid && job.max_bid ? (
+                    <div
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: "var(--r-sm)",
+                        background: "rgba(139, 92, 246, 0.08)",
+                        border: "1px solid var(--violet-line)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 8,
+                        marginBottom: 12,
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: "1.2rem" }}>📊</span>
+                        <div>
+                          <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--violet-300)" }}>
+                            {locale === "ur" ? "مارکیٹ ریٹ گائیڈنس (InDrive Style)" : "Live Market Rate Guidance (InDrive Style)"}
+                          </div>
+                          <div style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
+                            {job.min_bid === job.max_bid
+                              ? `${locale === "ur" ? "موجودہ کوٹیشن:" : "Current quote on this job:"} ${pkr(job.min_bid)}`
+                              : `${locale === "ur" ? "دیگر کاریگروں کے ریٹس:" : "Current quotes range between"} ${pkr(job.min_bid)} – ${pkr(job.max_bid)} (${job.bid_count} ${locale === "ur" ? "کوٹیشنز" : "quotes"})`}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="pill pill-violet" style={{ fontSize: "0.72rem", fontWeight: 700 }}>
+                        {locale === "ur" ? "گمنام ریٹ" : "Anonymous Spread"}
+                      </span>
+                    </div>
+                  ) : job.bid_count === 0 ? (
+                    <div
+                      style={{
+                        padding: "10px 14px",
+                        borderRadius: "var(--r-sm)",
+                        background: "rgba(16, 185, 129, 0.08)",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        fontSize: "0.82rem",
+                        color: "var(--emerald-300)",
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        marginBottom: 12,
+                      }}
+                    >
+                      <span>⚡</span>
+                      <span>
+                        {locale === "ur"
+                          ? "اس کام پر ابھی تک کوئی ریٹ نہیں آیا۔ پہلا ریٹ بھیج کر گاہک کی ترجیح حاصل کریں!"
+                          : "Be the first technician to quote on this request and get immediate attention!"}
+                      </span>
+                    </div>
+                  ) : null}
+
+                  <form onSubmit={handleBidSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {/* Custom PKR Price input + Quick chips */}
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
@@ -1533,6 +1719,7 @@ export function JobDialog({
                     </button>
                   </div>
                 </form>
+                </>
               )}
             </div>
           ) : (

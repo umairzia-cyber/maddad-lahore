@@ -27,7 +27,7 @@ import {
   CategoryOption,
   DemoAccount,
 } from "./maddad/types";
-import { ToastRegion, useToasts } from "./maddad/shared";
+import { ToastRegion, useToasts, pkr } from "./maddad/shared";
 import {
   Hero,
   HowItWorks,
@@ -136,6 +136,12 @@ function UnifiedAppContent({
     initialCustomerJobs.forEach((j) => s.add(j.id));
     return s;
   }, [initialCustomerJobs]);
+
+  const activeCustomerJob = useMemo(() => {
+    return initialCustomerJobs.find((j) => j.status === "open");
+  }, [initialCustomerJobs]);
+
+  const [dismissRadarBanner, setDismissRadarBanner] = useState(false);
 
   const switchTab = (tab: TabType) => {
     setActiveTab(tab);
@@ -307,6 +313,89 @@ function UnifiedAppContent({
         {/* VIEW 1: MARKETPLACE */}
         {activeTab === "marketplace" && (
           <div className="stack-md">
+            {/* Live Sticky Active Request Radar for Customer */}
+            {activeCustomerJob && !dismissRadarBanner && (
+              <div
+                className="radar-banner"
+                style={{
+                  padding: "14px 18px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 12,
+                  marginBottom: 6,
+                  cursor: "pointer",
+                }}
+                onClick={() => setActiveJobModal(activeCustomerJob)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    setActiveJobModal(activeCustomerJob);
+                  }
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flex: "1 1 320px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: "rgba(16, 185, 129, 0.15)" }}>
+                    <span className="radar-dot" />
+                  </div>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.74rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--emerald-400)" }}>
+                        {locale === "ur" ? "آپ کی لائیو درخواست" : "Your Active Request"}
+                      </span>
+                      <span style={{ color: "var(--text-3)", fontSize: "0.74rem" }}>•</span>
+                      <span style={{ fontSize: "0.76rem", color: "var(--text-3)" }}>
+                        {activeCustomerJob.area}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: "0.96rem", fontWeight: 700, color: "#FFFFFF", marginTop: 2 }}>
+                      &ldquo;{activeCustomerJob.title}&rdquo;
+                    </div>
+                    <div style={{ fontSize: "0.82rem", color: "var(--text-2)", marginTop: 2 }}>
+                      {activeCustomerJob.bid_count > 0 ? (
+                        <>
+                          <strong style={{ color: "var(--emerald-300)" }}>
+                            {activeCustomerJob.bid_count} {locale === "ur" ? "کاریگروں کے ریٹس موصول" : `quote${activeCustomerJob.bid_count > 1 ? "s" : ""} waiting`}
+                          </strong>
+                          {activeCustomerJob.min_bid && activeCustomerJob.max_bid ? (
+                            <span style={{ color: "var(--text-3)", marginLeft: 6 }}>
+                              ({pkr(activeCustomerJob.min_bid)} {activeCustomerJob.min_bid !== activeCustomerJob.max_bid ? `– ${pkr(activeCustomerJob.max_bid)}` : ""})
+                            </span>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span style={{ color: "var(--text-3)" }}>
+                          {locale === "ur" ? "کاریگروں کو الرٹ بھیج دیا گیا ہے · کوٹیشنز کا انتظار..." : "Dispatched to verified ustads · Waiting for incoming quotes"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveJobModal(activeCustomerJob)}
+                    className="btn btn-primary btn-sm"
+                    style={{ fontWeight: 700, padding: "8px 14px", display: "inline-flex", alignItems: "center", gap: 6 }}
+                  >
+                    <span>{activeCustomerJob.bid_count > 0 ? (locale === "ur" ? "ریٹس چیک کریں اور ہائر کریں →" : "Review Quotes & Hire →") : (locale === "ur" ? "درخواست دیکھیں →" : "View Live Request →")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDismissRadarBanner(true)}
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: "6px 8px", color: "var(--text-3)", fontSize: "0.85rem" }}
+                    title="Dismiss for now"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
             <Hero
               user={currentUser}
               realOpenCount={realCount}

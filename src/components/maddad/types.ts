@@ -12,6 +12,8 @@ export interface PublicJobItem {
   created_at: string | Date;
   expires_at: string | Date;
   bid_count: number;
+  min_bid?: number | null;
+  max_bid?: number | null;
   my_bid_status?: string | null;
   is_demo?: boolean;
   listing_type?: "item_sale" | "service_request" | "service_offer" | "job_opportunity" | string | null;

@@ -683,8 +683,14 @@ export class DomainStore {
         const cat = getCategoryById(j.category_id)?.name ?? "Service";
         const ar = getAreaById(j.area_id)?.name ?? "Lahore";
         let bids = 0;
+        let minBid: number | null = null;
+        let maxBid: number | null = null;
         for (const b of this.bids.values()) {
-          if (b.job_id === j.id && ["active", "accepted"].includes(b.status)) bids++;
+          if (b.job_id === j.id && ["active", "accepted"].includes(b.status)) {
+            bids++;
+            if (minBid === null || b.amount < minBid) minBid = b.amount;
+            if (maxBid === null || b.amount > maxBid) maxBid = b.amount;
+          }
         }
         list.push({
           id: j.id,
@@ -700,6 +706,8 @@ export class DomainStore {
           created_at: j.created_at,
           expires_at: j.expires_at,
           bid_count: bids,
+          min_bid: minBid,
+          max_bid: maxBid,
           is_demo: j.is_demo,
           listing_type: j.listing_type || "service_request",
           pricing_model: j.pricing_model || "quote_requested",
@@ -741,9 +749,15 @@ export class DomainStore {
 
       // Count active bids and check worker's own bid status
       let bids = 0;
+      let minBid: number | null = null;
+      let maxBid: number | null = null;
       let myBidStatus: string | null = null;
       for (const b of this.bids.values()) {
-        if (b.job_id === j.id && ["active", "accepted"].includes(b.status)) bids++;
+        if (b.job_id === j.id && ["active", "accepted"].includes(b.status)) {
+          bids++;
+          if (minBid === null || b.amount < minBid) minBid = b.amount;
+          if (maxBid === null || b.amount > maxBid) maxBid = b.amount;
+        }
         if (b.job_id === j.id && b.worker_id === workerId) myBidStatus = b.status;
       }
 
@@ -761,6 +775,8 @@ export class DomainStore {
         created_at: j.created_at,
         expires_at: j.expires_at,
         bid_count: bids,
+        min_bid: minBid,
+        max_bid: maxBid,
         my_bid_status: myBidStatus,
         is_demo: j.is_demo,
       });
@@ -995,8 +1011,10 @@ export class DomainStore {
     this.audit(workerId, "bid.created", "bid", bidId);
 
     // Notify customer
-    this.notify(j.customer_id, "new_bid", "New bid on your job",
-      `A technician bid Rs ${data.amount.toLocaleString("en-PK")} on "${j.title}".`,
+    const worker = this.users.get(workerId);
+    const workerName = worker?.display_name || "A technician";
+    this.notify(j.customer_id, "new_bid", `New Quote from ${workerName}`,
+      `${workerName} quoted Rs ${data.amount.toLocaleString("en-PK")} (ETA: ${data.timingText}) on "${j.title}". Tap to review and hire.`,
       { type: "job", id: jobId });
   }
 
