@@ -213,6 +213,8 @@ const CATEGORIES: Category[] = [
   { id: 6, slug: "painting", name: "Painting & Renovation", name_ur: "پینٹنگ اور تزئین و آرائش", sort_order: 6, active: true },
   { id: 7, slug: "education", name: "Tutoring & Lessons", name_ur: "ٹیوشن اور تعلیم", sort_order: 7, active: true },
   { id: 8, slug: "jobs-work", name: "Skilled Jobs & Gigs", name_ur: "مقامی ملازمتیں اور ہنر مند کام", sort_order: 8, active: true },
+  { id: 9, slug: "beauty-salon", name: "Home Salon & Beauty", name_ur: "بیوٹی پارلر و ہوم سیلون", sort_order: 9, active: true },
+  { id: 10, slug: "home-care", name: "Maids & Home Care", name_ur: "ملازمہ و گھریلو صفائی", sort_order: 10, active: true },
 ];
 
 const AREAS_RAW: [string, string, number, number][] = [

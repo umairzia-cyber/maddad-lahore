@@ -24,6 +24,7 @@ import {
   IconSmartphone,
 } from "../icons";
 import { createAndPublishJobAction } from "@/app/actions";
+import { detectSmartCategory, DetectedCategoryResult } from "@/lib/smartCategory";
 import type { AppUser, AreaOption, CategoryOption } from "./types";
 import { Field, looksLikePhone, pkr } from "./shared";
 import { useI18n } from "./I18nContext";
@@ -58,6 +59,8 @@ export function PostJobView({
   const [categoryId, setCategoryId] = useState<string>(categories[0]?.id ? String(categories[0].id) : "1");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [autoDetected, setAutoDetected] = useState<DetectedCategoryResult | null>(null);
+  const [femaleProviderOnly, setFemaleProviderOnly] = useState<boolean>(false);
 
   // Step 3: Pricing & Terms
   const [pricingModel, setPricingModel] = useState<"fixed" | "negotiable" | "budget_range" | "quote_requested" | "contact_for_price">("fixed");
@@ -88,6 +91,20 @@ export function PostJobView({
       }
     }
   }, [initialCategory, categories]);
+
+  // Real-time multilingual smart category & female preference detection
+  useEffect(() => {
+    const combined = `${title} ${description}`.trim();
+    if (combined.length >= 3) {
+      const res = detectSmartCategory(combined);
+      setAutoDetected(res);
+      if (res?.femaleProviderSuggested) {
+        setFemaleProviderOnly(true);
+      }
+    } else {
+      setAutoDetected(null);
+    }
+  }, [title, description]);
 
   const validateStep2 = () => {
     const errs: Record<string, string> = {};
@@ -162,6 +179,14 @@ export function PostJobView({
     // Resolve category name
     const catName = categories.find((c) => String(c.id) === categoryId)?.name || "Services";
     fd.set("categoryName", catName);
+
+    if (femaleProviderOnly) {
+      fd.set("femaleProviderOnly", "true");
+      const currentDesc = String(fd.get("description") || "");
+      if (!currentDesc.includes("خاتون کاریگر") && !currentDesc.includes("Female Professional")) {
+        fd.set("description", `[👩‍🦰 Female Professional Requested / خاتون پرووائیڈر] ${currentDesc}`);
+      }
+    }
 
     try {
       const res = await createAndPublishJobAction(null, fd);
@@ -327,6 +352,48 @@ export function PostJobView({
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 28 }}>
+              {/* Smart Category Auto-Detection Banner */}
+              {autoDetected && (
+                <div
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: "var(--r-sm)",
+                    background: "rgba(139, 92, 246, 0.12)",
+                    border: "1px solid var(--violet-line)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 8,
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <span>✨</span>
+                    <span>
+                      <strong>Smart Category Detected:</strong> {autoDetected.categoryName} {autoDetected.categoryNameUr ? `(${autoDetected.categoryNameUr})` : ""}
+                    </span>
+                    <span style={{ fontSize: "0.74rem", color: "var(--text-3)" }}>
+                      via &ldquo;{autoDetected.matchedKeywords.slice(0, 3).join(", ")}&rdquo;
+                    </span>
+                  </div>
+                  {categoryId !== String(autoDetected.categoryId) ? (
+                    <button
+                      type="button"
+                      onClick={() => setCategoryId(String(autoDetected.categoryId))}
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: "3px 10px", fontSize: "0.78rem" }}
+                    >
+                      {locale === "ur" ? "یہ کیٹگری منتخب کریں" : "Apply Category"}
+                    </button>
+                  ) : (
+                    <span style={{ color: "var(--emerald-400)", fontWeight: 700, fontSize: "0.78rem" }}>
+                      ✓ Applied
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Category selector */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
@@ -380,6 +447,48 @@ export function PostJobView({
                 />
                 {errors.description && <span style={{ color: "var(--bad)", fontSize: "0.8rem", marginTop: 4, display: "block" }}>{errors.description}</span>}
               </div>
+
+              {/* Female Service Professional Only Toggle */}
+              {(categoryId === "9" || categoryId === "10" || autoDetected?.femaleProviderSuggested || femaleProviderOnly) && (
+                <div
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: "var(--r-sm)",
+                    background: femaleProviderOnly ? "rgba(236, 72, 153, 0.12)" : "var(--graphite-2)",
+                    border: femaleProviderOnly ? "1px solid rgba(236, 72, 153, 0.45)" : "1px solid var(--line)",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 12,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    id="femaleProviderOnly"
+                    checked={femaleProviderOnly}
+                    onChange={(e) => setFemaleProviderOnly(e.target.checked)}
+                    style={{ marginTop: 3, cursor: "pointer", width: 17, height: 17 }}
+                  />
+                  <div>
+                    <label
+                      htmlFor="femaleProviderOnly"
+                      style={{
+                        fontWeight: 700,
+                        fontSize: "0.88rem",
+                        color: femaleProviderOnly ? "#f472b6" : "var(--text)",
+                        cursor: "pointer",
+                        display: "block",
+                      }}
+                    >
+                      👩‍🦰 {locale === "ur" ? "صرف خاتون کاریگر / بیوٹیشن (Female Professional Only)" : "Female Service Professional Only"}
+                    </label>
+                    <p style={{ margin: "2px 0 0", fontSize: "0.78rem", color: "var(--text-3)", lineHeight: 1.4 }}>
+                      {locale === "ur"
+                        ? "یہ درخواست صرف تصدیق شدہ خواتین کاریگروں اور ہوم سیلون پروفیشنلز کو بھیجی جائے گی۔"
+                        : "Recommended for home salon, mehndi, and domestic maid requests. Only verified female professionals in your radius will be alerted."}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

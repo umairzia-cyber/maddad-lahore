@@ -83,7 +83,9 @@ export async function ensureReferenceData(): Promise<void> {
       (5, 'furniture','Furniture & Household','فرنیچر اور گھریلو سامان',5),
       (6, 'vehicles','Vehicles & Transport','گاڑیاں اور ٹرانسپورٹ',6),
       (7, 'education','Tutoring & Education','ٹیوشن اور تعلیم',7),
-      (8, 'jobs-work','Jobs & Skilled Work','مقامی ملازمتیں اور ہنر مند کام',8)
+      (8, 'jobs-work','Jobs & Skilled Work','مقامی ملازمتیں اور ہنر مند کام',8),
+      (9, 'beauty-salon','Home Salon & Beauty','بیوٹی پارلر و ہوم سیلون',9),
+      (10, 'home-care','Maids & Home Care','ملازمہ و گھریلو صفائی',10)
       ON CONFLICT (slug) DO UPDATE SET name=EXCLUDED.name, name_ur=EXCLUDED.name_ur, sort_order=EXCLUDED.sort_order, active=true`);
 
     let areaId = 1;
