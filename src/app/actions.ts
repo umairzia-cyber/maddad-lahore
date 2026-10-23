@@ -10,7 +10,7 @@ import { DEMO_ACCOUNTS, demoAccountsEnabled } from "@/lib/config";
 import { normalizePkPhone } from "@/lib/phone";
 import { reportError } from "@/lib/logger";
 import { createDraft, publishJob, cancelJob, createAndPublishJob } from "@/lib/jobs";
-import { submitBid, withdrawBid, acceptBid } from "@/lib/bids";
+import { submitBid, withdrawBid, acceptBid, listBidsForCustomer, BidCard } from "@/lib/bids";
 import { progress, reportProblem, Action } from "@/lib/bookings";
 import { submitReview, createReport } from "@/lib/reviews";
 import {
@@ -238,6 +238,97 @@ export async function submitInquiryAction(_: FormState, f: FormData): Promise<Fo
     return { ok: "Your inquiry has been sent to the poster!" };
   });
 }
+
+export type ChatMessageDto = {
+  id: string;
+  job_id: string;
+  sender_id: string;
+  sender_role: "customer" | "worker";
+  sender_name: string;
+  message: string;
+  created_at: string;
+};
+
+export async function getJobMessagesAction(jobId: string): Promise<ChatMessageDto[]> {
+  const isPg = await isPostgresAvailable();
+  if (!isPg) {
+    const list = store.getJobMessages(jobId);
+    return list.map((m) => ({
+      ...m,
+      created_at: m.created_at.toISOString(),
+    }));
+  }
+
+  try {
+    const rows = await q<{
+      id: string;
+      listing_id: string;
+      sender_id: string;
+      message: string;
+      created_at: Date;
+    }>(
+      `SELECT id, listing_id, sender_id, message, created_at FROM listing_inquiries WHERE listing_id=$1 ORDER BY created_at ASC`,
+      [jobId]
+    );
+    if (rows && rows.length > 0) {
+      return rows.map((r) => ({
+        id: r.id,
+        job_id: r.listing_id,
+        sender_id: r.sender_id,
+        sender_role: "worker",
+        sender_name: "Technician / Inquirer",
+        message: r.message,
+        created_at: new Date(r.created_at).toISOString(),
+      }));
+    }
+  } catch {
+    // fallback to store
+  }
+
+  const list = store.getJobMessages(jobId);
+  return list.map((m) => ({
+    ...m,
+    created_at: m.created_at.toISOString(),
+  }));
+}
+
+export async function sendJobMessageAction(
+  jobId: string,
+  messageText: string
+): Promise<{ ok?: boolean; error?: string; message?: ChatMessageDto }> {
+  try {
+    const clean = (messageText || "").trim();
+    if (!clean || clean.length < 2) return { error: "Message must be at least 2 characters." };
+
+    const u = await requireUser().catch(() => null);
+    const senderId = u?.id || "guest-session";
+    const senderRole = u?.is_worker ? "worker" : "customer";
+    const senderName = u?.display_name || (senderRole === "customer" ? "Customer" : "Verified Technician");
+
+    const isPg = await isPostgresAvailable();
+    if (isPg && u) {
+      try {
+        await q(
+          `INSERT INTO listing_inquiries (listing_id, sender_id, message) VALUES ($1, $2, $3)`,
+          [jobId, u.id, clean]
+        );
+      } catch {
+        // non-blocking
+      }
+    }
+
+    const saved = store.sendJobMessage(jobId, senderId, clean, senderRole, senderName);
+    return {
+      ok: true,
+      message: {
+        ...saved,
+        created_at: saved.created_at.toISOString(),
+      },
+    };
+  } catch (err: any) {
+    return { error: err?.message || "Failed to send message." };
+  }
+}
 export async function cancelJobAction(_: FormState, f: FormData): Promise<FormState> {
   return wrap(async () => {
     const u = await requireActive();
@@ -282,6 +373,15 @@ export async function acceptBidAction(_: FormState, f: FormData): Promise<FormSt
     revalidatePath("/", "layout");
     redirect(`/jobs/${str(f, "jobId")}`);
   });
+}
+
+export async function getCustomerBidsAction(jobId: string): Promise<BidCard[]> {
+  try {
+    const u = await requireUser();
+    return await listBidsForCustomer(u, jobId);
+  } catch {
+    return [];
+  }
 }
 
 // ---------- booking progress ----------

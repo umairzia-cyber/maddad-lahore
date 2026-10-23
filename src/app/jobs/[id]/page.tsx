@@ -228,6 +228,42 @@ export default async function JobPage({ params }: { params: { id: string } }) {
                   </p>
                 </>
               )}
+
+              {/* Direct WhatsApp Action Button */}
+              {(() => {
+                const rawPhone = isCustomer ? priv.worker_phone : priv.customer_phone;
+                const clean = rawPhone.replace(/[^0-9]/g, "");
+                const waNumber = clean.startsWith("0") ? `92${clean.slice(1)}` : clean;
+                const waText = encodeURIComponent(
+                  isCustomer
+                    ? `Assalam-o-Alaikum ${priv.worker_name || ""}, I have hired you on Madadgaar for "${job.title}". My address is: ${priv.address_text}.`
+                    : `Assalam-o-Alaikum ${priv.customer_name || ""}, I am ${priv.worker_name || "your technician"} from Madadgaar for "${job.title}". I am heading over.`
+                );
+                return (
+                  <div style={{ marginTop: 10 }}>
+                    <a
+                      href={`https://wa.me/${waNumber}?text=${waText}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-ok btn-sm"
+                      style={{
+                        background: "#25D366",
+                        color: "#ffffff",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontWeight: 700,
+                        textDecoration: "none",
+                        padding: "6px 12px",
+                        borderRadius: "var(--r-sm)",
+                      }}
+                    >
+                      <span>🟢</span>
+                      <span>Chat on WhatsApp</span>
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 

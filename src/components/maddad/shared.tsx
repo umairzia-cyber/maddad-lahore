@@ -149,7 +149,7 @@ export function Dialog({
 }: {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title: React.ReactNode;
   eyebrow?: React.ReactNode;
   children: React.ReactNode;
 }) {

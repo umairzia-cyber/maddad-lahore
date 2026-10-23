@@ -187,6 +187,16 @@ export type Session = {
   created_at: Date;
 };
 
+export type ChatMessage = {
+  id: string;
+  job_id: string;
+  sender_id: string;
+  sender_role: "customer" | "worker";
+  sender_name: string;
+  message: string;
+  created_at: Date;
+};
+
 // -------------------------------------------------------------
 // Reference Data: Lahore neighbourhoods & pilot categories
 // -------------------------------------------------------------
@@ -268,6 +278,7 @@ export class DomainStore {
   reviews: Map<string, Review> = new Map();
   reports: Map<string, Report> = new Map();
   notifications: Map<string, Notification> = new Map();
+  chatMessages: Map<string, ChatMessage[]> = new Map();
   auditLogs: AuditLog[] = [];
   otpCodes: Map<string, OtpCode> = new Map();
   sessions: Map<string, Session> = new Map();
@@ -511,6 +522,40 @@ export class DomainStore {
       lat: 31.4826,
       lng: 74.3239,
     });
+
+    // Seed sample private chat messages for Demo Job 2 (Reverse-Auction Demonstration)
+    const tMsg1 = new Date(Date.now() - 3600 * 1000 * 3);
+    const tMsg2 = new Date(Date.now() - 3600 * 1000 * 2);
+    const tMsg3 = new Date(Date.now() - 3600 * 1000);
+    this.chatMessages.set(j2, [
+      {
+        id: `msg-demo-1`,
+        job_id: j2,
+        sender_id: elecId,
+        sender_role: "worker",
+        sender_name: "Rashid (Electrician · DHA)",
+        message: "Assalam-o-Alaikum. I am nearby in DHA Phase 5. Does the circuit breaker trip immediately or after 10-15 minutes of load?",
+        created_at: tMsg1,
+      },
+      {
+        id: `msg-demo-2`,
+        job_id: j2,
+        sender_id: customerId,
+        sender_role: "customer",
+        sender_name: "Customer (DHA Phase 5)",
+        message: "Walaikum Assalam. It trips immediately as soon as the living room AC is switched on.",
+        created_at: tMsg2,
+      },
+      {
+        id: `msg-demo-3`,
+        job_id: j2,
+        sender_id: elecId,
+        sender_role: "worker",
+        sender_name: "Rashid (Electrician · DHA)",
+        message: "Understood. That indicates a direct short or loose phase terminal. I have a digital clamp meter and can inspect it at 4:30 PM. Labor quote is Rs. 3,200 as quoted.",
+        created_at: tMsg3,
+      },
+    ]);
   }
 
   // --- Rate limiting ---
@@ -1108,6 +1153,8 @@ export class DomainStore {
           title: j?.title ?? "Job",
           customer_name: customer?.display_name ?? null,
           worker_name: worker?.display_name ?? null,
+          customer_phone: customer?.phone ?? null,
+          worker_phone: worker?.phone ?? null,
           completion_code_attempts: bk.completion_code_attempts,
         };
       }
@@ -1138,6 +1185,8 @@ export class DomainStore {
           title: j?.title ?? "Job",
           customer_name: customer?.display_name ?? null,
           worker_name: worker?.display_name ?? null,
+          customer_phone: customer?.phone ?? null,
+          worker_phone: worker?.phone ?? null,
           completion_code_attempts: bk.completion_code_attempts,
         });
       }
@@ -1599,6 +1648,78 @@ export class DomainStore {
     for (const n of this.notifications.values()) {
       if (n.user_id === userId && !n.read_at) n.read_at = now;
     }
+  }
+
+  // --- In-App Private Chat (Masked Numbers) ---
+  getJobMessages(jobId: string): ChatMessage[] {
+    const list = this.chatMessages.get(jobId) || [];
+    return list.map((m) => ({ ...m }));
+  }
+
+  sendJobMessage(
+    jobId: string,
+    senderId: string,
+    messageText: string,
+    role?: "customer" | "worker",
+    name?: string
+  ): ChatMessage {
+    const clean = messageText.trim();
+    if (!clean || clean.length < 2) {
+      throw new AppError("Message must be at least 2 characters.");
+    }
+    const j = this.jobs.get(jobId);
+    if (!j) throw new AppError("Job not found.", "not_found");
+
+    const sender = this.users.get(senderId);
+    const resolvedRole = role ?? (j.customer_id === senderId ? "customer" : "worker");
+    const area = getAreaById(j.area_id)?.name ?? "Lahore";
+    const defaultName =
+      resolvedRole === "customer"
+        ? `Customer (${area})`
+        : (sender?.display_name?.replace(/^\[DEMO\]\s*/, "") || "Verified Technician");
+
+    const resolvedName = name || defaultName;
+
+    const msg: ChatMessage = {
+      id: `msg-${Date.now()}-${randomBytes(3).toString("hex")}`,
+      job_id: jobId,
+      sender_id: senderId,
+      sender_role: resolvedRole,
+      sender_name: resolvedName,
+      message: clean,
+      created_at: new Date(),
+    };
+
+    const list = this.chatMessages.get(jobId) || [];
+    list.push(msg);
+    this.chatMessages.set(jobId, list);
+
+    // Notify counterpart
+    if (resolvedRole === "customer") {
+      // Notify active bidders
+      for (const b of this.bids.values()) {
+        if (b.job_id === jobId && b.status === "active") {
+          this.notify(
+            b.worker_id,
+            "chat_message",
+            "Customer message in private chat",
+            clean.slice(0, 80),
+            { type: "job", id: jobId }
+          );
+        }
+      }
+    } else {
+      // Notify customer
+      this.notify(
+        j.customer_id,
+        "chat_message",
+        `New quote discussion from ${resolvedName}`,
+        clean.slice(0, 80),
+        { type: "job", id: jobId }
+      );
+    }
+
+    return msg;
   }
 
   // --- Audit Logs ---

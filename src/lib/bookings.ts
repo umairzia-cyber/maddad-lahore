@@ -12,13 +12,14 @@ import { store } from "./store";
 export type Booking = {
   id: string; job_id: string; customer_id: string; worker_id: string; status: JobStatus; amount: number;
   selected_at: Date; started_at: Date | null; completion_requested_at: Date | null; completed_at: Date | null;
-  title: string; customer_name: string | null; worker_name: string | null; completion_code_attempts: number;
+  title: string; customer_name: string | null; worker_name: string | null;
+  customer_phone?: string | null; worker_phone?: string | null; completion_code_attempts: number;
 };
 
 const BOOKING_SQL = `
   SELECT b.id, b.job_id, b.customer_id, b.worker_id, b.status, bd.amount, b.selected_at, b.started_at,
          b.completion_requested_at, b.completed_at, j.title, cu.display_name AS customer_name,
-         wu.display_name AS worker_name, b.completion_code_attempts
+         wu.display_name AS worker_name, cu.phone AS customer_phone, wu.phone AS worker_phone, b.completion_code_attempts
   FROM bookings b JOIN jobs j ON j.id=b.job_id JOIN bids bd ON bd.id=b.accepted_bid_id
   JOIN users cu ON cu.id=b.customer_id JOIN users wu ON wu.id=b.worker_id`;
 

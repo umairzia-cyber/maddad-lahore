@@ -33,6 +33,8 @@ export interface BookingItem {
   title: string;
   customer_name?: string | null;
   worker_name?: string | null;
+  customer_phone?: string | null;
+  worker_phone?: string | null;
   selected_at: string | Date;
   completed_at?: string | Date | null;
 }

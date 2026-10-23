@@ -279,10 +279,22 @@ export function CustomerDashboardView({
                           </p>
                         </div>
 
-                        <Link href={`/jobs/${job.id}`} className="btn btn-primary btn-sm">
-                          <span>{locale === "ur" ? "ریٹ کا موازنہ کریں" : "Compare & Hire"}</span>
-                          <IconArrowRight size={14} aria-hidden="true" />
-                        </Link>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                          <button
+                            type="button"
+                            onClick={() => onOpenJob(job as any)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+                          >
+                            <span>💬</span>
+                            <span>{locale === "ur" ? "لائیو آکشن اور چیٹ" : "Live Quotes & Chat"}</span>
+                          </button>
+
+                          <Link href={`/jobs/${job.id}`} className="btn btn-primary btn-sm">
+                            <span>{locale === "ur" ? "ریٹ کا موازنہ کریں" : "Compare & Hire"}</span>
+                            <IconArrowRight size={14} aria-hidden="true" />
+                          </Link>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -372,6 +384,61 @@ export function CustomerDashboardView({
                             ? "آمد کے درست وقت اور گلی کے راستے کے لیے کال کر کے رابطہ کریں۔"
                             : "Call directly to coordinate arrival time or give directions."}
                         </p>
+                        {booking.worker_phone ? (() => {
+                          const rawPhone = booking.worker_phone;
+                          const clean = rawPhone.replace(/[^0-9]/g, "");
+                          const waNumber = clean.startsWith("0") ? `92${clean.slice(1)}` : clean;
+                          const waText = encodeURIComponent(
+                            `Assalam-o-Alaikum ${booking.worker_name || "Ustad ji"}, I hired you on Madadgaar for "${booking.title}".`
+                          );
+                          return (
+                            <div style={{ marginTop: 8 }}>
+                              <a
+                                href={`https://wa.me/${waNumber}?text=${waText}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-ok btn-sm"
+                                style={{
+                                  background: "#25D366",
+                                  color: "#ffffff",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                  fontWeight: 700,
+                                  textDecoration: "none",
+                                  padding: "5px 12px",
+                                  borderRadius: "var(--r-sm)",
+                                  fontSize: "0.82rem",
+                                }}
+                              >
+                                <span>🟢</span>
+                                <span>WhatsApp ({booking.worker_phone})</span>
+                              </a>
+                            </div>
+                          );
+                        })() : (
+                          <div style={{ marginTop: 8 }}>
+                            <Link
+                              href={`/jobs/${booking.job_id}`}
+                              className="btn btn-ok btn-sm"
+                              style={{
+                                background: "#25D366",
+                                color: "#ffffff",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 6,
+                                fontWeight: 700,
+                                textDecoration: "none",
+                                padding: "5px 12px",
+                                borderRadius: "var(--r-sm)",
+                                fontSize: "0.82rem",
+                              }}
+                            >
+                              <span>🟢</span>
+                              <span>{locale === "ur" ? "واٹس ایپ و رابطہ" : "WhatsApp & Contact"}</span>
+                            </Link>
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -812,7 +879,8 @@ export function WorkerDashboardView({
                           </div>
                         </div>
                         <Link href={`/jobs/${bid.job_id}`} className="btn btn-primary btn-sm">
-                          <span>{locale === "ur" ? "پتہ دیکھیں" : "View Address"}</span>
+                          <span>🟢</span>
+                          <span>{locale === "ur" ? "پتہ و واٹس ایپ دیکھیں" : "View Address & WhatsApp"}</span>
                           <IconArrowRight size={14} />
                         </Link>
                       </div>
