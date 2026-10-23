@@ -1269,60 +1269,80 @@ export function JobDialog({
                 </div>
               ) : (
                 <form onSubmit={handleBidSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {/* Quick PKR price chips */}
+                  {/* Custom PKR Price input + Quick chips */}
                   <div>
-                    <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 6 }}>
-                      {locale === "ur" ? "مزدوری کی رقم منتخب کریں (PKR):" : "1-Click Labour Quote (PKR):"}
-                    </label>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                      <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)" }}>
+                        {locale === "ur" ? "اپنی مرضی کا ریٹ درج کریں یا منتخب کریں (PKR):" : "Your Labour Quote (PKR) — Enter custom price or pick a chip:"}
+                      </label>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
+                        {locale === "ur" ? "کسٹمر کو صرف یہ رقم نظر آئے گی" : "Whole rupees only"}
+                      </span>
+                    </div>
+
+                    <div style={{ position: "relative", marginBottom: 8 }}>
+                      <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontWeight: 700, color: "var(--emerald-400)", fontSize: "0.95rem" }}>
+                        Rs.
+                      </span>
+                      <input
+                        type="number"
+                        placeholder="Enter any custom amount e.g. 2,750"
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        style={{ width: "100%", padding: "10px 12px 10px 42px", borderRadius: "var(--r-sm)", border: "1px solid var(--violet-line)", background: "var(--graphite-1)", fontSize: "1rem", fontWeight: 700, color: "#FFFFFF" }}
+                        required
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={{ fontSize: "0.74rem", color: "var(--text-3)", marginRight: 2 }}>
+                        {locale === "ur" ? "فوری انتخاب:" : "Quick chips:"}
+                      </span>
                       {quickPricePills.map((p) => (
                         <button
                           key={p}
                           type="button"
                           onClick={() => setBidAmount(String(p))}
                           className={`btn btn-sm ${bidAmount === String(p) ? "btn-primary" : "btn-secondary"}`}
-                          style={{ padding: "6px 12px", fontSize: "0.82rem", fontWeight: 700 }}
+                          style={{ padding: "4px 10px", fontSize: "0.78rem", fontWeight: 700 }}
                         >
                           Rs. {p.toLocaleString()}
                         </button>
                       ))}
                     </div>
-                    <input
-                      type="number"
-                      placeholder="Or enter custom amount e.g. 2500"
-                      value={bidAmount}
-                      onChange={(e) => setBidAmount(e.target.value)}
-                      style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-1)", fontSize: "0.9rem" }}
-                      required
-                    />
                   </div>
 
-                  {/* Quick timing chips */}
+                  {/* Custom timing input + Quick chips */}
                   <div>
-                    <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 6 }}>
-                      {locale === "ur" ? "پہنچنے کا وقت منتخب کریں:" : "Expected Arrival Timing:"}
+                    <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)", display: "block", marginBottom: 6 }}>
+                      {locale === "ur" ? "پہنچنے کا وقت (Custom Timing):" : "Expected Arrival Time — Custom schedule or pick a chip:"}
                     </label>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+
+                    <input
+                      type="text"
+                      placeholder="e.g. Within 25 mins / Today 5:30 PM with tools"
+                      value={bidTiming}
+                      onChange={(e) => setBidTiming(e.target.value)}
+                      style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-1)", fontSize: "0.88rem", marginBottom: 8 }}
+                      required
+                    />
+
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={{ fontSize: "0.74rem", color: "var(--text-3)", marginRight: 2 }}>
+                        {locale === "ur" ? "فوری وقت:" : "Quick ETA:"}
+                      </span>
                       {quickTimingPills.map((t) => (
                         <button
                           key={t}
                           type="button"
                           onClick={() => setBidTiming(t)}
                           className={`btn btn-sm ${bidTiming === t ? "btn-primary" : "btn-secondary"}`}
-                          style={{ padding: "6px 10px", fontSize: "0.78rem" }}
+                          style={{ padding: "4px 10px", fontSize: "0.76rem" }}
                         >
                           {t}
                         </button>
                       ))}
                     </div>
-                    <input
-                      type="text"
-                      placeholder="e.g. In 40 mins / Today 5 PM"
-                      value={bidTiming}
-                      onChange={(e) => setBidTiming(e.target.value)}
-                      style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-1)", fontSize: "0.88rem" }}
-                      required
-                    />
                   </div>
 
                   {/* Short Note */}
