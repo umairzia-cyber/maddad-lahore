@@ -111,6 +111,7 @@ function UnifiedAppContent({
     resolveInitialTab(initialView, currentUser),
   );
   const [preselectedCategory, setPreselectedCategory] = useState<string | null>(null);
+  const [marketplaceMode, setMarketplaceMode] = useState<"requests" | "rate_cards">("requests");
   const [marketplaceCategory, setMarketplaceCategory] = useState<string>("all");
   const [notifications, setNotifications] = useState(initialNotifications);
   const [activeJobModal, setActiveJobModal] = useState<PublicJobItem | null>(null);
@@ -403,10 +404,11 @@ function UnifiedAppContent({
                 setPreselectedCategory(cat || null);
                 switchTab("post");
               }}
-              onSelectCategory={(catSlug) => {
+              onBrowseCategoryRateCards={(catSlug) => {
+                setMarketplaceMode("rate_cards");
                 setMarketplaceCategory(catSlug);
                 setTimeout(() => {
-                  const el = document.getElementById("marketplace-listings");
+                  const el = document.getElementById("providers-catalog");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }, 50);
               }}
@@ -419,6 +421,7 @@ function UnifiedAppContent({
               areas={areas}
               user={currentUser}
               ownJobIds={ownJobIds}
+              initialMode={marketplaceMode}
               initialCategory={marketplaceCategory}
               onOpenJob={(job) => setActiveJobModal(job)}
               onPost={(cat) => {

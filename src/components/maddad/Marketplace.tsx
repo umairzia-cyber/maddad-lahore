@@ -52,6 +52,11 @@ import { useI18n } from "./I18nContext";
 import { ReportModal } from "./ReportModal";
 import { InAppChatModal } from "./InAppChatModal";
 import { HireModal } from "./HireModal";
+import {
+  TechnicianRateCards,
+  VERIFIED_PROVIDERS,
+  VerifiedProviderCard,
+} from "./TechnicianRateCards";
 
 export function CategoryIcon({ slug, size = 18 }: { slug: string; size?: number }) {
   const s = slug.toLowerCase();
@@ -129,7 +134,7 @@ export function Hero({
   onPost,
   onJoin,
   compact,
-  onSelectCategory,
+  onBrowseCategoryRateCards,
 }: {
   user: AppUser | null;
   realOpenCount: number;
@@ -137,7 +142,7 @@ export function Hero({
   onPost: (category?: any) => void;
   onJoin: () => void;
   compact: boolean;
-  onSelectCategory?: (categorySlug: string) => void;
+  onBrowseCategoryRateCards?: (categorySlug: string) => void;
 }) {
   const { locale } = useI18n();
   const [selectedCategoryModal, setSelectedCategoryModal] = useState<{
@@ -182,52 +187,100 @@ export function Hero({
             </p>
           )}
 
-          {/* Main Hero Call to Actions */}
+          {/* Dual Action Customer Choices */}
           <div
             style={{
-              display: "flex",
-              gap: 12,
-              flexWrap: "wrap",
-              alignItems: "center",
-              margin: "20px 0 16px",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+              gap: 14,
+              margin: "20px 0 14px",
             }}
           >
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => onPost()}
+            {/* OPTION 1: REVERSE AUCTION */}
+            <div
               style={{
-                padding: "12px 22px",
-                fontSize: "0.95rem",
-                fontWeight: 800,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                boxShadow: "0 4px 18px rgba(139, 92, 246, 0.35)",
+                padding: "16px 18px",
+                borderRadius: "var(--r-md)",
+                background: "var(--graphite-1)",
+                border: "1px solid var(--violet-line)",
+                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: 12,
               }}
             >
-              <IconPlus size={18} aria-hidden="true" />
-              <span>{locale === "ur" ? "مسئلہ پوسٹ کریں اور بولیاں لیں (مفت)" : "Post a Request & Get Bids"}</span>
-            </button>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <span style={{ fontSize: "1.25rem" }}>⚡</span>
+                  <span style={{ fontSize: "0.72rem", textTransform: "uppercase", fontWeight: 800, color: "var(--violet-300)", letterSpacing: "0.08em" }}>
+                    {locale === "ur" ? "آپشن 1: بولیاں لیں" : "Option 1: Reverse Auction"}
+                  </span>
+                </div>
+                <h3 style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
+                  {locale === "ur" ? "مسئلہ پوسٹ کریں اور بولیاں لیں" : "Post a Problem & Get Bids"}
+                </h3>
+                <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-2)", lineHeight: 1.4 }}>
+                  {locale === "ur"
+                    ? "لیکیج یا فالٹ؟ 30 سیکنڈ میں پوسٹ کریں۔ مقامی کاریگر اپنی مسابقتی قیمتیں پیش کریں گے۔"
+                    : "Got a leak or fault? Post in 30 seconds. Technicians in your radius bid competitive labour prices."}
+                </p>
+              </div>
 
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => {
-                const el = document.getElementById("marketplace-listings");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              }}
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => onPost()}
+                style={{ width: "100%", justifyContent: "center", fontWeight: 800, padding: "8px 12px" }}
+              >
+                <IconPlus size={16} aria-hidden="true" />
+                <span>{locale === "ur" ? "مسئلہ پوسٹ کریں (مفت)" : "Post a Request (Get Bids)"}</span>
+              </button>
+            </div>
+
+            {/* OPTION 2: DIRECT RATE CARDS */}
+            <div
               style={{
-                padding: "12px 20px",
-                fontSize: "0.92rem",
-                fontWeight: 700,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
+                padding: "16px 18px",
+                borderRadius: "var(--r-md)",
+                background: "var(--graphite-1)",
+                border: "1px solid var(--line-strong)",
+                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: 12,
               }}
             >
-              <span>{locale === "ur" ? "لائیو اشتہارات دیکھیں ↓" : `Browse ${realOpenCount > 0 ? `${realOpenCount} ` : ""}Live Requests ↓`}</span>
-            </button>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <span style={{ fontSize: "1.25rem" }}>👨‍🔧</span>
+                  <span style={{ fontSize: "0.72rem", textTransform: "uppercase", fontWeight: 800, color: "var(--emerald-400)", letterSpacing: "0.08em" }}>
+                    {locale === "ur" ? "آپشن 2: فکس ریٹ کارڈز" : "Option 2: Direct Hire"}
+                  </span>
+                </div>
+                <h3 style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
+                  {locale === "ur" ? "کاریگروں کے ریٹ کارڈز دیکھیں" : "Browse Technicians & Rates"}
+                </h3>
+                <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-2)", lineHeight: 1.4 }}>
+                  {locale === "ur"
+                    ? "اے سی سروس، پنکھا فٹنگ، مہندی یا صفائی کا فکس ریٹ جانیں اور بغیر اشتہار دیے براہ راست رابطہ کریں۔"
+                    : "See transparent rate-cards for AC wash, fan fit, mehndi, or deep cleaning and hire directly."}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  const el = document.getElementById("providers-catalog");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+                style={{ width: "100%", justifyContent: "center", fontWeight: 700, padding: "8px 12px" }}
+              >
+                <span>{locale === "ur" ? "کاریگر و ریٹ کارڈز دیکھیں ↓" : "View Providers & Rates ↓"}</span>
+              </button>
+            </div>
           </div>
 
           {/* Quick Sub-Link for Technician Sign Up */}
@@ -332,17 +385,17 @@ export function Hero({
                 : "How would you like to hire in Lahore? Choose the option that fits your needs best:"}
             </p>
 
-            {/* Option 1: Browse Category Listings */}
+            {/* Option 1: Direct Hire & Rate Cards */}
             <div
               role="button"
               tabIndex={0}
               onClick={() => {
                 const slug = selectedCategoryModal.slug;
                 setSelectedCategoryModal(null);
-                if (onSelectCategory) {
-                  onSelectCategory(slug);
+                if (onBrowseCategoryRateCards) {
+                  onBrowseCategoryRateCards(slug);
                 } else {
-                  const el = document.getElementById("marketplace-listings");
+                  const el = document.getElementById("providers-catalog");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }
               }}
@@ -350,7 +403,7 @@ export function Hero({
                 if (e.key === "Enter" || e.key === " ") {
                   const slug = selectedCategoryModal.slug;
                   setSelectedCategoryModal(null);
-                  if (onSelectCategory) onSelectCategory(slug);
+                  if (onBrowseCategoryRateCards) onBrowseCategoryRateCards(slug);
                 }
               }}
               style={{
@@ -367,22 +420,22 @@ export function Hero({
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: "1.3rem" }}>🔍</span>
+                  <span style={{ fontSize: "1.3rem" }}>👨‍🔧</span>
                   <span style={{ fontWeight: 800, fontSize: "1rem", color: "#FFFFFF" }}>
-                    {locale === "ur" ? "اس کیٹیگری کے لائیو اشتہارات دیکھیں" : `Browse Live ${selectedCategoryModal.en} Listings`}
+                    {locale === "ur" ? "کاریگروں کے ریٹ کارڈز دیکھیں" : "Browse Verified Ustads & Rate Cards"}
                   </span>
                 </div>
                 <span className="pill pill-ok" style={{ fontSize: "0.72rem", fontWeight: 700 }}>
-                  {locale === "ur" ? "لائیو مارکیٹ" : "Live Market"}
+                  {locale === "ur" ? "فوری رابطہ" : "Fastest Hire"}
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--text-2)", lineHeight: 1.5 }}>
                 {locale === "ur"
-                  ? "لاہور میں موجودہ لائیو کام اور کسٹمرز کے اشتہارات دیکھیں۔ کاریگر ریٹس اور بولیاں چیک کریں۔"
-                  : `Explore active requests, jobs, and quotes in ${selectedCategoryModal.en} across Lahore.`}
+                  ? "لاہور کے تصدیق شدہ کاریگروں کے فکس ریٹ کارڈز دیکھیں۔ 1 کلک پر واٹس ایپ یا ان-ایپ چیٹ سے براہ راست رابطہ کریں۔"
+                  : "View standard rate-cards (fan install, AC service, deep clean, mehndi). 1-tap direct WhatsApp or In-App Chat."}
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", fontWeight: 700, color: "var(--emerald-400)", marginTop: 4 }}>
-                <span>{locale === "ur" ? "اشتہارات دیکھیں →" : "View Live Listings →"}</span>
+                <span>{locale === "ur" ? "ریٹ کارڈز کھولیں →" : "View Providers & Rates →"}</span>
               </div>
             </div>
 
@@ -606,6 +659,7 @@ export function MarketplaceView({
   ownJobIds,
   onOpenJob,
   onPost,
+  initialMode,
   initialCategory,
 }: {
   jobs: PublicJobItem[];
@@ -614,14 +668,21 @@ export function MarketplaceView({
   ownJobIds: Set<string>;
   onOpenJob: (j: PublicJobItem) => void;
   onPost?: (cat?: any) => void;
+  initialMode?: "requests" | "rate_cards";
   initialCategory?: string;
 }) {
   const { locale } = useI18n();
+  const [marketplaceMode, setMarketplaceMode] = useState<"requests" | "rate_cards">(initialMode || "requests");
+  const [chatProvider, setChatProvider] = useState<VerifiedProviderCard | null>(null);
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || "all");
   const [selectedArea, setSelectedArea] = useState<string>("all");
   const [q, setQ] = useState("");
   const [reportModalOpen, setReportModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialMode) setMarketplaceMode(initialMode);
+  }, [initialMode]);
 
   useEffect(() => {
     if (initialCategory) setSelectedCategory(initialCategory);
@@ -666,53 +727,102 @@ export function MarketplaceView({
   ];
 
   return (
-    <div id="marketplace-listings" style={{ display: "flex", flexDirection: "column", gap: 24, width: "100%", scrollMarginTop: 80 }}>
-      {/* Active Category Filter Banner (if preselected or clicked from hero) */}
-      {selectedCategory !== "all" && (
-        <div
+    <div style={{ display: "flex", flexDirection: "column", gap: 24, width: "100%" }}>
+      {/* Primary Marketplace Mode Switcher: Reverse-Auction Requests vs Direct Rate Cards */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: 12,
+          padding: "6px",
+          borderRadius: "var(--r-md)",
+          background: "var(--graphite-2)",
+          border: "1px solid var(--line-strong)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setMarketplaceMode("requests")}
           style={{
+            padding: "12px 18px",
+            borderRadius: "var(--r-sm)",
+            fontSize: "0.92rem",
+            fontWeight: 800,
+            cursor: "pointer",
+            border: marketplaceMode === "requests" ? "1px solid var(--violet-400)" : "1px solid transparent",
+            background: marketplaceMode === "requests" ? "var(--violet-600)" : "transparent",
+            color: marketplaceMode === "requests" ? "#FFFFFF" : "var(--text-2)",
+            boxShadow: marketplaceMode === "requests" ? "0 0 16px var(--violet-glow)" : "none",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            background: "rgba(139, 92, 246, 0.1)",
-            border: "1px solid var(--violet-line)",
-            borderRadius: "var(--r-md)",
-            padding: "10px 16px",
-            flexWrap: "wrap",
-            gap: 10,
+            justifyContent: "center",
+            gap: 8,
+            transition: "all 0.15s ease",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: "1.1rem" }}>🔍</span>
-            <span style={{ fontSize: "0.88rem", color: "var(--text)" }}>
-              {locale === "ur" ? "فلٹر شدہ کیٹیگری:" : "Active Category Filter:"}{" "}
-              <strong style={{ color: "var(--violet-300)", textTransform: "capitalize" }}>{selectedCategory}</strong>
-            </span>
-            <button
-              type="button"
-              onClick={() => setSelectedCategory("all")}
-              className="btn btn-ghost btn-sm"
-              style={{ fontSize: "0.75rem", padding: "2px 8px", color: "var(--text-3)" }}
-            >
-              ✕ {locale === "ur" ? "تمام دکھائیں" : "Clear Filter"}
-            </button>
-          </div>
-          {onPost && (
-            <button
-              type="button"
-              onClick={() => onPost(selectedCategory)}
-              className="btn btn-primary btn-sm"
-              style={{ fontSize: "0.8rem", padding: "6px 12px", display: "inline-flex", alignItems: "center", gap: 6 }}
-            >
-              <IconPlus size={14} />
-              <span>{locale === "ur" ? "اس کیٹیگری میں کام پوسٹ کریں" : `Post ${selectedCategory} Request`}</span>
-            </button>
-          )}
-        </div>
-      )}
+          <span>⚡</span>
+          <span>{locale === "ur" ? "کسٹمر کی لائیو بولیاں و اشتہارات" : "Live Bidding Requests"}</span>
+          <span
+            style={{
+              fontSize: "0.75rem",
+              padding: "2px 8px",
+              borderRadius: "var(--r-pill)",
+              background: "rgba(255, 255, 255, 0.2)",
+              color: "#FFFFFF",
+            }}
+          >
+            {realJobs.length}
+          </span>
+        </button>
 
-      {/* Type Tabs */}
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+        <button
+          type="button"
+          onClick={() => setMarketplaceMode("rate_cards")}
+          style={{
+            padding: "12px 18px",
+            borderRadius: "var(--r-sm)",
+            fontSize: "0.92rem",
+            fontWeight: 800,
+            cursor: "pointer",
+            border: marketplaceMode === "rate_cards" ? "1px solid var(--emerald-400)" : "1px solid transparent",
+            background: marketplaceMode === "rate_cards" ? "rgba(16, 185, 129, 0.25)" : "transparent",
+            color: marketplaceMode === "rate_cards" ? "var(--emerald-200)" : "var(--text-2)",
+            boxShadow: marketplaceMode === "rate_cards" ? "0 0 16px rgba(16, 185, 129, 0.3)" : "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            transition: "all 0.15s ease",
+          }}
+        >
+          <span>👨‍🔧</span>
+          <span>{locale === "ur" ? "کاریگروں کے ریٹ کارڈز (فوری رابطہ)" : "Verified Providers & Rate Cards"}</span>
+          <span
+            style={{
+              fontSize: "0.75rem",
+              padding: "2px 8px",
+              borderRadius: "var(--r-pill)",
+              background: "rgba(16, 185, 129, 0.3)",
+              color: "var(--emerald-200)",
+            }}
+          >
+            {VERIFIED_PROVIDERS.length}
+          </span>
+        </button>
+      </div>
+
+      {marketplaceMode === "rate_cards" ? (
+        <TechnicianRateCards
+          user={user}
+          areas={areas}
+          initialCategory={selectedCategory !== "all" ? selectedCategory : undefined}
+          onOpenChatWithProvider={(p) => setChatProvider(p)}
+          onPostCustomRequest={(catSlug) => onPost && onPost(catSlug)}
+        />
+      ) : (
+        <>
+          {/* Type Tabs */}
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
             {typeTabs.map((tab) => {
               const active = selectedType === tab.id;
               return (
@@ -841,7 +951,35 @@ export function MarketplaceView({
         </div>
       )}
 
-      {/* Trust & Safeguards */}
+      {/* Embedded Rate Cards Directory below requests */}
+      <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid var(--line-strong)" }}>
+        <TechnicianRateCards
+          user={user}
+          areas={areas}
+          onOpenChatWithProvider={(p) => setChatProvider(p)}
+          onPostCustomRequest={(catSlug) => onPost && onPost(catSlug)}
+        />
+      </div>
+    </>
+  )}
+
+  {/* Direct Chat with Provider Modal */}
+  {chatProvider && (
+    <InAppChatModal
+      open={true}
+      onClose={() => setChatProvider(null)}
+      jobId={`inquiry-${chatProvider.id}`}
+      jobTitle={`Direct Inquiry: ${chatProvider.trade}`}
+      area={chatProvider.primaryArea}
+      isCustomer={true}
+      counterpartName={`${chatProvider.name} (${chatProvider.trade})`}
+      counterpartSubtitle={`${chatProvider.primaryArea} · ★ ${chatProvider.rating.toFixed(1)} · ${chatProvider.experienceYears} yrs exp`}
+      quotedAmount={chatProvider.startingRatePkr}
+      user={user}
+    />
+  )}
+
+  {/* Trust & Safeguards */}
   <TrustPanel onOpenReport={() => setReportModalOpen(true)} />
 
   <ReportModal
