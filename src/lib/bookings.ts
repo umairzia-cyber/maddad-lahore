@@ -75,6 +75,8 @@ export async function progress(user: SessionUser, bookingId: string, action: Act
     return;
   }
 
+  let codeError: string | null = null;
+
   await tx(async (c) => {
     const { b, role } = await loadParticipant(c, user, bookingId);
     const nt = (to: string, t: string, body: string) => notify(other(b, user.id), `booking_${to}`, t, body, { type: "job", id: b.job_id }, c);
@@ -86,11 +88,18 @@ export async function progress(user: SessionUser, bookingId: string, action: Act
         break;
       case "request_completion": {
         if (role !== "worker") throw new AppError("Only the selected worker can do this.", "forbidden");
-        await move(c, b, "completion_requested", "worker", user.id);
+        if (b.status === "in_progress") {
+          await move(c, b, "completion_requested", "worker", user.id);
+        } else if (b.status !== "completion_requested") {
+          throw new AppError(`Cannot request completion when booking is ${b.status}.`);
+        }
         const entered = (code ?? "").trim();
         if (entered) {
           const bk = await one<{ completion_code_attempts: number }>("SELECT completion_code_attempts FROM bookings WHERE id=$1", [b.id], c);
-          if ((bk?.completion_code_attempts ?? 0) >= 5) throw new AppError("Too many wrong codes. Leave it for the customer to confirm.");
+          const currentAttempts = bk?.completion_code_attempts ?? 0;
+          if (currentAttempts >= 3) {
+            throw new AppError("Too many wrong codes (maximum 3 tries reached). Please leave it for the customer to confirm on their screen.");
+          }
           const a = Buffer.from(entered.padEnd(4, " ")), e = Buffer.from(completionCode(b.job_id));
           if (a.length === e.length && timingSafeEqual(a, e)) {
             // Customer-provided code = recorded customer acknowledgement of completion (status only).
@@ -98,8 +107,10 @@ export async function progress(user: SessionUser, bookingId: string, action: Act
             await nt("completed", "Job marked completed", "The completion code was entered. You can now leave a review.");
             break;
           }
-          await q("UPDATE bookings SET completion_code_attempts = completion_code_attempts + 1 WHERE id=$1", [b.id]);
-          throw new AppError("Incorrect completion code.");
+          const newAttempts = currentAttempts + 1;
+          await q("UPDATE bookings SET completion_code_attempts = $2 WHERE id=$1", [b.id, newAttempts], c);
+          const remaining = Math.max(0, 3 - newAttempts);
+          codeError = `Incorrect completion code. ${remaining > 0 ? `${remaining} tr${remaining === 1 ? "y" : "ies"} remaining.` : "Maximum 3 tries reached. Customer must confirm completion."}`;
         }
         await nt("completion_requested", "Worker says the job is done", "Please confirm completion, or report a problem.");
         break;
@@ -118,6 +129,10 @@ export async function progress(user: SessionUser, bookingId: string, action: Act
         throw new AppError("Invalid action.");
     }
   });
+
+  if (codeError) {
+    throw new AppError(codeError);
+  }
 }
 
 export async function reportProblem(user: SessionUser, bookingId: string, details: string): Promise<void> {

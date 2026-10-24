@@ -197,6 +197,62 @@ test("Acceptance Check 6: Customer confirms completion or reports problem", () =
   assert.equal(store.jobs.get(jobId)?.status, "completed");
 });
 
+test("Acceptance Check 6b: 4-digit completion code enforces strict 3-try lockout", () => {
+  const customerId = "u-demo-customer";
+  const workerId = "u-demo-worker-plumb";
+  // Create a fresh test job and booking
+  const jobId = store.createDraft(customerId, {
+    categoryId: 1,
+    areaId: 1,
+    title: "Kitchen sink mixer replacement",
+    description: "New mixer tap is leaking around base washer. Need installation today.",
+    budgetMin: 800,
+    budgetMax: 1500,
+    asap: true,
+    addressText: "Flat 4, Main Market, Gulberg II",
+  });
+  store.publishJob(customerId, jobId);
+
+  store.submitBid(workerId, jobId, {
+    amount: 1000,
+    timingText: "In 45 mins",
+    message: "Expert plumber with wrench and Teflon tape.",
+    inclusions: "Labour only",
+    exclusions: "Parts",
+  });
+  const bid = Array.from(store.bids.values()).find((b) => b.job_id === jobId && b.worker_id === workerId)!;
+  const { bookingId } = store.acceptBid(customerId, bid.id);
+  store.progressBooking(workerId, bookingId, "start");
+
+  // Try 1: Incorrect code
+  assert.throws(() => {
+    store.progressBooking(workerId, bookingId, "request_completion", "0000");
+  }, /Incorrect completion code.*2 tries remaining/i);
+  assert.equal(store.bookings.get(bookingId)?.completion_code_attempts, 1);
+
+  // Try 2: Incorrect code
+  assert.throws(() => {
+    store.progressBooking(workerId, bookingId, "request_completion", "1111");
+  }, /Incorrect completion code.*1 try remaining/i);
+  assert.equal(store.bookings.get(bookingId)?.completion_code_attempts, 2);
+
+  // Try 3: Incorrect code
+  assert.throws(() => {
+    store.progressBooking(workerId, bookingId, "request_completion", "2222");
+  }, /Maximum 3 tries reached/i);
+  assert.equal(store.bookings.get(bookingId)?.completion_code_attempts, 3);
+
+  // Try 4: Locked out even with the correct code
+  const correctCode = store.bookings.get(bookingId)?.completion_code;
+  assert.throws(() => {
+    store.progressBooking(workerId, bookingId, "request_completion", correctCode);
+  }, /maximum 3 tries reached/i);
+
+  // Customer can still confirm completion manually from their device
+  store.progressBooking(customerId, bookingId, "confirm");
+  assert.equal(store.bookings.get(bookingId)?.status, "completed");
+});
+
 test("Acceptance Check 7: Only completed booking participants can submit one review each with retaliation protection", () => {
   const customerId = "u-demo-customer";
   const workerId = "u-demo-worker-elec";

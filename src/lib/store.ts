@@ -1240,16 +1240,20 @@ export class DomainStore {
       }
       case "request_completion": {
         if (!isWorker) throw new AppError("Only the selected worker can request completion.", "forbidden");
-        assertTransition(bk.status, "completion_requested", actor);
-        bk.status = "completion_requested";
-        bk.completion_requested_at = now;
-        bk.updated_at = now;
-        if (j) { j.status = "completion_requested"; j.updated_at = now; }
+        if (bk.status === "in_progress") {
+          assertTransition(bk.status, "completion_requested", actor);
+          bk.status = "completion_requested";
+          bk.completion_requested_at = now;
+          bk.updated_at = now;
+          if (j) { j.status = "completion_requested"; j.updated_at = now; }
+        } else if (bk.status !== "completion_requested") {
+          throw new AppError(`Cannot request completion when booking is ${bk.status}.`);
+        }
 
         const entered = (code ?? "").trim();
         if (entered) {
-          if (bk.completion_code_attempts >= 5) {
-            throw new AppError("Too many wrong codes. Leave it for the customer to confirm.");
+          if (bk.completion_code_attempts >= 3) {
+            throw new AppError("Too many wrong codes (maximum 3 tries reached). Please leave it for the customer to confirm on their screen.");
           }
           if (entered === bk.completion_code) {
             // Customer code entered
@@ -1262,7 +1266,8 @@ export class DomainStore {
             break;
           } else {
             bk.completion_code_attempts++;
-            throw new AppError("Incorrect completion code.");
+            const remaining = Math.max(0, 3 - bk.completion_code_attempts);
+            throw new AppError(`Incorrect completion code. ${remaining > 0 ? `${remaining} tr${remaining === 1 ? "y" : "ies"} remaining.` : "Maximum 3 tries reached. Customer must confirm completion."}`);
           }
         }
         this.notify(bk.customer_id, "booking_completion_requested", "Technician requested completion",
