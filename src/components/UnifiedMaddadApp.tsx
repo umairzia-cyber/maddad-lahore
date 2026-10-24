@@ -126,6 +126,21 @@ function UnifiedAppContent({
     }
   }, [initialView, currentUser]);
 
+  // Auto-resume drafted job posting after user signs in / signs up
+  useEffect(() => {
+    if (currentUser && typeof window !== "undefined") {
+      try {
+        const pending = sessionStorage.getItem("maddad_post_after_auth");
+        if (pending === "true") {
+          sessionStorage.removeItem("maddad_post_after_auth");
+          switchTab("post");
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [currentUser]);
+
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read_at).length,
     [notifications],

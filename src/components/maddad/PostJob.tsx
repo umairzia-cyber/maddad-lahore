@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   IconCheck,
@@ -38,6 +38,9 @@ interface PostJobProps {
   onSuccess: (jobId: string) => void;
   onViewMarketplace: () => void;
 }
+
+const GUEST_DRAFT_KEY = "maddad_guest_draft_job_v1";
+const POST_AFTER_AUTH_KEY = "maddad_post_after_auth";
 
 export function PostJobView({
   user,
@@ -77,6 +80,117 @@ export function PostJobView({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  // Draft recovery states
+  const isDraftHydrated = useRef(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  // Restore draft from sessionStorage on mount (guest preservation across auth)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = sessionStorage.getItem(GUEST_DRAFT_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d && (d.title || d.description || d.landmark)) {
+          if (d.listingType) setListingType(d.listingType);
+          if (d.categoryId) setCategoryId(d.categoryId);
+          if (d.title) setTitle(d.title);
+          if (d.description) setDescription(d.description);
+          if (typeof d.femaleProviderOnly === "boolean") setFemaleProviderOnly(d.femaleProviderOnly);
+          if (d.pricingModel) setPricingModel(d.pricingModel);
+          if (d.price) setPrice(d.price);
+          if (d.budgetMin) setBudgetMin(d.budgetMin);
+          if (d.budgetMax) setBudgetMax(d.budgetMax);
+          if (d.urgency) setUrgency(d.urgency);
+          if (d.areaId) setAreaId(d.areaId);
+          if (d.landmark) setLandmark(d.landmark);
+          if (d.contactPhone && (!user?.phone || user.phone === "0300 0000000")) {
+            setContactPhone(d.contactPhone);
+          }
+          if (d.step && [1, 2, 3, 4].includes(d.step)) {
+            setStep(d.step);
+          }
+          setDraftRestored(true);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to restore guest draft:", e);
+    } finally {
+      isDraftHydrated.current = true;
+    }
+  }, []);
+
+  // Keep contactPhone synced if user logs in
+  useEffect(() => {
+    if (user?.phone && (!contactPhone || contactPhone === "0300 0000000")) {
+      setContactPhone(user.phone);
+    }
+  }, [user]);
+
+  // Auto-save draft changes to sessionStorage so no inputs are lost
+  useEffect(() => {
+    if (typeof window === "undefined" || !isDraftHydrated.current) return;
+    if (!title && !description && !landmark) return;
+    try {
+      const draftData = {
+        step,
+        listingType,
+        categoryId,
+        title,
+        description,
+        femaleProviderOnly,
+        pricingModel,
+        price,
+        budgetMin,
+        budgetMax,
+        urgency,
+        areaId,
+        landmark,
+        contactPhone,
+        updatedAt: Date.now(),
+      };
+      sessionStorage.setItem(GUEST_DRAFT_KEY, JSON.stringify(draftData));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [
+    step,
+    listingType,
+    categoryId,
+    title,
+    description,
+    femaleProviderOnly,
+    pricingModel,
+    price,
+    budgetMin,
+    budgetMax,
+    urgency,
+    areaId,
+    landmark,
+    contactPhone,
+  ]);
+
+  const handleClearDraft = () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(GUEST_DRAFT_KEY);
+      sessionStorage.removeItem(POST_AFTER_AUTH_KEY);
+    }
+    setDraftRestored(false);
+    setStep(1);
+    setTitle("");
+    setDescription("");
+    setLandmark("");
+    setPrice("5000");
+    setBudgetMin("1500");
+    setBudgetMax("3000");
+    setUrgency("flexible");
+    setPricingModel("fixed");
+    setListingType("service_request");
+    setFemaleProviderOnly(false);
+    setAutoDetected(null);
+    setErrors({});
+  };
 
   // Pre-select category if passed from Hero pills
   useEffect(() => {
@@ -148,6 +262,31 @@ export function PostJobView({
   const handleFinalPublish = async () => {
     if (!validateStep4()) return;
     if (!user) {
+      if (typeof window !== "undefined") {
+        try {
+          const draftData = {
+            step: 4,
+            listingType,
+            categoryId,
+            title,
+            description,
+            femaleProviderOnly,
+            pricingModel,
+            price,
+            budgetMin,
+            budgetMax,
+            urgency,
+            areaId,
+            landmark,
+            contactPhone,
+            updatedAt: Date.now(),
+          };
+          sessionStorage.setItem(GUEST_DRAFT_KEY, JSON.stringify(draftData));
+          sessionStorage.setItem(POST_AFTER_AUTH_KEY, "true");
+        } catch {
+          // ignore
+        }
+      }
       onNeedAuth();
       return;
     }
@@ -192,10 +331,16 @@ export function PostJobView({
       const res = await createAndPublishJobAction(null, fd);
       if (res?.error) {
         setServerError(res.error);
-      } else if (res?.jobId) {
-        onSuccess(res.jobId);
       } else {
-        onSuccess("created");
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(GUEST_DRAFT_KEY);
+          sessionStorage.removeItem(POST_AFTER_AUTH_KEY);
+        }
+        if (res?.jobId) {
+          onSuccess(res.jobId);
+        } else {
+          onSuccess("created");
+        }
       }
     } catch (e: any) {
       setServerError(e?.message || "Failed to publish listing. Please check required fields.");
@@ -210,6 +355,65 @@ export function PostJobView({
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 12px" }}>
       <div className="card" style={{ padding: "clamp(24px, 3.5vw, 40px)", background: "var(--graphite-1)", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
+        {/* Draft Restored Banner */}
+        {draftRestored && (
+          <div
+            style={{
+              marginBottom: 20,
+              padding: "12px 16px",
+              borderRadius: "var(--r-md)",
+              background: "rgba(16, 185, 129, 0.1)",
+              border: "1px solid rgba(16, 185, 129, 0.35)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <IconShieldCheck size={20} style={{ color: "var(--ok)", flexShrink: 0 }} />
+              <span style={{ fontSize: "0.88rem", color: "var(--text)" }}>
+                {locale === "ur"
+                  ? "آپ کی محفوظ کردہ درخواست بحال کر دی گئی ہے۔ آپ جائزہ لے کر شائع کر سکتے ہیں۔"
+                  : "Your saved request draft has been restored! Review your details and publish."}
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button
+                type="button"
+                onClick={handleClearDraft}
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  borderRadius: "var(--r-sm)",
+                  padding: "4px 10px",
+                  color: "var(--text-3)",
+                  fontSize: "0.78rem",
+                  cursor: "pointer",
+                }}
+              >
+                {locale === "ur" ? "ڈرافٹ صاف کریں" : "Clear Draft"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDraftRestored(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-3)",
+                  fontSize: "1rem",
+                  cursor: "pointer",
+                  padding: "2px 6px",
+                }}
+                title="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Wizard Progress Indicator */}
         <div style={{ marginBottom: 28 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -771,18 +975,33 @@ export function PostJobView({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <button type="button" className="btn btn-secondary" onClick={() => setStep(3)} disabled={submitting}>
                 <IconArrowLeft size={16} />
-                <span>Back</span>
+                <span>{locale === "ur" ? "پیچھے" : "Back"}</span>
               </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleFinalPublish}
-                disabled={submitting}
-                style={{ padding: "10px 28px" }}
-              >
-                <span>{submitting ? "Publishing..." : "Publish Listing"}</span>
-                <IconCheck size={16} />
-              </button>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleFinalPublish}
+                  disabled={submitting}
+                  style={{ padding: "10px 28px" }}
+                >
+                  <span>
+                    {submitting
+                      ? (locale === "ur" ? "شائع ہو رہا ہے..." : "Publishing...")
+                      : (!user
+                          ? (locale === "ur" ? "لاگ اِن کر کے شائع کریں" : "Sign In & Publish")
+                          : (locale === "ur" ? "درخواست شائع کریں" : "Publish Listing"))}
+                  </span>
+                  <IconCheck size={16} />
+                </button>
+                {!user && (
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
+                    {locale === "ur"
+                      ? "ڈرافٹ خودکار محفوظ ہو جائے گا اور لاگ اِن کے بعد ضائع نہیں ہوگا"
+                      : "Draft is preserved safely across phone sign-in"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )}
