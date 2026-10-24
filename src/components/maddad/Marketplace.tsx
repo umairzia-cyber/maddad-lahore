@@ -182,100 +182,52 @@ export function Hero({
             </p>
           )}
 
-          {/* Dual Action Customer Choices */}
+          {/* Main Hero Call to Actions */}
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-              gap: 14,
-              margin: "20px 0 14px",
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "center",
+              margin: "20px 0 16px",
             }}
           >
-            {/* OPTION 1: REVERSE AUCTION */}
-            <div
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => onPost()}
               style={{
-                padding: "16px 18px",
-                borderRadius: "var(--r-md)",
-                background: "var(--graphite-1)",
-                border: "1px solid var(--violet-line)",
-                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4)",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                gap: 12,
+                padding: "12px 22px",
+                fontSize: "0.95rem",
+                fontWeight: 800,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                boxShadow: "0 4px 18px rgba(139, 92, 246, 0.35)",
               }}
             >
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontSize: "1.25rem" }}>⚡</span>
-                  <span style={{ fontSize: "0.72rem", textTransform: "uppercase", fontWeight: 800, color: "var(--violet-300)", letterSpacing: "0.08em" }}>
-                    {locale === "ur" ? "آپشن 1: بولیاں لیں" : "Option 1: Reverse Auction"}
-                  </span>
-                </div>
-                <h3 style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
-                  {locale === "ur" ? "مسئلہ پوسٹ کریں اور بولیاں لیں" : "Post a Problem & Get Bids"}
-                </h3>
-                <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-2)", lineHeight: 1.4 }}>
-                  {locale === "ur"
-                    ? "لیکیج یا فالٹ؟ 30 سیکنڈ میں پوسٹ کریں۔ مقامی کاریگر اپنی مسابقتی قیمتیں پیش کریں گے۔"
-                    : "Got a leak or fault? Post in 30 seconds. Technicians in your radius bid competitive labour prices."}
-                </p>
-              </div>
+              <IconPlus size={18} aria-hidden="true" />
+              <span>{locale === "ur" ? "مسئلہ پوسٹ کریں اور بولیاں لیں (مفت)" : "Post a Request & Get Bids"}</span>
+            </button>
 
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() => onPost()}
-                style={{ width: "100%", justifyContent: "center", fontWeight: 800, padding: "8px 12px" }}
-              >
-                <IconPlus size={16} aria-hidden="true" />
-                <span>{locale === "ur" ? "مسئلہ پوسٹ کریں (مفت)" : "Post a Request (Get Bids)"}</span>
-              </button>
-            </div>
-
-            {/* OPTION 2: DIRECT RATE CARDS */}
-            <div
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                const el = document.getElementById("marketplace-listings");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }}
               style={{
-                padding: "16px 18px",
-                borderRadius: "var(--r-md)",
-                background: "var(--graphite-1)",
-                border: "1px solid var(--line-strong)",
-                boxShadow: "0 4px 16px rgba(0, 0, 0, 0.4)",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                gap: 12,
+                padding: "12px 20px",
+                fontSize: "0.92rem",
+                fontWeight: 700,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
               }}
             >
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontSize: "1.25rem" }}>👨‍🔧</span>
-                  <span style={{ fontSize: "0.72rem", textTransform: "uppercase", fontWeight: 800, color: "var(--emerald-400)", letterSpacing: "0.08em" }}>
-                    {locale === "ur" ? "آپشن 2: فکس ریٹ کارڈز" : "Option 2: Direct Hire"}
-                  </span>
-                </div>
-                <h3 style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
-                  {locale === "ur" ? "کاریگروں کے ریٹ کارڈز دیکھیں" : "Browse Technicians & Rates"}
-                </h3>
-                <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-2)", lineHeight: 1.4 }}>
-                  {locale === "ur"
-                    ? "اے سی سروس، پنکھا فٹنگ، مہندی یا صفائی کا فکس ریٹ جانیں اور بغیر اشتہار دیے براہ راست رابطہ کریں۔"
-                    : "See transparent rate-cards for AC wash, fan fit, mehndi, or deep cleaning and hire directly."}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => {
-                  const el = document.getElementById("providers-catalog");
-                  if (el) el.scrollIntoView({ behavior: "smooth" });
-                }}
-                style={{ width: "100%", justifyContent: "center", fontWeight: 700, padding: "8px 12px" }}
-              >
-                <span>{locale === "ur" ? "کاریگر و ریٹ کارڈز دیکھیں ↓" : "View Providers & Rates ↓"}</span>
-              </button>
-            </div>
+              <span>{locale === "ur" ? "لائیو اشتہارات دیکھیں ↓" : `Browse ${realOpenCount > 0 ? `${realOpenCount} ` : ""}Live Requests ↓`}</span>
+            </button>
           </div>
 
           {/* Quick Sub-Link for Technician Sign Up */}
