@@ -116,6 +116,7 @@ function UnifiedAppContent({
   const [notifications, setNotifications] = useState(initialNotifications);
   const [activeJobModal, setActiveJobModal] = useState<PublicJobItem | null>(null);
   const [showDemoPersonas, setShowDemoPersonas] = useState(false);
+  const [authInitialPhone, setAuthInitialPhone] = useState<string>("");
 
   const { toasts, push: showToast } = useToasts();
 
@@ -132,7 +133,6 @@ function UnifiedAppContent({
       try {
         const pending = sessionStorage.getItem("maddad_post_after_auth");
         if (pending === "true") {
-          sessionStorage.removeItem("maddad_post_after_auth");
           switchTab("post");
         }
       } catch {
@@ -455,7 +455,10 @@ function UnifiedAppContent({
               categories={categories}
               areas={areas}
               initialCategory={preselectedCategory}
-              onNeedAuth={() => switchTab("auth")}
+              onNeedAuth={(phone) => {
+                if (phone) setAuthInitialPhone(phone);
+                switchTab("auth");
+              }}
               onSuccess={(jobId) => {
                 showToast("Listing posted successfully to Lahore marketplace!");
                 switchTab("customer_dashboard");
@@ -559,6 +562,7 @@ function UnifiedAppContent({
           <AuthView
             currentUser={currentUser}
             initialMode={initialView === "signin" || initialView === "login" ? "signin" : "signup"}
+            initialPhone={authInitialPhone}
             onNavigateMarketplace={() => switchTab("marketplace")}
             showToast={(msg) => showToast(msg)}
           />

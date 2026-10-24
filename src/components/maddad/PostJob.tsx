@@ -34,7 +34,7 @@ interface PostJobProps {
   categories: CategoryOption[];
   areas: AreaOption[];
   initialCategory?: string | null;
-  onNeedAuth: () => void;
+  onNeedAuth: (suggestedPhone?: string) => void;
   onSuccess: (jobId: string) => void;
   onViewMarketplace: () => void;
 }
@@ -81,15 +81,103 @@ export function PostJobView({
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  // Draft recovery states
+  // Draft recovery & auto-publish states
   const isDraftHydrated = useRef(false);
+  const autoPublishTriggered = useRef(false);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [isAutoPublishing, setIsAutoPublishing] = useState(false);
 
-  // Restore draft from sessionStorage on mount (guest preservation across auth)
+  // Helper to submit listing
+  const submitListing = async (payload: {
+    title: string;
+    description: string;
+    categoryId: string;
+    areaId: string;
+    landmark: string;
+    listingType: string;
+    pricingModel: string;
+    urgency: string;
+    price: string;
+    budgetMin: string;
+    budgetMax: string;
+    femaleProviderOnly: boolean;
+  }) => {
+    setSubmitting(true);
+    setServerError(null);
+
+    const fd = new FormData();
+    fd.set("title", payload.title.trim());
+    fd.set("description", payload.description.trim());
+    fd.set("categoryId", payload.categoryId);
+    fd.set("areaId", payload.areaId);
+    fd.set("landmark", payload.landmark.trim());
+    fd.set("addressText", payload.landmark.trim() ? `Near ${payload.landmark.trim()}` : "Lahore Neighborhood");
+    fd.set("listingType", payload.listingType);
+    fd.set("pricingModel", payload.pricingModel);
+    fd.set("asap", payload.urgency === "asap" || payload.urgency === "flexible" ? "true" : "false");
+    fd.set("preferredTiming", payload.urgency);
+    if (payload.urgency === "today") {
+      fd.set("preferredAt", new Date(Date.now() + 6 * 3600 * 1000).toISOString());
+    } else if (payload.urgency === "tomorrow") {
+      fd.set("preferredAt", new Date(Date.now() + 24 * 3600 * 1000).toISOString());
+    }
+
+    if (payload.pricingModel === "fixed" || payload.pricingModel === "negotiable") {
+      fd.set("price", payload.price);
+      fd.set("budgetMin", payload.price);
+      fd.set("budgetMax", payload.price);
+    } else if (payload.pricingModel === "budget_range") {
+      fd.set("budgetMin", payload.budgetMin);
+      fd.set("budgetMax", payload.budgetMax);
+    }
+
+    // Resolve category name
+    const catName = categories.find((c) => String(c.id) === payload.categoryId)?.name || "Services";
+    fd.set("categoryName", catName);
+
+    if (payload.femaleProviderOnly) {
+      fd.set("femaleProviderOnly", "true");
+      const currentDesc = String(fd.get("description") || "");
+      if (!currentDesc.includes("خاتون کاریگر") && !currentDesc.includes("Female Professional")) {
+        fd.set("description", `[👩‍🦰 Female Professional Requested / خاتون پرووائیڈر] ${currentDesc}`);
+      }
+    }
+
+    try {
+      const res = await createAndPublishJobAction(null, fd);
+      if (res?.error) {
+        setServerError(res.error);
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(POST_AFTER_AUTH_KEY);
+        }
+      } else {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(GUEST_DRAFT_KEY);
+          sessionStorage.removeItem(POST_AFTER_AUTH_KEY);
+        }
+        if (res?.jobId) {
+          onSuccess(res.jobId);
+        } else {
+          onSuccess("created");
+        }
+      }
+    } catch (e: any) {
+      setServerError(e?.message || "Failed to publish listing. Please check required fields.");
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem(POST_AFTER_AUTH_KEY);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Restore draft from sessionStorage on mount & auto-publish if returning from auth
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
       const raw = sessionStorage.getItem(GUEST_DRAFT_KEY);
+      const shouldAutoPost = sessionStorage.getItem(POST_AFTER_AUTH_KEY) === "true";
+
       if (raw) {
         const d = JSON.parse(raw);
         if (d && (d.title || d.description || d.landmark)) {
@@ -112,6 +200,30 @@ export function PostJobView({
             setStep(d.step);
           }
           setDraftRestored(true);
+
+          // If returning authenticated after clicking "Sign In & Publish", execute auto-publish
+          if (user && user.id !== "guest" && shouldAutoPost && !autoPublishTriggered.current) {
+            autoPublishTriggered.current = true;
+            setIsAutoPublishing(true);
+            sessionStorage.removeItem(POST_AFTER_AUTH_KEY);
+
+            submitListing({
+              title: d.title || "",
+              description: d.description || "",
+              categoryId: d.categoryId || (categories[0]?.id ? String(categories[0].id) : "1"),
+              areaId: d.areaId || (areas[0]?.id ? String(areas[0].id) : "1"),
+              landmark: d.landmark || "",
+              listingType: d.listingType || "service_request",
+              pricingModel: d.pricingModel || "fixed",
+              urgency: d.urgency || "flexible",
+              price: d.price || "5000",
+              budgetMin: d.budgetMin || "1500",
+              budgetMax: d.budgetMax || "3000",
+              femaleProviderOnly: !!d.femaleProviderOnly,
+            }).finally(() => {
+              setIsAutoPublishing(false);
+            });
+          }
         }
       }
     } catch (e) {
@@ -119,7 +231,7 @@ export function PostJobView({
     } finally {
       isDraftHydrated.current = true;
     }
-  }, []);
+  }, [user]);
 
   // Keep contactPhone synced if user logs in
   useEffect(() => {
@@ -287,66 +399,24 @@ export function PostJobView({
           // ignore
         }
       }
-      onNeedAuth();
+      onNeedAuth(contactPhone.trim());
       return;
     }
 
-    setSubmitting(true);
-    setServerError(null);
-
-    const fd = new FormData();
-    fd.set("title", title.trim());
-    fd.set("description", description.trim());
-    fd.set("categoryId", categoryId);
-    fd.set("areaId", areaId);
-    fd.set("landmark", landmark.trim());
-    fd.set("addressText", landmark.trim() ? `Near ${landmark.trim()}` : "Lahore Neighborhood");
-    fd.set("listingType", listingType);
-    fd.set("pricingModel", pricingModel);
-    fd.set("asap", urgency === "asap" ? "true" : "false");
-    fd.set("preferredTiming", urgency);
-
-    if (pricingModel === "fixed" || pricingModel === "negotiable") {
-      fd.set("price", price);
-      fd.set("budgetMin", price);
-      fd.set("budgetMax", price);
-    } else if (pricingModel === "budget_range") {
-      fd.set("budgetMin", budgetMin);
-      fd.set("budgetMax", budgetMax);
-    }
-
-    // Resolve category name
-    const catName = categories.find((c) => String(c.id) === categoryId)?.name || "Services";
-    fd.set("categoryName", catName);
-
-    if (femaleProviderOnly) {
-      fd.set("femaleProviderOnly", "true");
-      const currentDesc = String(fd.get("description") || "");
-      if (!currentDesc.includes("خاتون کاریگر") && !currentDesc.includes("Female Professional")) {
-        fd.set("description", `[👩‍🦰 Female Professional Requested / خاتون پرووائیڈر] ${currentDesc}`);
-      }
-    }
-
-    try {
-      const res = await createAndPublishJobAction(null, fd);
-      if (res?.error) {
-        setServerError(res.error);
-      } else {
-        if (typeof window !== "undefined") {
-          sessionStorage.removeItem(GUEST_DRAFT_KEY);
-          sessionStorage.removeItem(POST_AFTER_AUTH_KEY);
-        }
-        if (res?.jobId) {
-          onSuccess(res.jobId);
-        } else {
-          onSuccess("created");
-        }
-      }
-    } catch (e: any) {
-      setServerError(e?.message || "Failed to publish listing. Please check required fields.");
-    } finally {
-      setSubmitting(false);
-    }
+    await submitListing({
+      title,
+      description,
+      categoryId,
+      areaId,
+      landmark,
+      listingType,
+      pricingModel,
+      urgency,
+      price,
+      budgetMin,
+      budgetMax,
+      femaleProviderOnly,
+    });
   };
 
   const selectedCategoryName = categories.find((c) => String(c.id) === categoryId)?.name || "Selected Category";
@@ -355,8 +425,48 @@ export function PostJobView({
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 12px" }}>
       <div className="card" style={{ padding: "clamp(24px, 3.5vw, 40px)", background: "var(--graphite-1)", borderRadius: "var(--r-md)", border: "1px solid var(--line)" }}>
+        {/* Auto-publishing in progress banner */}
+        {isAutoPublishing && (
+          <div
+            style={{
+              marginBottom: 20,
+              padding: "16px 20px",
+              borderRadius: "var(--r-md)",
+              background: "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%)",
+              border: "1px solid rgba(16, 185, 129, 0.45)",
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+            }}
+          >
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                border: "3px solid rgba(16, 185, 129, 0.25)",
+                borderTopColor: "var(--ok)",
+                animation: "spin 0.8s linear infinite",
+                flexShrink: 0,
+              }}
+            />
+            <div>
+              <div style={{ fontWeight: 700, color: "var(--text)", fontSize: "0.95rem" }}>
+                {locale === "ur"
+                  ? "موبائل تصدیق ہو گئی! آپ کا اشتہار شائع کیا جا رہا ہے..."
+                  : "Phone verified! Publishing your request live..."}
+              </div>
+              <div style={{ color: "var(--text-3)", fontSize: "0.82rem", marginTop: 2 }}>
+                {locale === "ur"
+                  ? "لاہور کے تصدیق شدہ کاریگروں کے لیے آپ کی لائیو درخواست بنائی جا رہی ہے۔"
+                  : "Broadcasting your listing to verified Lahore technicians right now."}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Draft Restored Banner */}
-        {draftRestored && (
+        {draftRestored && !isAutoPublishing && (
           <div
             style={{
               marginBottom: 20,
@@ -982,11 +1092,11 @@ export function PostJobView({
                   type="button"
                   className="btn btn-primary"
                   onClick={handleFinalPublish}
-                  disabled={submitting}
+                  disabled={submitting || isAutoPublishing}
                   style={{ padding: "10px 28px" }}
                 >
                   <span>
-                    {submitting
+                    {submitting || isAutoPublishing
                       ? (locale === "ur" ? "شائع ہو رہا ہے..." : "Publishing...")
                       : (!user
                           ? (locale === "ur" ? "لاگ اِن کر کے شائع کریں" : "Sign In & Publish")

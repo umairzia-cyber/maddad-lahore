@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import {
   IconPhone,
   IconShield,
@@ -25,6 +25,7 @@ import {
 interface AuthViewProps {
   currentUser: AppUser | null;
   initialMode?: "signup" | "signin";
+  initialPhone?: string;
   onNavigateMarketplace?: () => void;
   showToast?: (msg: string) => void;
 }
@@ -50,6 +51,7 @@ const LAHORE_AREAS = [
 export function AuthView({
   currentUser,
   initialMode = "signup",
+  initialPhone,
   onNavigateMarketplace,
   showToast,
 }: AuthViewProps) {
@@ -67,11 +69,29 @@ export function AuthView({
 
   // Form fields
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(() => {
+    if (initialPhone) return initialPhone;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem("maddad_guest_draft_job_v1");
+        if (raw) {
+          const d = JSON.parse(raw);
+          if (d?.contactPhone) return d.contactPhone;
+        }
+      } catch {}
+    }
+    return "";
+  });
   const [role, setRole] = useState<"customer" | "worker">("customer");
   const [trade, setTrade] = useState<"plumbing" | "electrical" | "both">("plumbing");
   const [area, setArea] = useState<string>("Gulberg");
   const [agreedTerms, setAgreedTerms] = useState(true);
+
+  useEffect(() => {
+    if (initialPhone && !phone) {
+      setPhone(initialPhone);
+    }
+  }, [initialPhone]);
 
   // OTP Verification state
   const [code, setCode] = useState("");
@@ -195,7 +215,14 @@ export function AuthView({
       setFormError(res.error);
     } else {
       notify(mode === "signup" ? "Account created successfully!" : "Signed in successfully!");
-      window.location.reload();
+      const hasPendingPost =
+        typeof window !== "undefined" &&
+        sessionStorage.getItem("maddad_post_after_auth") === "true";
+      if (hasPendingPost) {
+        window.location.href = "/?view=post";
+      } else {
+        window.location.reload();
+      }
     }
   };
 
