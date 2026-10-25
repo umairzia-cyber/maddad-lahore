@@ -177,6 +177,8 @@ html {
   background: var(--ink-0);
   scroll-padding-top: calc(var(--header-h) + 16px);
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 body {
   min-height: 100vh;
@@ -191,6 +193,8 @@ body {
     radial-gradient(700px 380px at -5% 12%, rgba(70, 76, 110, 0.18), transparent 70%),
     repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 7px);
   background-attachment: fixed;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 img,
 svg {
@@ -498,6 +502,11 @@ a:hover {
 .header-nav::-webkit-scrollbar {
   display: none;
 }
+@media (max-width: 768px) {
+  .header-nav {
+    display: none !important;
+  }
+}
 @media (min-width: 900px) {
   .header-nav {
     order: 0;
@@ -555,6 +564,19 @@ a:hover {
 }
 .header-actions .btn {
   min-height: 40px;
+}
+@media (max-width: 640px) {
+  .header-inner {
+    padding-inline: 12px;
+    gap: var(--s-2);
+  }
+  .header-actions {
+    gap: 6px;
+  }
+  .header-actions .btn {
+    padding-inline: 10px;
+    min-height: 36px;
+  }
 }
 @media (max-width: 520px) {
   .header-actions .btn-label-long {

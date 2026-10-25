@@ -84,7 +84,7 @@ export function AppHeader({
           </div>
           <div className="brand-title">
             <span>Madadgaar</span>
-            <span className="brand-urdu" lang="ur">
+            <span className="brand-urdu hide-sm" lang="ur">
               مددگار
             </span>
           </div>
@@ -97,9 +97,13 @@ export function AppHeader({
         <div className="header-actions">
           <LanguageToggle />
 
-          <Link href="/?view=post" className="btn btn-primary btn-sm">
+          <Link
+            href="/?view=post"
+            className="btn btn-primary btn-sm"
+            aria-label={locale === "ur" ? "کام پوسٹ کریں" : "Post a job"}
+          >
             <IconPlus size={16} aria-hidden="true" />
-            <span>{locale === "ur" ? "کام پوسٹ کریں" : "Post a job"}</span>
+            <span className="hide-sm">{locale === "ur" ? "کام پوسٹ کریں" : "Post a job"}</span>
           </Link>
 
           {user?.is_worker ? (
@@ -138,9 +142,13 @@ export function AppHeader({
               </button>
             </form>
           ) : (
-            <Link href="/?view=signin" className="btn btn-ghost btn-sm">
+            <Link
+              href="/?view=signin"
+              className="btn btn-ghost btn-sm"
+              aria-label={locale === "ur" ? "لاگ اِن" : "Sign in"}
+            >
               <IconUser size={16} aria-hidden="true" />
-              <span>{locale === "ur" ? "لاگ اِن" : "Sign in"}</span>
+              <span className="hide-sm">{locale === "ur" ? "لاگ اِن" : "Sign in"}</span>
             </Link>
           )}
         </div>
