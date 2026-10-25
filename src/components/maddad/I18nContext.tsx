@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Locale, LOCALE_DIR, MessageKey, t as translate } from "@/lib/i18n";
 
 interface I18nContextType {
@@ -21,9 +22,16 @@ const I18nContext = createContext<I18nContextType>({
 
 export function I18nProvider({ children, initialLocale = "en" }: { children: React.ReactNode; initialLocale?: Locale }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      document.documentElement.setAttribute("translate", "no");
+      document.documentElement.classList.add("notranslate");
+      if (document.body) {
+        document.body.setAttribute("translate", "no");
+        document.body.classList.add("notranslate");
+      }
       const saved = localStorage.getItem("maddad_locale") as Locale | null;
       if (saved === "ur" || saved === "en") {
         setLocaleState(saved);
@@ -40,7 +48,10 @@ export function I18nProvider({ children, initialLocale = "en" }: { children: Rea
       document.cookie = `maddad_locale=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
       document.documentElement.dir = LOCALE_DIR[newLocale];
       document.documentElement.lang = newLocale;
+      document.documentElement.setAttribute("translate", "no");
+      document.documentElement.classList.add("notranslate");
     }
+    router.refresh();
   };
 
   const toggleLocale = () => {

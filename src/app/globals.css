@@ -2888,3 +2888,27 @@ dialog.dialog::backdrop {
   border-color: rgba(16, 185, 129, 0.65);
 }
 
+/* ---------- Google Translate suppression ---------- */
+.notranslate,
+[translate="no"] {
+  -webkit-translate: no !important;
+  translate: no !important;
+}
+
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-tooltip,
+.goog-tooltip:hover,
+.goog-text-highlight,
+.skiptranslate {
+  display: none !important;
+  visibility: hidden !important;
+  box-shadow: none !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+

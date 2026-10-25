@@ -1,6 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
-import { Suspense } from "react";
 import "./globals.css";
 import { appName } from "@/lib/config";
 import { cookies } from "next/headers";
@@ -8,11 +6,9 @@ import { type Locale, LOCALE_DIR } from "@/lib/i18n";
 import { getUser } from "@/lib/auth";
 import { isPostgresAvailable, q } from "@/lib/db";
 import { store } from "@/lib/store";
-import SiteNav, { type NavItem } from "@/components/SiteNav";
-import { IconPlus, IconWrench, IconUser, IconLogOut } from "@/components/icons";
-import { logoutAction } from "./actions";
 import { I18nProvider } from "@/components/maddad/I18nContext";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { AppHeader } from "@/components/AppHeader";
+import { SkipLink } from "@/components/SkipLink";
 import { TrustStrip } from "@/components/TrustStrip";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -22,6 +18,9 @@ export const metadata: Metadata = {
     "Lahore's trusted local services marketplace. Request home repairs, hire verified technicians, offer professional services, and discover skilled work across Lahore.",
   manifest: "/manifest.webmanifest",
   robots: { index: true, follow: true },
+  other: {
+    google: "notranslate",
+  },
 };
 
 export const viewport: Viewport = {
@@ -46,88 +45,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
   }
 
-  const nav: NavItem[] = [
-    { href: "/", label: locale === "ur" ? "مارکیٹ پلیس" : "Marketplace" },
-    ...(user
-      ? ([
-          { href: "/dashboard", label: locale === "ur" ? "ڈیش بورڈ" : "My Dashboard", match: "prefix" },
-          ...(user.is_worker ? [{ href: "/worker/jobs", label: locale === "ur" ? "ملازمتیں اور کام" : "Jobs & Offers", match: "prefix" as const }] : []),
-          { href: "/notifications", label: locale === "ur" ? "اطلاعات" : "Notifications", count: unreadCount, match: "prefix" },
-          { href: "/account", label: locale === "ur" ? "اکاؤنٹ" : "Account", match: "prefix" },
-          ...(user.is_admin ? [{ href: "/admin", label: "Moderation", match: "prefix" as const }] : []),
-        ] as NavItem[])
-      : []),
-    { href: "/safety", label: locale === "ur" ? "سیفٹی گائیڈ" : "Trust & Safety", match: "prefix" },
-    { href: "/payments", label: locale === "ur" ? "طریقہ کار" : "How it works", match: "prefix" },
-  ];
-
   return (
-    <html lang={locale} dir={LOCALE_DIR[locale]}>
-      <body>
+    <html lang={locale} dir={LOCALE_DIR[locale]} className="notranslate" translate="no">
+      <head>
+        <meta name="google" content="notranslate" />
+      </head>
+      <body className="notranslate" translate="no">
         <I18nProvider initialLocale={locale}>
-          <a href="#main" className="skip-link">
-            {locale === "ur" ? "مواد پر جائیں" : "Skip to content"}
-          </a>
+          <SkipLink />
           <div className="app-wrap">
             <div className="app-canvas">
-              <header className="app-header">
-                <div className="header-inner">
-                  <Link href="/" className="brand-badge" aria-label="Madadgaar home">
-                    <div className="brand-avatar" aria-hidden="true">
-                      مددگار
-                    </div>
-                    <div className="brand-title">
-                      <span>Madadgaar</span>
-                      <span className="brand-urdu" lang="ur">
-                        مددگار
-                      </span>
-                    </div>
-                  </Link>
-
-                  <Suspense fallback={<nav className="header-nav" aria-label="Main" />}>
-                    <SiteNav items={nav} />
-                  </Suspense>
-
-                  <div className="header-actions">
-                    <LanguageToggle />
-
-                    <Link href="/?view=post" className="btn btn-primary btn-sm">
-                      <IconPlus size={16} aria-hidden="true" />
-                      <span>
-                        {locale === "ur" ? "کام پوسٹ کریں" : "Post a job"}
-                      </span>
-                    </Link>
-                    {user?.is_worker ? (
-                      <Link href="/worker/profile" className="btn btn-sm" aria-label={locale === "ur" ? "میری کاریگر پروفائل" : "My technician profile"}>
-                        <IconWrench size={16} aria-hidden="true" />
-                        <span className="btn-label-long" aria-hidden="true">
-                          {locale === "ur" ? "میری کاریگر پروفائل" : "My technician profile"}
-                        </span>
-                      </Link>
-                    ) : (
-                      <Link href="/?view=join" className="btn btn-sm" aria-label={locale === "ur" ? "بطور کاریگر شامل ہوں" : "Join as a technician"}>
-                        <IconWrench size={16} aria-hidden="true" />
-                        <span className="btn-label-long" aria-hidden="true">
-                          {locale === "ur" ? "بطور کاریگر شامل ہوں" : "Join as a technician"}
-                        </span>
-                      </Link>
-                    )}
-                    {user ? (
-                      <form action={logoutAction}>
-                        <button type="submit" className="btn btn-ghost btn-sm" aria-label={locale === "ur" ? "لاگ آؤٹ" : "Sign out"}>
-                          <IconLogOut size={16} aria-hidden="true" />
-                          <span className="hide-sm">{locale === "ur" ? "لاگ آؤٹ" : "Sign out"}</span>
-                        </button>
-                      </form>
-                    ) : (
-                      <Link href="/?view=signin" className="btn btn-ghost btn-sm">
-                        <IconUser size={16} aria-hidden="true" />
-                        <span>{locale === "ur" ? "لاگ اِن" : "Sign in"}</span>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </header>
+              <AppHeader user={user} unreadCount={unreadCount} />
 
               <TrustStrip />
 
