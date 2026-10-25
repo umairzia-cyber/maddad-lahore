@@ -528,7 +528,9 @@ export function PostJobView({
         <div style={{ marginBottom: 28 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontSize: "0.82rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--violet-500)" }}>
-              Step {step} of 4: {step === 1 ? "Ad Category" : step === 2 ? "Listing Details" : step === 3 ? "Pricing & Terms" : "Location & Privacy"}
+              {locale === "ur"
+                ? `مرحلہ ${step} از 4: ${step === 1 ? "اشتہار کی قسم" : step === 2 ? "تفصیلات" : step === 3 ? "قیمت اور شرائط" : "مقام اور رازداری"}`
+                : `Step ${step} of 4: ${step === 1 ? "Ad Category" : step === 2 ? "Listing Details" : step === 3 ? "Pricing & Terms" : "Location & Privacy"}`}
             </span>
             <button
               type="button"
@@ -536,7 +538,7 @@ export function PostJobView({
               onClick={onViewMarketplace}
               style={{ fontSize: "0.82rem", color: "var(--text-3)" }}
             >
-              Cancel
+              {locale === "ur" ? "منسوخ کریں" : "Cancel"}
             </button>
           </div>
           <div style={{ height: 4, width: "100%", background: "var(--graphite-2)", borderRadius: 2, overflow: "hidden" }}>
@@ -648,7 +650,7 @@ export function PostJobView({
                 onClick={() => setStep(2)}
                 style={{ padding: "10px 24px" }}
               >
-                <span>Continue to Details</span>
+                <span>{locale === "ur" ? "تفصیلات پر جائیں" : "Continue to Details"}</span>
                 <IconArrowRight size={16} />
               </button>
             </div>
@@ -662,7 +664,9 @@ export function PostJobView({
               {locale === "ur" ? "اشتہار کی تفصیلات درج کریں" : "Listing Details & Description"}
             </h2>
             <p style={{ color: "var(--text-2)", fontSize: "0.95rem", margin: "0 0 24px" }}>
-              Provide clear and accurate details to get quick, relevant responses.
+              {locale === "ur"
+                ? "صحیح اور واضح تفصیل درج کریں تاکہ کاریگر فوری اور درست جواب دے سکیں۔"
+                : "Provide clear and accurate details to get quick, relevant responses."}
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 28 }}>
@@ -685,7 +689,7 @@ export function PostJobView({
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     <span>✨</span>
                     <span>
-                      <strong>Smart Category Detected:</strong> {autoDetected.categoryName} {autoDetected.categoryNameUr ? `(${autoDetected.categoryNameUr})` : ""}
+                      <strong>{locale === "ur" ? "سمارٹ کیٹیگری شناخت:" : "Smart Category Detected:"}</strong> {autoDetected.categoryName} {autoDetected.categoryNameUr ? `(${autoDetected.categoryNameUr})` : ""}
                     </span>
                     <span style={{ fontSize: "0.74rem", color: "var(--text-3)" }}>
                       via &ldquo;{autoDetected.matchedKeywords.slice(0, 3).join(", ")}&rdquo;
@@ -698,11 +702,11 @@ export function PostJobView({
                       className="btn btn-secondary btn-sm"
                       style={{ padding: "3px 10px", fontSize: "0.78rem" }}
                     >
-                      {locale === "ur" ? "یہ کیٹگری منتخب کریں" : "Apply Category"}
+                      {locale === "ur" ? "یہ کیٹیگری منتخب کریں" : "Apply Category"}
                     </button>
                   ) : (
                     <span style={{ color: "var(--emerald-400)", fontWeight: 700, fontSize: "0.78rem" }}>
-                      ✓ Applied
+                      ✓ {locale === "ur" ? "منتخب شدہ" : "Applied"}
                     </span>
                   )}
                 </div>
@@ -711,7 +715,7 @@ export function PostJobView({
               {/* Category selector */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                  Category
+                  {locale === "ur" ? "کیٹیگری منتخب کریں" : "Category"}
                 </label>
                 <select
                   value={categoryId}
@@ -729,16 +733,22 @@ export function PostJobView({
               {/* Title */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                  Listing Title
+                  {locale === "ur" ? "اشتہار کا عنوان" : "Listing Title"}
                 </label>
                 <input
                   type="text"
                   placeholder={
-                    listingType === "service_request"
-                      ? "e.g. Need Plumber for Leaking Bathroom Motor in Gulberg"
-                      : listingType === "service_offer"
-                      ? "e.g. Professional AC Installation & Gas Refill Services"
-                      : "e.g. Hiring Experienced Office Electrician / Maintenance Staff"
+                    locale === "ur"
+                      ? (listingType === "service_request"
+                          ? "مثلاً: گلبرگ میں باتھ روم کی موٹر لیکیج کے لیے پلمبر چاہیے"
+                          : listingType === "service_offer"
+                          ? "مثلاً: پروفیشنل اے سی سروس اور گیس ریفلنگ کی پیشکش"
+                          : "مثلاً: تجربہ کار الیکٹریشن / مینٹیننس سٹاف کی ضرورت")
+                      : (listingType === "service_request"
+                          ? "e.g. Need Plumber for Leaking Bathroom Motor in Gulberg"
+                          : listingType === "service_offer"
+                          ? "e.g. Professional AC Installation & Gas Refill Services"
+                          : "e.g. Hiring Experienced Office Electrician / Maintenance Staff")
                   }
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -750,11 +760,15 @@ export function PostJobView({
               {/* Detailed Description */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                  Detailed Description
+                  {locale === "ur" ? "مسئلے یا کام کی مکمل تفصیل" : "Detailed Description"}
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="Describe the issue, work scope, preferred schedule, or job requirements..."
+                  placeholder={
+                    locale === "ur"
+                      ? "مسئلے کی تفصیل، کام کا حجم، مناسب وقت یا مطلوبہ سامان وغیرہ لکھیں..."
+                      : "Describe the issue, work scope, preferred schedule, or job requirements..."
+                  }
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.92rem" }}
@@ -808,7 +822,7 @@ export function PostJobView({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <button type="button" className="btn btn-secondary" onClick={() => setStep(1)}>
                 <IconArrowLeft size={16} />
-                <span>Back</span>
+                <span>{locale === "ur" ? "واپس" : "Back"}</span>
               </button>
               <button
                 type="button"
@@ -817,7 +831,7 @@ export function PostJobView({
                   if (validateStep2()) setStep(3);
                 }}
               >
-                <span>Continue to Pricing</span>
+                <span>{locale === "ur" ? "قیمت کا تعین کریں" : "Continue to Pricing"}</span>
                 <IconArrowRight size={16} />
               </button>
             </div>
@@ -831,14 +845,16 @@ export function PostJobView({
               {locale === "ur" ? "قیمت اور شرائط طے کریں" : "Pricing & Terms"}
             </h2>
             <p style={{ color: "var(--text-2)", fontSize: "0.95rem", margin: "0 0 24px" }}>
-              Set your expectations clearly so interested buyers or providers know what to expect.
+              {locale === "ur"
+                ? "اپنی توقعات واضح رکھیں تاکہ کاریگر یا کسٹمر کو فوری سمجھ آ سکے۔"
+                : "Set your expectations clearly so interested buyers or providers know what to expect."}
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 28 }}>
               {/* Pricing Model selection */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                  Pricing Model
+                  {locale === "ur" ? "قیمت کا ماڈل" : "Pricing Model"}
                 </label>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
                   <button
@@ -854,7 +870,7 @@ export function PostJobView({
                       cursor: "pointer",
                     }}
                   >
-                    Fixed Price
+                    {locale === "ur" ? "مقررہ قیمت" : "Fixed Price"}
                   </button>
                   <button
                     type="button"
@@ -869,7 +885,7 @@ export function PostJobView({
                       cursor: "pointer",
                     }}
                   >
-                    Negotiable
+                    {locale === "ur" ? "بات چیت کے قابل" : "Negotiable"}
                   </button>
                   <button
                     type="button"
@@ -884,7 +900,7 @@ export function PostJobView({
                       cursor: "pointer",
                     }}
                   >
-                    Request Quotes
+                    {locale === "ur" ? "ریٹس / کوٹیشنز طلب کریں" : "Request Quotes"}
                   </button>
                   <button
                     type="button"
@@ -899,7 +915,7 @@ export function PostJobView({
                       cursor: "pointer",
                     }}
                   >
-                    Budget Range
+                    {locale === "ur" ? "بجٹ کی حد" : "Budget Range"}
                   </button>
                 </div>
               </div>
@@ -908,11 +924,11 @@ export function PostJobView({
               {(pricingModel === "fixed" || pricingModel === "negotiable") && (
                 <div>
                   <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                    Price (PKR)
+                    {locale === "ur" ? "قیمت (روپے)" : "Price (PKR)"}
                   </label>
                   <input
                     type="number"
-                    placeholder="e.g. 15000"
+                    placeholder={locale === "ur" ? "مثلاً: 15000" : "e.g. 15000"}
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.95rem" }}
@@ -925,7 +941,7 @@ export function PostJobView({
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
                     <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                      Minimum (PKR)
+                      {locale === "ur" ? "کم از کم بجٹ (روپے)" : "Minimum (PKR)"}
                     </label>
                     <input
                       type="number"
@@ -937,7 +953,7 @@ export function PostJobView({
                   </div>
                   <div>
                     <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                      Maximum (PKR)
+                      {locale === "ur" ? "زیادہ سے زیادہ بجٹ (روپے)" : "Maximum (PKR)"}
                     </label>
                     <input
                       type="number"
@@ -953,14 +969,14 @@ export function PostJobView({
               {/* Timing */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                  Timing Preference
+                  {locale === "ur" ? "وقت کی ترجیح" : "Timing Preference"}
                 </label>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {[
-                    { id: "flexible", label: "Flexible Schedule" },
-                    { id: "asap", label: "⚡ Immediate / ASAP" },
-                    { id: "today", label: "Today" },
-                    { id: "tomorrow", label: "Tomorrow / Weekend" },
+                    { id: "flexible", label: locale === "ur" ? "مناسب وقت" : "Flexible Schedule" },
+                    { id: "asap", label: locale === "ur" ? "⚡ فوری / ہنگامی" : "⚡ Immediate / ASAP" },
+                    { id: "today", label: locale === "ur" ? "آج ہی" : "Today" },
+                    { id: "tomorrow", label: locale === "ur" ? "کل / ویک اینڈ پر" : "Tomorrow / Weekend" },
                   ].map((t) => (
                     <button
                       key={t.id}
@@ -987,7 +1003,7 @@ export function PostJobView({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <button type="button" className="btn btn-secondary" onClick={() => setStep(2)}>
                 <IconArrowLeft size={16} />
-                <span>Back</span>
+                <span>{locale === "ur" ? "واپس" : "Back"}</span>
               </button>
               <button
                 type="button"
@@ -996,7 +1012,7 @@ export function PostJobView({
                   if (validateStep3()) setStep(4);
                 }}
               >
-                <span>Continue to Location</span>
+                <span>{locale === "ur" ? "مقام کا تعین کریں" : "Continue to Location"}</span>
                 <IconArrowRight size={16} />
               </button>
             </div>
@@ -1010,14 +1026,16 @@ export function PostJobView({
               {locale === "ur" ? "مقام اور رازداری کا تحفظ" : "Location & Privacy Protection"}
             </h2>
             <p style={{ color: "var(--text-2)", fontSize: "0.95rem", margin: "0 0 24px" }}>
-              Only your approximate Lahore neighborhood is public. Exact street addresses stay strictly locked until mutual agreement.
+              {locale === "ur"
+                ? "صرف آپ کا لاہور کا قریبی علاقہ پبلک ہوتا ہے۔ گھر کا صحیح پتہ باہمی رضامندی تک مکمل محفوظ رہتا ہے۔"
+                : "Only your approximate Lahore neighborhood is public. Exact street addresses stay strictly locked until mutual agreement."}
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 18, marginBottom: 28 }}>
               {/* Lahore Area */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                  Lahore Neighbourhood / Area
+                  {locale === "ur" ? "لاہور کا علاقہ / ٹاؤن" : "Lahore Neighbourhood / Area"}
                 </label>
                 <select
                   value={areaId}
@@ -1033,24 +1051,26 @@ export function PostJobView({
               {/* Private Landmark / House info */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                  Street / Landmark (Strictly Private)
+                  {locale === "ur" ? "گلی، لینڈ مارک یا قریبی نشانی (مکمل پرائیویٹ)" : "Street / Landmark (Strictly Private)"}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Near Siddique Trade Center, Main Boulevard"
+                  placeholder={locale === "ur" ? "مثلاً: صدیق ٹریڈ سینٹر کے قریب، مین بلیوارڈ گلبرگ" : "e.g. Near Siddique Trade Center, Main Boulevard"}
                   value={landmark}
                   onChange={(e) => setLandmark(e.target.value)}
                   style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.92rem" }}
                 />
                 <span style={{ fontSize: "0.8rem", color: "var(--text-3)", marginTop: 4, display: "block" }}>
-                  🔒 Kept private. Only shared with the single person you agree to deal with.
+                  {locale === "ur"
+                    ? "🔒 یہ معلومات محفوظ رکھی جاتی ہیں۔ صرف اسی شخص سے شیئر کی جاتی ہیں جس سے آپ کام طے کریں۔"
+                    : "🔒 Kept private. Only shared with the single person you agree to deal with."}
                 </span>
               </div>
 
               {/* Contact Phone */}
               <div>
                 <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>
-                  Contact Mobile Number (Pakistani SIM)
+                  {locale === "ur" ? "رابطہ موبائل نمبر (پاکستانی سم)" : "Contact Mobile Number (Pakistani SIM)"}
                 </label>
                 <input
                   type="tel"
@@ -1065,7 +1085,7 @@ export function PostJobView({
               {/* Summary Review Card */}
               <div style={{ padding: 16, background: "var(--graphite-2)", borderRadius: "var(--r-md)", border: "1px solid var(--line-soft)" }}>
                 <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", marginBottom: 6 }}>
-                  Summary Preview
+                  {locale === "ur" ? "خلاصہ اور جائزہ" : "Summary Preview"}
                 </div>
                 <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)", marginBottom: 4 }}>
                   {title || "Untitled Listing"}

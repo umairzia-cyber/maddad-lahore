@@ -853,7 +853,7 @@ export function MarketplaceView({
       {/* Filter and Search Bar */}
       <div style={{ padding: "16px", background: "var(--graphite-1)", borderRadius: "var(--r-md)", border: "1px solid var(--line)", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)", display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ flex: "1 1 280px", position: "relative", display: "flex", alignItems: "center" }}>
-          <IconSearch size={16} style={{ position: "absolute", left: 12, color: "var(--text-3)", pointerEvents: "none" }} />
+          <IconSearch size={16} style={{ position: "absolute", insetInlineStart: 12, color: "var(--text-3)", pointerEvents: "none" }} />
           <input
             type="search"
             placeholder={
@@ -865,7 +865,9 @@ export function MarketplaceView({
             onChange={(e) => setQ(e.target.value)}
             style={{
               width: "100%",
-              padding: "10px 12px 10px 38px",
+              padding: "10px 14px",
+              paddingInlineStart: 38,
+              paddingInlineEnd: 14,
               borderRadius: "var(--r-sm)",
               border: "1px solid var(--line)",
               fontSize: "0.92rem",
@@ -912,7 +914,7 @@ export function MarketplaceView({
             }}
             style={{ fontSize: "0.82rem" }}
           >
-            Reset Filters
+            {locale === "ur" ? "فلٹرز ختم کریں" : "Reset Filters"}
           </button>
         )}
       </div>
@@ -1200,10 +1202,10 @@ export function JobDialog({
               <IconMapPin size={14} style={{ color: "var(--violet-500)" }} />
               {job.area}, Lahore
             </span>
-            <span>· Posted {fmtDate(job.created_at)}</span>
+            <span>· {locale === "ur" ? `پوسٹ کردہ ${fmtDate(job.created_at)}` : `Posted ${fmtDate(job.created_at)}`}</span>
             <span className="pill pill-ok" style={{ fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: 4 }}>
               <IconClock size={11} />
-              <span>24h Reverse Auction</span>
+              <span>{locale === "ur" ? "24 گھنٹے ریورس نیلامی" : "24h Reverse Auction"}</span>
             </span>
           </div>
 
@@ -1221,7 +1223,15 @@ export function JobDialog({
           <div style={{ padding: "12px 16px", background: "var(--graphite-2)", borderRadius: "var(--r-sm)", border: "1px solid var(--line-soft)", display: "flex", alignItems: "center", gap: 10 }}>
             <IconLock size={16} style={{ color: "var(--violet-500)", flexShrink: 0 }} />
             <span style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
-              <strong>Location Privacy:</strong> Exact house address is strictly private. Only the neighborhood ({job.area}) is public until you hire a technician.
+              {locale === "ur" ? (
+                <>
+                  <strong>مقام کی رازداری:</strong> گھر کا اصل پتہ بالکل خفیہ ہے۔ کاریگر کو خدمات پر مامور کرنے تک صرف محلہ ({job.area}) ظاہر ہوتا ہے۔
+                </>
+              ) : (
+                <>
+                  <strong>Location Privacy:</strong> Exact house address is strictly private. Only the neighborhood ({job.area}) is public until you hire a technician.
+                </>
+              )}
             </span>
           </div>
 
@@ -1382,7 +1392,7 @@ export function JobDialog({
 
                 {loadingBids ? (
                   <div style={{ padding: 20, textAlign: "center", color: "var(--text-3)", fontSize: "0.85rem" }}>
-                    Loading incoming quotes from Lahore technicians...
+                    {locale === "ur" ? "لاہور کے کاریگروں سے کوٹیشنز لوڈ ہو رہی ہیں..." : "Loading incoming quotes from Lahore technicians..."}
                   </div>
                 ) : bids.length === 0 ? (
                   <div
@@ -1466,7 +1476,7 @@ export function JobDialog({
                         <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "8px 0", fontSize: "0.84rem", color: "var(--text-2)" }}>
                           <IconClock size={13} style={{ color: "var(--violet-400)" }} />
                           <span>
-                            <strong>Arrival:</strong> {b.timing_text}
+                            <strong>{locale === "ur" ? "آمد کا وقت:" : "Arrival:"}</strong> {b.timing_text}
                           </span>
                         </div>
 
@@ -1545,7 +1555,9 @@ export function JobDialog({
 
               {bidSuccess ? (
                 <div style={{ padding: 14, background: "rgba(16, 185, 129, 0.1)", border: "1px solid var(--ok)", borderRadius: "var(--r-sm)", color: "var(--ok)", fontWeight: 600, fontSize: "0.9rem" }}>
-                  ✓ Your quote of {pkr(Number(bidAmount))} has been sent to the customer! They can compare bids and chat privately with you.
+                  {locale === "ur"
+                    ? `✓ آپ کی ${pkr(Number(bidAmount))} کی کوٹیشن گاہک کو بھیج دی گئی ہے! وہ ریٹس کا موازنہ کر کے آپ سے چیٹ کر سکتے ہیں۔`
+                    : `✓ Your quote of ${pkr(Number(bidAmount))} has been sent to the customer! They can compare bids and chat privately with you.`}
                 </div>
               ) : (
                 <>
@@ -1620,15 +1632,15 @@ export function JobDialog({
                     </div>
 
                     <div style={{ position: "relative", marginBottom: 8 }}>
-                      <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontWeight: 700, color: "var(--emerald-400)", fontSize: "0.95rem" }}>
-                        Rs.
+                      <span style={{ position: "absolute", insetInlineStart: 12, top: "50%", transform: "translateY(-50%)", fontWeight: 700, color: "var(--emerald-400)", fontSize: "0.95rem" }}>
+                        {locale === "ur" ? "روپے" : "Rs."}
                       </span>
                       <input
                         type="number"
-                        placeholder="Enter any custom amount e.g. 2,750"
+                        placeholder={locale === "ur" ? "اپنی مرضی کی رقم درج کریں مثلاً 2,750" : "Enter any custom amount e.g. 2,750"}
                         value={bidAmount}
                         onChange={(e) => setBidAmount(e.target.value)}
-                        style={{ width: "100%", padding: "10px 12px 10px 42px", borderRadius: "var(--r-sm)", border: "1px solid var(--violet-line)", background: "var(--graphite-1)", fontSize: "1rem", fontWeight: 700, color: "#FFFFFF" }}
+                        style={{ width: "100%", padding: "10px 14px", paddingInlineStart: 46, paddingInlineEnd: 12, borderRadius: "var(--r-sm)", border: "1px solid var(--violet-line)", background: "var(--graphite-1)", fontSize: "1rem", fontWeight: 700, color: "#FFFFFF" }}
                         required
                       />
                     </div>
@@ -1645,7 +1657,7 @@ export function JobDialog({
                           className={`btn btn-sm ${bidAmount === String(p) ? "btn-primary" : "btn-secondary"}`}
                           style={{ padding: "4px 10px", fontSize: "0.78rem", fontWeight: 700 }}
                         >
-                          Rs. {p.toLocaleString()}
+                          {locale === "ur" ? `${p.toLocaleString()} روپے` : `Rs. ${p.toLocaleString()}`}
                         </button>
                       ))}
                     </div>
@@ -1659,7 +1671,7 @@ export function JobDialog({
 
                     <input
                       type="text"
-                      placeholder="e.g. Within 25 mins / Today 5:30 PM with tools"
+                      placeholder={locale === "ur" ? "مثلاً: 25 منٹ میں / آج شام 5:30 بجے سامان سمیت" : "e.g. Within 25 mins / Today 5:30 PM with tools"}
                       value={bidTiming}
                       onChange={(e) => setBidTiming(e.target.value)}
                       style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-1)", fontSize: "0.88rem", marginBottom: 8 }}
@@ -1691,7 +1703,7 @@ export function JobDialog({
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Master plumber with pipe welding machine ready"
+                      placeholder={locale === "ur" ? "مثلاً: پائپ ویلڈنگ مشین اور ضروری اوزار ساتھ موجود ہیں" : "e.g. Master plumber with pipe welding machine ready"}
                       value={bidNote}
                       onChange={(e) => setBidNote(e.target.value)}
                       style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-1)", fontSize: "0.88rem" }}
@@ -1701,7 +1713,11 @@ export function JobDialog({
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
                     <button type="submit" className="btn btn-primary" disabled={submittingBid} style={{ flex: 1 }}>
                       <IconSend size={15} />
-                      <span>{submittingBid ? "Sending Counter-Bid..." : `Send Quote for ${pkr(Number(bidAmount) || 0)}`}</span>
+                      <span>
+                        {submittingBid
+                          ? (locale === "ur" ? "کوٹیشن بھیجی جا رہی ہے..." : "Sending Counter-Bid...")
+                          : (locale === "ur" ? `${pkr(Number(bidAmount) || 0)} کا کوٹ بھیجیں` : `Send Quote for ${pkr(Number(bidAmount) || 0)}`)}
+                      </span>
                     </button>
 
                     <button
@@ -1715,7 +1731,7 @@ export function JobDialog({
                       }}
                       className="btn btn-secondary"
                     >
-                      <span>💬 Chat Privately</span>
+                      <span>💬 {locale === "ur" ? "پرائیویٹ چیٹ کریں" : "Chat Privately"}</span>
                     </button>
                   </div>
                 </form>
@@ -1743,23 +1759,29 @@ export function JobDialog({
                   className="btn btn-ghost btn-sm"
                   style={{ fontSize: "0.78rem" }}
                 >
-                  💬 Open Live Chat
+                  {locale === "ur" ? "💬 لائیو چیٹ کھولیں" : "💬 Open Live Chat"}
                 </button>
               </div>
 
               {inquirySuccess ? (
                 <div style={{ color: "var(--ok)", fontWeight: 600, fontSize: "0.9rem" }}>
-                  ✓ Your inquiry has been sent to the poster. They can review and reply in private chat.
+                  {locale === "ur"
+                    ? "✓ آپ کا پیغام بھیج دیا گیا ہے۔ وہ پرائیویٹ چیٹ میں جائزہ لے کر جواب دے سکتے ہیں۔"
+                    : "✓ Your inquiry has been sent to the poster. They can review and reply in private chat."}
                 </div>
               ) : (
                 <form onSubmit={handleInquirySubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   <div>
                     <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 4 }}>
-                      Your Message
+                      {locale === "ur" ? "آپ کا پیغام" : "Your Message"}
                     </label>
                     <textarea
                       rows={3}
-                      placeholder="Can you share more details about the issue? Can we schedule today?"
+                      placeholder={
+                        locale === "ur"
+                          ? "کیا آپ مسئلے کے بارے میں مزید بتا سکتے ہیں؟ کیا آج کا وقت طے ہو سکتا ہے؟"
+                          : "Can you share more details about the issue? Can we schedule today?"
+                      }
                       value={inquiryMsg}
                       onChange={(e) => setInquiryMsg(e.target.value)}
                       style={{ width: "100%", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", fontSize: "0.9rem", background: "var(--graphite-1)" }}
@@ -1769,11 +1791,11 @@ export function JobDialog({
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div>
                       <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 4 }}>
-                        Offer Price (PKR, optional)
+                        {locale === "ur" ? "پیشکش کی رقم (اختیاری)" : "Offer Price (PKR, optional)"}
                       </label>
                       <input
                         type="number"
-                        placeholder="e.g. 1500"
+                        placeholder={locale === "ur" ? "مثلاً: 1500" : "e.g. 1500"}
                         value={offerPrice}
                         onChange={(e) => setOfferPrice(e.target.value)}
                         style={{ width: "100%", padding: "8px 10px", borderRadius: "var(--r-sm)", border: "1px solid var(--line)", background: "var(--graphite-1)" }}
@@ -1781,7 +1803,7 @@ export function JobDialog({
                     </div>
                     <div>
                       <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-2)", display: "block", marginBottom: 4 }}>
-                        Your Contact Phone (Lahore)
+                        {locale === "ur" ? "آپ کا رابطہ نمبر (لاہور)" : "Your Contact Phone (Lahore)"}
                       </label>
                       <input
                         type="tel"
@@ -1795,7 +1817,11 @@ export function JobDialog({
                   </div>
                   <button type="submit" className="btn btn-primary btn-sm" disabled={submittingInquiry} style={{ marginTop: 4 }}>
                     <IconSend size={14} />
-                    <span>{submittingInquiry ? "Sending..." : "Send Private Inquiry"}</span>
+                    <span>
+                      {submittingInquiry
+                        ? (locale === "ur" ? "بھیج رہے ہیں..." : "Sending...")
+                        : (locale === "ur" ? "پرائیویٹ پیغام بھیجیں" : "Send Private Inquiry")}
+                    </span>
                   </button>
                 </form>
               )}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { requireUser } from "@/lib/auth";
 import { categoriesAndAreas } from "@/lib/jobs";
 import { q, one, isPostgresAvailable } from "@/lib/db";
@@ -18,6 +19,9 @@ import {
 export const metadata: Metadata = { title: "Worker profile" };
 
 export default async function WorkerProfilePage() {
+  const cookieLocale = cookies().get("maddad_locale")?.value;
+  const locale = cookieLocale === "ur" ? "ur" : "en";
+
   const user = await requireUser();
 
   const { categories, areas } = await categoriesAndAreas();
@@ -79,17 +83,19 @@ export default async function WorkerProfilePage() {
 
   return (
     <div style={{ maxWidth: 720 }}>
-      <h1>Worker Profile</h1>
+      <h1>{locale === "ur" ? "کاریگر پروفائل" : "Worker Profile"}</h1>
       <p className="lead">
-        Set your services, coverage in Lahore, and availability to discover and bid on jobs.
+        {locale === "ur"
+          ? "لاہور میں اپنی خدمات، کوریج کا علاقہ اور دستیابی کا تعین کریں تاکہ آپ کام تلاش کر کے بولی لگا سکیں۔"
+          : "Set your services, coverage in Lahore, and availability to discover and bid on jobs."}
       </p>
 
       {/* Main Profile Form */}
       <section className="card">
-        <h2 style={{ marginTop: 0 }}>Profile Details</h2>
+        <h2 style={{ marginTop: 0 }}>{locale === "ur" ? "پروفائل کی تفصیلات" : "Profile Details"}</h2>
         <ActionForm action={saveWorkerAction}>
           <div className="field">
-            <label htmlFor="displayName">Your display name</label>
+            <label htmlFor="displayName">{locale === "ur" ? "آپ کا نام" : "Your display name"}</label>
             <input
               id="displayName"
               name="displayName"
@@ -98,13 +104,17 @@ export default async function WorkerProfilePage() {
               minLength={2}
               maxLength={60}
               defaultValue={user.display_name ?? ""}
-              placeholder="e.g. Tariq Mehmood"
+              placeholder={locale === "ur" ? "مثلاً: طارق محمود" : "e.g. Tariq Mehmood"}
             />
-            <p className="hint">This is shown to customers when you bid. Do not include phone numbers.</p>
+            <p className="hint">
+              {locale === "ur"
+                ? "یہ گاہکوں کو بولی لگاتے وقت دکھایا جاتا ہے۔ فون نمبر مت لکھیں۔"
+                : "This is shown to customers when you bid. Do not include phone numbers."}
+            </p>
           </div>
 
           <div className="field">
-            <label htmlFor="bio">About your experience &amp; workmanship</label>
+            <label htmlFor="bio">{locale === "ur" ? "اپنے تجربے اور کام کے بارے میں" : "About your experience & workmanship"}</label>
             <textarea
               id="bio"
               name="bio"
@@ -112,12 +122,16 @@ export default async function WorkerProfilePage() {
               minLength={20}
               maxLength={800}
               defaultValue={profile?.bio ?? ""}
-              placeholder="Describe your skills, previous work, types of appliances or systems you handle..."
+              placeholder={
+                locale === "ur"
+                  ? "اپنی مہارت، پچھلے کام اور جن آلات یا سسٹمز پر آپ کام کرتے ہیں ان کی تفصیل لکھیں..."
+                  : "Describe your skills, previous work, types of appliances or systems you handle..."
+              }
             />
           </div>
 
           <div className="field">
-            <label htmlFor="experienceYears">Years of experience</label>
+            <label htmlFor="experienceYears">{locale === "ur" ? "تجربے کی مدت (سال)" : "Years of experience"}</label>
             <input
               id="experienceYears"
               name="experienceYears"
@@ -132,7 +146,7 @@ export default async function WorkerProfilePage() {
 
           {/* Categories */}
           <fieldset>
-            <legend>Services offered (Plumbing / Electrical)</legend>
+            <legend>{locale === "ur" ? "پیش کردہ خدمات (پلمبنگ / الیکٹریشن)" : "Services offered (Plumbing / Electrical)"}</legend>
             <div className="checks">
               {categories.map((c) => (
                 <label key={c.id} className="check">
@@ -146,14 +160,16 @@ export default async function WorkerProfilePage() {
                 </label>
               ))}
             </div>
-            <p className="hint">Select at least one trade.</p>
+            <p className="hint">{locale === "ur" ? "کم از کم ایک شعبہ منتخب کریں۔" : "Select at least one trade."}</p>
           </fieldset>
 
           {/* Lahore Service Areas */}
           <fieldset>
-            <legend>Lahore service areas</legend>
+            <legend>{locale === "ur" ? "لاہور کے سروس ایریاز" : "Lahore service areas"}</legend>
             <p className="hint" style={{ marginTop: 0 }}>
-              Select neighbourhoods you are willing to travel to. Device location is optional.
+              {locale === "ur"
+                ? "وہ علاقے منتخب کریں جہاں آپ کام کے لیے جانے کو تیار ہیں۔ ڈیوائس کا مقام اختیاری ہے۔"
+                : "Select neighbourhoods you are willing to travel to. Device location is optional."}
             </p>
             <GeoHelper areas={areas} mode="areas" />
             <div className="checks" style={{ marginTop: 12 }}>
@@ -173,26 +189,34 @@ export default async function WorkerProfilePage() {
           </fieldset>
 
           <fieldset>
-            <legend>Availability</legend>
+            <legend>{locale === "ur" ? "دستیابی" : "Availability"}</legend>
             <label className="check">
               <input
                 type="checkbox"
                 name="acceptingBids"
                 defaultChecked={profile?.accepting_bids ?? true}
               />
-              Accepting bids (uncheck if you are busy or on leave)
+              {locale === "ur"
+                ? "بولیاں وصول کر رہے ہیں (اگر مصروف یا چھٹی پر ہوں تو غیر منتخب کر دیں)"
+                : "Accepting bids (uncheck if you are busy or on leave)"}
             </label>
           </fieldset>
 
-          <Submit>Save worker profile</Submit>
+          <Submit>{locale === "ur" ? "کاریگر پروفائل محفوظ کریں" : "Save worker profile"}</Submit>
         </ActionForm>
       </section>
 
       {/* Work Photos */}
       <section className="card">
-        <h2 style={{ marginTop: 0 }}>Work Photos (Up to {MAX_WORKER_PHOTOS})</h2>
+        <h2 style={{ marginTop: 0 }}>
+          {locale === "ur"
+            ? `کام کی تصاویر (زیادہ سے زیادہ ${MAX_WORKER_PHOTOS})`
+            : `Work Photos (Up to ${MAX_WORKER_PHOTOS})`}
+        </h2>
         <p className="hint" style={{ marginTop: 0 }}>
-          Photos of your past work or tools to reassure customers.
+          {locale === "ur"
+            ? "گاہکوں کے اعتماد کے لیے اپنے پرانے کام یا اوزاروں کی تصاویر۔"
+            : "Photos of your past work or tools to reassure customers."}
         </p>
 
         {photos.length > 0 && (
@@ -201,10 +225,13 @@ export default async function WorkerProfilePage() {
               <div key={p.id} style={{ position: "relative", display: "inline-block" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/files/worker-photo/${p.id}`} alt="Work sample" />
-                <ActionForm action={removeWorkerPhotoAction} confirm="Remove this photo?">
+                <ActionForm
+                  action={removeWorkerPhotoAction}
+                  confirm={locale === "ur" ? "کیا یہ تصویر حذف کرنی ہے؟" : "Remove this photo?"}
+                >
                   <input type="hidden" name="id" value={p.id} />
                   <Submit className="btn btn-danger btn-sm" style={{ marginTop: 4, width: "100%" }}>
-                    Remove
+                    {locale === "ur" ? "حذف کریں" : "Remove"}
                   </Submit>
                 </ActionForm>
               </div>
@@ -216,16 +243,22 @@ export default async function WorkerProfilePage() {
           photos.length < MAX_WORKER_PHOTOS ? (
             <ActionForm action={workerPhotoAction} encType="multipart/form-data">
               <div className="field">
-                <label htmlFor="photo">Add photo</label>
+                <label htmlFor="photo">{locale === "ur" ? "تصویر شامل کریں" : "Add photo"}</label>
                 <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required />
               </div>
-              <Submit className="btn btn-sm">Upload photo</Submit>
+              <Submit className="btn btn-sm">{locale === "ur" ? "تصویر اپ لوڈ کریں" : "Upload photo"}</Submit>
             </ActionForm>
           ) : (
-            <p className="hint">Maximum of {MAX_WORKER_PHOTOS} photos reached.</p>
+            <p className="hint">
+              {locale === "ur"
+                ? `زیادہ سے زیادہ ${MAX_WORKER_PHOTOS} تصاویر کی حد پوری ہو گئی ہے۔`
+                : `Maximum of ${MAX_WORKER_PHOTOS} photos reached.`}
+            </p>
           )
         ) : (
-          <p className="hint">Photo upload is not enabled on this deployment.</p>
+          <p className="hint">
+            {locale === "ur" ? "اس تعیناتی پر تصویر اپ لوڈ فعال نہیں ہے۔" : "Photo upload is not enabled on this deployment."}
+          </p>
         )}
       </section>
 
@@ -233,48 +266,61 @@ export default async function WorkerProfilePage() {
       <section className="card" aria-labelledby="id-verification-heading">
         <div className="row">
           <h2 id="id-verification-heading" style={{ margin: 0, marginInlineEnd: "auto" }}>
-            Identity Verification
+            {locale === "ur" ? "شناخت کی تصدیق" : "Identity Verification"}
           </h2>
           <IdentityBadge status={idStatus} />
         </div>
 
         <div className="notice" style={{ marginBlock: 12 }}>
-          <strong>Important notice:</strong> Identity review is a manual document check by our team.
-          We do <strong>NOT</strong> connect to NADRA or perform automated identity checks.
-          An &quot;ID reviewed&quot; label confirms only that manual inspection took place; it does
-          <strong>not</strong> prove skill, safety, criminal background, or service quality.
-          We never store full CNIC numbers or display ID images publicly.
+          <strong>{locale === "ur" ? "اہم اطلاع: " : "Important notice: "}</strong>
+          {locale === "ur" ? (
+            <>
+              شناخت کی تصدیق ہماری ٹیم کی جانب سے دستی دستاویزات کی جانچ ہے۔ ہم <strong>نادرا سے منسلک نہیں ہیں</strong> اور نہ ہی خودکار تصدیق کرتے ہیں۔ &quot;شناخت کی جانچ شدہ&quot; لیبل صرف اس بات کی تصدیق کرتا ہے کہ دستی معائنہ کیا گیا ہے؛ یہ مہارت، حفاظت، مجرمانہ ریکارڈ یا سروس کے معیار کا <strong>ثبوت نہیں ہے</strong>۔ ہم مکمل شناختی کارڈ نمبر کبھی محفوظ نہیں کرتے اور نہ ہی شناختی کارڈ کی تصاویر عام دکھاتے ہیں۔
+            </>
+          ) : (
+            <>
+              Identity review is a manual document check by our team. We do <strong>NOT</strong> connect to NADRA or perform automated identity checks. An &quot;ID reviewed&quot; label confirms only that manual inspection took place; it does <strong>not</strong> prove skill, safety, criminal background, or service quality. We never store full CNIC numbers or display ID images publicly.
+            </>
+          )}
         </div>
 
         {idStatus === "verified" ? (
           <p className="msg msg-ok">
-            Your identity documents have been manually reviewed by our moderation team.
+            {locale === "ur"
+              ? "آپ کے شناختی دستاویزات کا ہماری ماڈریشن ٹیم نے دستی معائنہ کر کے تصدیق کر دی ہے۔"
+              : "Your identity documents have been manually reviewed by our moderation team."}
           </p>
         ) : idStatus === "pending_review" ? (
           <p className="notice notice-dev">
-            Your documents have been submitted and are pending manual review by an admin.
+            {locale === "ur"
+              ? "آپ کے دستاویزات جمع ہو چکے ہیں اور ایڈمن کے دستی جائزے کے منتظر ہیں۔"
+              : "Your documents have been submitted and are pending manual review by an admin."}
           </p>
         ) : (
           <div>
             {identityUploadEnabled() ? (
               <ActionForm action={identityAction} encType="multipart/form-data">
                 <p className="hint">
-                  Upload clear photos of the front and back of your CNIC. Documents are stored in access-controlled private storage and accessible only by moderators for review.
+                  {locale === "ur"
+                    ? "اپنے قومی شناختی کارڈ کے سامنے اور پیچھے کی واضح تصاویر اپ لوڈ کریں۔ دستاویزات محفوظ پرائیویٹ اسٹوریج میں رکھی جاتی ہیں اور صرف ماڈریٹرز جائزہ لے سکتے ہیں۔"
+                    : "Upload clear photos of the front and back of your CNIC. Documents are stored in access-controlled private storage and accessible only by moderators for review."}
                 </p>
                 <div className="field">
-                  <label htmlFor="cnic_front">CNIC Front image</label>
+                  <label htmlFor="cnic_front">{locale === "ur" ? "شناختی کارڈ کا سامنے کا رخ" : "CNIC Front image"}</label>
                   <input id="cnic_front" name="cnic_front" type="file" accept="image/jpeg,image/png,image/webp" required />
                 </div>
                 <div className="field">
-                  <label htmlFor="cnic_back">CNIC Back image</label>
+                  <label htmlFor="cnic_back">{locale === "ur" ? "شناختی کارڈ کا پچھلا رخ" : "CNIC Back image"}</label>
                   <input id="cnic_back" name="cnic_back" type="file" accept="image/jpeg,image/png,image/webp" required />
                 </div>
-                <Submit>Submit for manual review</Submit>
+                <Submit>{locale === "ur" ? "دستی جائزے کے لیے جمع کرائیں" : "Submit for manual review"}</Submit>
               </ActionForm>
             ) : (
               <div className="notice" style={{ background: "#fef3f2", color: "#912018", border: "1px solid #fecdca" }}>
-                <strong>ID document upload is currently disabled:</strong> Secure private object storage with access control is not configured on this environment.
-                Outside local development (with private local storage), identity document uploads remain disabled to prevent storing sensitive identity data in unsecured locations.
+                <strong>{locale === "ur" ? "شناختی دستاویزات اپ لوڈ فی الحال غیر فعال ہیں: " : "ID document upload is currently disabled: "}</strong>
+                {locale === "ur"
+                  ? "اس ماحول پر تصدیق شدہ محفوظ پرائیویٹ اسٹوریج کنفیگر نہیں ہے۔"
+                  : "Secure private object storage with access control is not configured on this environment. Outside local development (with private local storage), identity document uploads remain disabled to prevent storing sensitive identity data in unsecured locations."}
               </div>
             )}
           </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { requireUser } from "@/lib/auth";
 import { getCustomerJob, getEligibleJob, getPrivateDetails } from "@/lib/jobs";
 import { listBidsForCustomer } from "@/lib/bids";
@@ -28,6 +29,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 export default async function JobPage({ params }: { params: { id: string } }) {
   if (!params.id || typeof params.id !== "string" || params.id.length < 3) notFound();
+
+  const cookieLocale = cookies().get("maddad_locale")?.value;
+  const locale = cookieLocale === "ur" ? "ur" : "en";
 
   const user = await requireUser();
   const jobId = params.id;
@@ -312,17 +316,17 @@ export default async function JobPage({ params }: { params: { id: string } }) {
                     <input type="hidden" name="jobId" value={jobId} />
                     <input type="hidden" name="action" value="request_completion" />
                     <div className="field">
-                      <label htmlFor="code">Optional: Customer&apos;s 4-digit completion code</label>
+                      <label htmlFor="code">{locale === "ur" ? "اختیاری: کسٹمر کا 4 ہندسوں کا تکمیل کوڈ" : "Optional: Customer's 4-digit completion code"}</label>
                       <input
                         id="code"
                         name="code"
                         type="text"
                         pattern="\d{4}"
                         maxLength={4}
-                        placeholder="e.g. 1234"
+                        placeholder={locale === "ur" ? "مثلاً: 1234" : "e.g. 1234"}
                         style={{ maxWidth: 160 }}
                       />
-                      <p className="hint">If the customer gives you their 4-digit code, enter it to complete immediately.</p>
+                      <p className="hint">{locale === "ur" ? "اگر کسٹمر آپ کو اپنا 4 ہندسوں کا کوڈ دے تو فوری تکمیل کے لیے یہاں درج کریں۔" : "If the customer gives you their 4-digit code, enter it to complete immediately."}</p>
                     </div>
                     <Submit>Request completion</Submit>
                   </ActionForm>
@@ -428,8 +432,8 @@ export default async function JobPage({ params }: { params: { id: string } }) {
                     </select>
                   </div>
                   <div className="field">
-                    <label htmlFor="comment">Written review (optional)</label>
-                    <textarea id="comment" name="comment" maxLength={1000} placeholder="Provide helpful, honest feedback..." />
+                    <label htmlFor="comment">{locale === "ur" ? "تحریری تبصرہ (اختیاری)" : "Written review (optional)"}</label>
+                    <textarea id="comment" name="comment" maxLength={1000} placeholder={locale === "ur" ? "مفید اور ایماندارانہ رائے دیں..." : "Provide helpful, honest feedback..."} />
                   </div>
                   <Submit>Submit review</Submit>
                 </ActionForm>
@@ -503,7 +507,7 @@ export default async function JobPage({ params }: { params: { id: string } }) {
                           required
                           minLength={5}
                           maxLength={300}
-                          placeholder="e.g., House 42, Street 7, Sector C"
+                          placeholder={locale === "ur" ? "مثلاً: مکان نمبر 42، گلی 7، سیکٹر سی" : "e.g., House 42, Street 7, Sector C"}
                           style={{ width: "100%", padding: "8px 12px", fontSize: "0.88rem" }}
                         />
                         <p className="hint" style={{ margin: "4px 0 0", fontSize: "0.76rem" }}>
@@ -563,13 +567,13 @@ export default async function JobPage({ params }: { params: { id: string } }) {
                   step={50}
                   required
                   defaultValue={workerExistingBid?.amount ?? ""}
-                  placeholder="e.g. 1500"
+                  placeholder={locale === "ur" ? "مثلاً: 1500" : "e.g. 1500"}
                 />
-                <p className="hint">Enter your labour offer. Materials are arranged with the customer.</p>
+                <p className="hint">{locale === "ur" ? "اپنی مزدوری کا ریٹ درج کریں۔ درکار سامان کسٹمر کے ساتھ مل کر طے ہوتا ہے۔" : "Enter your labour offer. Materials are arranged with the customer."}</p>
               </div>
 
               <div className="field">
-                <label htmlFor="timingText">Expected arrival / completion window</label>
+                <label htmlFor="timingText">{locale === "ur" ? "پہنچنے یا کام کا متوقع وقت" : "Expected arrival / completion window"}</label>
                 <input
                   id="timingText"
                   name="timingText"
@@ -578,12 +582,12 @@ export default async function JobPage({ params }: { params: { id: string } }) {
                   minLength={3}
                   maxLength={120}
                   defaultValue={workerExistingBid?.timing_text ?? ""}
-                  placeholder="e.g. Today between 3 PM and 5 PM"
+                  placeholder={locale === "ur" ? "مثلاً: آج دوپہر 3 سے شام 5 بجے کے درمیان" : "e.g. Today between 3 PM and 5 PM"}
                 />
               </div>
 
               <div className="field">
-                <label htmlFor="message">Message to customer</label>
+                <label htmlFor="message">{locale === "ur" ? "کسٹمر کے نام پیغام" : "Message to customer"}</label>
                 <textarea
                   id="message"
                   name="message"
@@ -591,31 +595,31 @@ export default async function JobPage({ params }: { params: { id: string } }) {
                   minLength={5}
                   maxLength={800}
                   defaultValue={workerExistingBid?.message ?? ""}
-                  placeholder="Describe your approach, tools you carry, etc."
+                  placeholder={locale === "ur" ? "اپنے کام کا طریقہ، اوزار اور تجربہ بیان کریں..." : "Describe your approach, tools you carry, etc."}
                 />
               </div>
 
               <div className="field">
-                <label htmlFor="inclusions">What the price includes (optional)</label>
+                <label htmlFor="inclusions">{locale === "ur" ? "ریٹ میں کیا شامل ہے (اختیاری)" : "What the price includes (optional)"}</label>
                 <input
                   id="inclusions"
                   name="inclusions"
                   type="text"
                   maxLength={500}
                   defaultValue={workerExistingBid?.inclusions ?? ""}
-                  placeholder="e.g. Labour, diagnosis, basic seal tape"
+                  placeholder={locale === "ur" ? "مثلاً: مزدوری، معائنہ اور بنیادی سیل ٹیپ" : "e.g. Labour, diagnosis, basic seal tape"}
                 />
               </div>
 
               <div className="field">
-                <label htmlFor="exclusions">What the price excludes (optional)</label>
+                <label htmlFor="exclusions">{locale === "ur" ? "ریٹ میں کیا شامل نہیں (اختیاری)" : "What the price excludes (optional)"}</label>
                 <input
                   id="exclusions"
                   name="exclusions"
                   type="text"
                   maxLength={500}
                   defaultValue={workerExistingBid?.exclusions ?? ""}
-                  placeholder="e.g. Replacement tap, major piping replacement"
+                  placeholder={locale === "ur" ? "مثلاً: نیا نلکا یا پائپ کا اضافی سامان" : "e.g. Replacement tap, major piping replacement"}
                 />
               </div>
 
@@ -629,29 +633,36 @@ export default async function JobPage({ params }: { params: { id: string } }) {
       <section style={{ marginTop: 32 }}>
         <details>
           <summary style={{ cursor: "pointer", color: "var(--muted)", fontSize: "0.9rem" }}>
-            Report an issue or violation regarding this job
+            {locale === "ur" ? "اس کام کے بارے میں کسی مسئلے یا خلاف ورزی کی اطلاع دیں" : "Report an issue or violation regarding this job"}
           </summary>
           <div className="card" style={{ marginTop: 8 }}>
             <ActionForm action={reportAction}>
               <input type="hidden" name="targetType" value="job" />
               <input type="hidden" name="targetId" value={jobId} />
               <div className="field">
-                <label htmlFor="category">Reason for report</label>
+                <label htmlFor="category">{locale === "ur" ? "رپورٹ کی وجہ" : "Reason for report"}</label>
                 <select id="category" name="category" required defaultValue="spam">
-                  <option value="spam">Spam or fake post</option>
-                  <option value="misleading_price">Misleading price</option>
-                  <option value="harassment">Harassment</option>
-                  <option value="suspected_fraud">Suspected fraud</option>
-                  <option value="unsafe_conduct">Unsafe conduct</option>
-                  <option value="inappropriate_content">Inappropriate content</option>
-                  <option value="other">Other issue</option>
+                  <option value="spam">{locale === "ur" ? "جعلی یا فضول پوسٹ" : "Spam or fake post"}</option>
+                  <option value="misleading_price">{locale === "ur" ? "گمراہ کن قیمت" : "Misleading price"}</option>
+                  <option value="harassment">{locale === "ur" ? "ہراسانی" : "Harassment"}</option>
+                  <option value="suspected_fraud">{locale === "ur" ? "دھوکہ دہی کا شبہ" : "Suspected fraud"}</option>
+                  <option value="unsafe_conduct">{locale === "ur" ? "غیر محفوظ رویہ" : "Unsafe conduct"}</option>
+                  <option value="inappropriate_content">{locale === "ur" ? "نامناسب مواد" : "Inappropriate content"}</option>
+                  <option value="other">{locale === "ur" ? "دیگر مسئلہ" : "Other issue"}</option>
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="reportDetails">Details</label>
-                <textarea id="reportDetails" name="details" maxLength={1500} placeholder="Please provide specific details..." />
+                <label htmlFor="reportDetails">{locale === "ur" ? "تفصیلات" : "Details"}</label>
+                <textarea
+                  id="reportDetails"
+                  name="details"
+                  maxLength={1500}
+                  placeholder={locale === "ur" ? "برائے مہربانی مخصوص تفصیلات درج کریں..." : "Please provide specific details..."}
+                />
               </div>
-              <Submit className="btn btn-ghost btn-sm">Submit report to moderators</Submit>
+              <Submit className="btn btn-ghost btn-sm">
+                {locale === "ur" ? "رپورٹ ماڈریٹرز کو جمع کرائیں" : "Submit report to moderators"}
+              </Submit>
             </ActionForm>
           </div>
         </details>

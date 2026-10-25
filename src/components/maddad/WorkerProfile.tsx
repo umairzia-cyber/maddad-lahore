@@ -16,6 +16,7 @@ import {
   CategoryOption,
 } from "./types";
 import { saveWorkerAction } from "@/app/actions";
+import { useI18n } from "./I18nContext";
 
 interface WorkerProfileViewProps {
   currentUser: AppUser | null;
@@ -34,6 +35,7 @@ export function WorkerProfileView({
   showToast,
   onNavigateAuth,
 }: WorkerProfileViewProps) {
+  const { locale } = useI18n();
   const [bio, setBio] = useState(initialProfile?.bio || "");
   const [experienceYears, setExperienceYears] = useState(initialProfile?.experience_years ?? 5);
   const [acceptingBids, setAcceptingBids] = useState(initialProfile?.accepting_bids ?? true);
@@ -203,7 +205,11 @@ export function WorkerProfileView({
               rows={3}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="e.g. Master electrician specializing in distribution boards, inverter wiring, and breaker troubleshooting across Gulberg and DHA."
+              placeholder={
+                locale === "ur"
+                  ? "مثلاً: گلبرگ اور ڈی ایچ اے میں وائرنگ، سرکٹ بریکرز اور یو پی ایس کے ماہر الیکٹریشن..."
+                  : "e.g. Master electrician specializing in distribution boards, inverter wiring, and breaker troubleshooting across Gulberg and DHA."
+              }
               style={{
                 width: "100%",
                 background: "var(--ink-0)",

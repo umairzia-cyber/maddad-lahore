@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap');
 
 /* ===================================================================== */
 /* Maddad Lahore — "Gunmetal & Violet" design system                      */
@@ -71,7 +71,8 @@
   /* Type */
   --font-sans: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
   --font-display: "Inter Tight", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
-  --font-urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Urdu Typesetting", system-ui, sans-serif;
+  --font-urdu: "Noto Sans Arabic", "Noto Sans Urdu", -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-urdu-nastaliq: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Urdu Typesetting", serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
   --fs-xs: 0.78rem;
   --fs-sm: 0.875rem;
@@ -242,7 +243,82 @@ a:hover {
 .font-urdu,
 [lang="ur"] {
   font-family: var(--font-urdu);
+  line-height: 1.7;
+}
+.font-nastaliq {
+  font-family: var(--font-urdu-nastaliq);
   line-height: 1.9;
+}
+
+/* Urdu & RTL Typography and clipping prevention */
+[dir="rtl"] {
+  font-family: var(--font-urdu);
+  line-height: 1.7;
+  letter-spacing: normal;
+  text-align: right;
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+  line-height: 1.55;
+  padding-bottom: 2px;
+}
+
+[dir="rtl"] .btn {
+  line-height: 1.5;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  font-family: var(--font-urdu);
+  font-weight: 600;
+}
+
+[dir="rtl"] .btn-sm {
+  min-height: 38px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] select,
+[dir="rtl"] textarea {
+  font-family: var(--font-urdu);
+  line-height: 1.6;
+  text-align: right;
+}
+
+[dir="rtl"] input[type="search"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="number"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .pill,
+[dir="rtl"] .badge {
+  font-family: var(--font-urdu);
+  line-height: 1.45;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  display: inline-flex;
+  align-items: center;
+}
+
+[dir="rtl"] .job-desc {
+  line-height: 1.7;
+  -webkit-line-clamp: 3;
+  padding-bottom: 4px;
+}
+
+[dir="rtl"] .nav-link {
+  font-family: var(--font-urdu);
+  line-height: 1.5;
+}
+
+[dir="rtl"] .mobile-dock-btn span {
+  font-family: var(--font-urdu);
+  font-size: 0.76rem;
+  line-height: 1.35;
 }
 :focus-visible {
   outline: none;
@@ -263,7 +339,7 @@ a:hover {
 }
 .skip-link {
   position: fixed;
-  left: 12px;
+  inset-inline-start: 12px;
   top: -60px;
   z-index: 3000;
   padding: 10px 16px;

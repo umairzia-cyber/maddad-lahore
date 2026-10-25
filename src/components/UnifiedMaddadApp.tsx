@@ -592,27 +592,27 @@ function UnifiedAppContent({
       )}
 
       {/* Mobile Bottom Dock for fast thumb-friendly navigation on small screens */}
-      <nav className="mobile-dock" aria-label="Mobile navigation">
+      <nav className="mobile-dock" aria-label={locale === "ur" ? "موبائل نیویگیشن" : "Mobile navigation"}>
         <button
           type="button"
           className={`mobile-dock-btn ${activeTab === "marketplace" ? "is-active" : ""}`}
           onClick={() => switchTab("marketplace")}
-          aria-label="Marketplace"
+          aria-label={locale === "ur" ? "مارکیٹ پلیس" : "Marketplace"}
         >
           <IconSearch size={20} aria-hidden="true" />
-          <span>Market</span>
+          <span>{locale === "ur" ? "مارکیٹ" : "Market"}</span>
         </button>
 
         <button
           type="button"
           className={`mobile-dock-btn ${activeTab === "post" ? "is-active" : ""}`}
           onClick={() => switchTab("post")}
-          aria-label="Post a Job"
+          aria-label={locale === "ur" ? "درخواست پوسٹ کریں" : "Post a Job"}
         >
           <div className="mobile-dock-plus">
             <IconPlus size={18} aria-hidden="true" />
           </div>
-          <span>Post</span>
+          <span>{locale === "ur" ? "درخواست" : "Post"}</span>
         </button>
 
         {currentUser?.is_worker ? (
@@ -620,20 +620,20 @@ function UnifiedAppContent({
             type="button"
             className={`mobile-dock-btn ${activeTab === "worker_dashboard" ? "is-active" : ""}`}
             onClick={() => switchTab("worker_dashboard")}
-            aria-label="Technician Portal"
+            aria-label={locale === "ur" ? "کاریگر پورٹل" : "Technician Portal"}
           >
             <IconWrench size={20} aria-hidden="true" />
-            <span>Worker</span>
+            <span>{locale === "ur" ? "کاریگر" : "Worker"}</span>
           </button>
         ) : (
           <button
             type="button"
             className={`mobile-dock-btn ${activeTab === "customer_dashboard" ? "is-active" : ""}`}
             onClick={() => (currentUser ? switchTab("customer_dashboard") : switchTab("auth"))}
-            aria-label="My Dashboard"
+            aria-label={locale === "ur" ? "میرے کام اور ڈیش بورڈ" : "My Dashboard"}
           >
             <IconBriefcase size={20} aria-hidden="true" />
-            <span>My Jobs</span>
+            <span>{locale === "ur" ? "میرے کام" : "My Jobs"}</span>
           </button>
         )}
 
@@ -641,22 +641,22 @@ function UnifiedAppContent({
           type="button"
           className={`mobile-dock-btn ${activeTab === "notifications" ? "is-active" : ""}`}
           onClick={() => switchTab("notifications")}
-          aria-label="Notifications"
+          aria-label={locale === "ur" ? "اطلاعات" : "Notifications"}
           style={{ position: "relative" }}
         >
           <IconBell size={20} aria-hidden="true" />
-          {unreadCount > 0 && <span className="mobile-dock-badge" aria-label={`${unreadCount} unread`} />}
-          <span>Alerts</span>
+          {unreadCount > 0 && <span className="mobile-dock-badge" aria-label={`${unreadCount} ${locale === "ur" ? "نئی اطلاعات" : "unread"}`} />}
+          <span>{locale === "ur" ? "اطلاعات" : "Alerts"}</span>
         </button>
 
         <button
           type="button"
           className={`mobile-dock-btn ${activeTab === "settings" || activeTab === "auth" ? "is-active" : ""}`}
           onClick={() => (currentUser ? switchTab("settings") : switchTab("auth"))}
-          aria-label={currentUser ? "Account" : "Sign in"}
+          aria-label={currentUser ? (locale === "ur" ? "اکاؤنٹ" : "Account") : (locale === "ur" ? "لاگ اِن" : "Sign in")}
         >
           <IconUser size={20} aria-hidden="true" />
-          <span>{currentUser ? "Account" : "Sign In"}</span>
+          <span>{currentUser ? (locale === "ur" ? "اکاؤنٹ" : "Account") : (locale === "ur" ? "لاگ اِن" : "Sign In")}</span>
         </button>
       </nav>
     </div>

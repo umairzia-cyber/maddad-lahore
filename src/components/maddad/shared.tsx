@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import { IconAlertCircle, IconCheck, IconInbox, IconX } from "../icons";
+import { useI18n } from "./I18nContext";
 
 /* ---------------------------------------------------------------- */
 /* Formatting — PKR amounts and Lahore (Asia/Karachi) local times     */
@@ -36,32 +37,37 @@ export const plural = (n: number, one: string, many = one + "s") => `${n} ${n ==
 /* Status labels                                                      */
 /* ---------------------------------------------------------------- */
 type Tone = "violet" | "ok" | "warn" | "bad" | "info" | "";
-const JOB_STATUS: Record<string, [string, Tone]> = {
-  draft: ["Draft – not published", "warn"],
-  open: ["Open for bids", "violet"],
-  awarded: ["Technician chosen", "info"],
-  in_progress: ["In progress", "info"],
-  completion_requested: ["Awaiting your confirmation", "warn"],
-  completed: ["Completed", "ok"],
-  disputed: ["Problem reported", "bad"],
-  cancelled: ["Cancelled", ""],
-  expired: ["Expired", ""],
+const JOB_STATUS: Record<string, [string, Tone, string]> = {
+  draft: ["Draft – not published", "warn", "ڈرافٹ – غیر شائع"],
+  open: ["Open for bids", "violet", "بولیوں کے لیے کھلا"],
+  awarded: ["Technician chosen", "info", "کاریگر منتخب شدہ"],
+  in_progress: ["In progress", "info", "کام جاری ہے"],
+  completion_requested: ["Awaiting confirmation", "warn", "تصدیق درکار ہے"],
+  completed: ["Completed", "ok", "مکمل"],
+  disputed: ["Problem reported", "bad", "شکایت موصول"],
+  cancelled: ["Cancelled", "", "منسوخ"],
+  expired: ["Expired", "", "ختم شدہ"],
 };
-const BID_STATUS: Record<string, [string, Tone]> = {
-  active: ["Bid sent", "violet"],
-  accepted: ["Accepted", "ok"],
-  rejected: ["Not chosen", ""],
-  withdrawn: ["Withdrawn", ""],
+const BID_STATUS: Record<string, [string, Tone, string]> = {
+  active: ["Bid sent", "violet", "بولی بھیجی گئی"],
+  accepted: ["Accepted", "ok", "منظور شدہ"],
+  rejected: ["Not chosen", "", "مسترد"],
+  withdrawn: ["Withdrawn", "", "واپس لے لی گئی"],
 };
 
 export function StatusBadge({ status, kind = "job" }: { status: string; kind?: "job" | "bid" }) {
+  const { locale } = useI18n();
   const map = kind === "bid" ? BID_STATUS : JOB_STATUS;
-  const [label, tone] = map[status] ?? [status.replace(/_/g, " "), ""];
+  const item = map[status];
+  const label = item ? (locale === "ur" ? item[2] : item[0]) : status.replace(/_/g, " ");
+  const tone = item ? item[1] : "";
   return <span className={`pill ${tone ? `pill-${tone}` : ""}`}>{label}</span>;
 }
 
-export function DemoBadge({ label = "Demo – fictional" }: { label?: string }) {
-  return <span className="pill pill-demo">{label}</span>;
+export function DemoBadge({ label }: { label?: string }) {
+  const { locale } = useI18n();
+  const text = label ?? (locale === "ur" ? "ڈیمو – فرضی" : "Demo – fictional");
+  return <span className="pill pill-demo">{text}</span>;
 }
 
 /* ---------------------------------------------------------------- */

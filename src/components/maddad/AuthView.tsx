@@ -21,6 +21,7 @@ import {
   logoutAction,
   switchDemoUserAction,
 } from "@/app/actions";
+import { useI18n } from "./I18nContext";
 
 interface AuthViewProps {
   currentUser: AppUser | null;
@@ -55,6 +56,7 @@ export function AuthView({
   onNavigateMarketplace,
   showToast,
 }: AuthViewProps) {
+  const { locale } = useI18n();
   const [isPending, startTransition] = useTransition();
 
   const handleMarketplaceNav = onNavigateMarketplace || (() => {
@@ -531,7 +533,7 @@ export function AuthView({
                 className="btn btn-secondary"
                 style={{ flex: 1, justifyContent: "center" }}
               >
-                Change Number
+                {locale === "ur" ? "نمبر تبدیل کریں" : "Change Number"}
               </button>
               <button
                 type="submit"
@@ -540,7 +542,13 @@ export function AuthView({
                 style={{ flex: 2, justifyContent: "center" }}
               >
                 <IconCheck size={16} />
-                <span>{busy ? "Verifying..." : mode === "signup" ? "Verify & Register" : "Verify & Sign In"}</span>
+                <span>
+                  {busy
+                    ? (locale === "ur" ? "تصدیق جاری ہے..." : "Verifying...")
+                    : mode === "signup"
+                    ? (locale === "ur" ? "تصدیق اور اکاؤنٹ بنائیں" : "Verify & Register")
+                    : (locale === "ur" ? "تصدیق اور لاگ اِن" : "Verify & Sign In")}
+                </span>
               </button>
             </div>
           </form>
@@ -553,13 +561,13 @@ export function AuthView({
                 htmlFor="signup-name-input"
                 style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-2)", marginBottom: 6 }}
               >
-                Full Name (پورا نام):
+                {locale === "ur" ? "پورا نام:" : "Full Name (پورا نام):"}
               </label>
               <div style={{ position: "relative" }}>
                 <input
                   id="signup-name-input"
                   type="text"
-                  placeholder="e.g. Muhammad Usman"
+                  placeholder={locale === "ur" ? "مثلاً: محمد عثمان" : "e.g. Muhammad Usman"}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -568,7 +576,9 @@ export function AuthView({
                     background: "var(--ink-0)",
                     border: "1px solid var(--graphite-600)",
                     borderRadius: "var(--radius-sm)",
-                    padding: "11px 14px 11px 40px",
+                    padding: "11px 14px",
+                    paddingInlineStart: 40,
+                    paddingInlineEnd: 14,
                     color: "var(--text-1)",
                     fontSize: "0.95rem",
                     outline: "none",
@@ -577,7 +587,7 @@ export function AuthView({
                 <span
                   style={{
                     position: "absolute",
-                    left: 14,
+                    insetInlineStart: 14,
                     top: "50%",
                     transform: "translateY(-50%)",
                     color: "var(--text-3)",
@@ -595,7 +605,7 @@ export function AuthView({
                 htmlFor="signup-phone-input"
                 style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-2)", marginBottom: 6 }}
               >
-                Pakistani Mobile Number (موبائل نمبر):
+                {locale === "ur" ? "پاکستانی موبائل نمبر:" : "Pakistani Mobile Number (موبائل نمبر):"}
               </label>
               <div style={{ position: "relative" }}>
                 <input
@@ -610,7 +620,9 @@ export function AuthView({
                     background: "var(--ink-0)",
                     border: "1px solid var(--graphite-600)",
                     borderRadius: "var(--radius-sm)",
-                    padding: "11px 14px 11px 40px",
+                    padding: "11px 14px",
+                    paddingInlineStart: 40,
+                    paddingInlineEnd: 14,
                     color: "var(--text-1)",
                     fontSize: "0.95rem",
                     outline: "none",
@@ -619,7 +631,7 @@ export function AuthView({
                 <span
                   style={{
                     position: "absolute",
-                    left: 14,
+                    insetInlineStart: 14,
                     top: "50%",
                     transform: "translateY(-50%)",
                     color: "var(--text-3)",
@@ -630,7 +642,9 @@ export function AuthView({
                 </span>
               </div>
               <div style={{ fontSize: "0.76rem", color: "var(--text-3)", marginTop: 4 }}>
-                Used for verification and direct contact upon hiring.
+                {locale === "ur"
+                  ? "تصدیق اور کام طے ہونے پر براہ راست رابطے کے لیے استعمال ہوگا۔"
+                  : "Used for verification and direct contact upon hiring."}
               </div>
             </div>
 
@@ -933,7 +947,9 @@ export function AuthView({
                     background: "var(--ink-0)",
                     border: "1px solid var(--graphite-600)",
                     borderRadius: "var(--radius-sm)",
-                    padding: "11px 14px 11px 40px",
+                    padding: "11px 14px",
+                    paddingInlineStart: 40,
+                    paddingInlineEnd: 14,
                     color: "var(--text-1)",
                     fontSize: "0.95rem",
                     outline: "none",
@@ -942,7 +958,7 @@ export function AuthView({
                 <span
                   style={{
                     position: "absolute",
-                    left: 14,
+                    insetInlineStart: 14,
                     top: "50%",
                     transform: "translateY(-50%)",
                     color: "var(--text-3)",

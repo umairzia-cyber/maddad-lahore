@@ -10,6 +10,7 @@ import {
 } from "../icons";
 import { AppUser } from "./types";
 import { saveNameAction, deleteAccountAction } from "@/app/actions";
+import { useI18n } from "./I18nContext";
 
 interface SettingsViewProps {
   currentUser: AppUser | null;
@@ -22,6 +23,7 @@ export function SettingsView({
   showToast,
   onNavigateAuth,
 }: SettingsViewProps) {
+  const { locale } = useI18n();
   const [displayName, setDisplayName] = useState(currentUser?.display_name || "");
   const [savingName, setSavingName] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -128,7 +130,7 @@ export function SettingsView({
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Enter your full name"
+              placeholder={locale === "ur" ? "اپنا پورا نام درج کریں" : "Enter your full name"}
               style={{
                 flex: 1,
                 background: "var(--ink-0)",
@@ -146,11 +148,11 @@ export function SettingsView({
               className="btn btn-secondary"
             >
               <IconCheck size={16} />
-              <span>{savingName ? "Saving..." : "Save"}</span>
+              <span>{savingName ? (locale === "ur" ? "محفوظ ہو رہا ہے..." : "Saving...") : (locale === "ur" ? "محفوظ کریں" : "Save")}</span>
             </button>
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
-            Associated with verified mobile number: <strong>{currentUser.phone}</strong>
+            {locale === "ur" ? "منسلک تصدیق شدہ موبائل نمبر:" : "Associated with verified mobile number:"} <strong>{currentUser.phone}</strong>
           </div>
         </form>
 

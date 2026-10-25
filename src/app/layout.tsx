@@ -66,7 +66,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <I18nProvider initialLocale={locale}>
           <a href="#main" className="skip-link">
-            Skip to content
+            {locale === "ur" ? "مواد پر جائیں" : "Skip to content"}
           </a>
           <div className="app-wrap">
             <div className="app-canvas">
@@ -94,31 +94,35 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <Link href="/?view=post" className="btn btn-primary btn-sm">
                       <IconPlus size={16} aria-hidden="true" />
                       <span>
-                        Post a job
+                        {locale === "ur" ? "کام پوسٹ کریں" : "Post a job"}
                       </span>
                     </Link>
                     {user?.is_worker ? (
-                      <Link href="/worker/profile" className="btn btn-sm" aria-label="My technician profile">
+                      <Link href="/worker/profile" className="btn btn-sm" aria-label={locale === "ur" ? "میری کاریگر پروفائل" : "My technician profile"}>
                         <IconWrench size={16} aria-hidden="true" />
-                        <span className="btn-label-long" aria-hidden="true">My technician profile</span>
+                        <span className="btn-label-long" aria-hidden="true">
+                          {locale === "ur" ? "میری کاریگر پروفائل" : "My technician profile"}
+                        </span>
                       </Link>
                     ) : (
-                      <Link href="/?view=join" className="btn btn-sm" aria-label="Join as a technician">
+                      <Link href="/?view=join" className="btn btn-sm" aria-label={locale === "ur" ? "بطور کاریگر شامل ہوں" : "Join as a technician"}>
                         <IconWrench size={16} aria-hidden="true" />
-                        <span className="btn-label-long" aria-hidden="true">Join as a technician</span>
+                        <span className="btn-label-long" aria-hidden="true">
+                          {locale === "ur" ? "بطور کاریگر شامل ہوں" : "Join as a technician"}
+                        </span>
                       </Link>
                     )}
                     {user ? (
                       <form action={logoutAction}>
-                        <button type="submit" className="btn btn-ghost btn-sm" aria-label="Sign out">
+                        <button type="submit" className="btn btn-ghost btn-sm" aria-label={locale === "ur" ? "لاگ آؤٹ" : "Sign out"}>
                           <IconLogOut size={16} aria-hidden="true" />
-                          <span className="hide-sm">Sign out</span>
+                          <span className="hide-sm">{locale === "ur" ? "لاگ آؤٹ" : "Sign out"}</span>
                         </button>
                       </form>
                     ) : (
                       <Link href="/?view=signin" className="btn btn-ghost btn-sm">
                         <IconUser size={16} aria-hidden="true" />
-                        <span>Sign in</span>
+                        <span>{locale === "ur" ? "لاگ اِن" : "Sign in"}</span>
                       </Link>
                     )}
                   </div>
