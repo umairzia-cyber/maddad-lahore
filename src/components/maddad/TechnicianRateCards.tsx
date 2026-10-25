@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   IconStar,
   IconShieldCheck,
@@ -11,6 +11,8 @@ import {
   IconCheck,
   IconZap,
   IconWrench,
+  IconChevronLeft,
+  IconChevronRight,
 } from "../icons";
 import { pkr } from "./shared";
 import { useI18n } from "./I18nContext";
@@ -78,6 +80,46 @@ export function TechnicianRateCards({
   const [femaleOnlyFilter, setFemaleOnlyFilter] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedProviderId, setExpandedProviderId] = useState<string | null>(null);
+
+  const rateCardsScrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startScrollLeft, setStartScrollLeft] = useState(0);
+  const hasMovedRef = useRef(false);
+
+  const scrollRateCards = (direction: "left" | "right") => {
+    const el = rateCardsScrollRef.current;
+    if (!el) return;
+    const delta = 280;
+    el.scrollBy({
+      left: direction === "left" ? -delta : delta,
+      behavior: "smooth",
+    });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = rateCardsScrollRef.current;
+    if (!el) return;
+    setIsDragging(true);
+    hasMovedRef.current = false;
+    setStartX(e.pageX - el.offsetLeft);
+    setStartScrollLeft(el.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const el = rateCardsScrollRef.current;
+    if (!el) return;
+    const x = e.pageX - el.offsetLeft;
+    if (Math.abs(x - startX) > 4) {
+      hasMovedRef.current = true;
+    }
+    el.scrollLeft = startScrollLeft - (x - startX) * 1.5;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+  };
 
   const categoriesTab = [
     { slug: "all", nameEn: "All Services", nameUr: "تمام سروسز", icon: "🌐" },
@@ -173,20 +215,99 @@ export function TechnicianRateCards({
           gap: 14,
         }}
       >
-        {/* Category Chips */}
+        {/* Category Header Row with Scroll Arrow Controls */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-3)", fontWeight: 700 }}>
+              {locale === "ur" ? "سروس کیٹیگری منتخب کریں" : "Filter by Service"}
+            </span>
+            <span style={{ fontSize: "0.74rem", color: "var(--violet-300)", opacity: 0.85, fontWeight: 500 }}>
+              {locale === "ur" ? "← مزید کے لیے اسکرول کریں" : "(Scroll for more →)"}
+            </span>
+          </div>
+
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => scrollRateCards("left")}
+              aria-label={locale === "ur" ? "بائیں اسکرول کریں" : "Scroll left"}
+              title={locale === "ur" ? "بائیں اسکرول کریں" : "Scroll left"}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                background: "var(--graphite-2)",
+                border: "1px solid var(--line)",
+                color: "var(--text)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--violet-400)";
+                e.currentTarget.style.background = "var(--graphite-3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--line)";
+                e.currentTarget.style.background = "var(--graphite-2)";
+              }}
+            >
+              <IconChevronLeft size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollRateCards("right")}
+              aria-label={locale === "ur" ? "دائیں اسکرول کریں" : "Scroll right"}
+              title={locale === "ur" ? "دائیں اسکرول کریں" : "Scroll right"}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                background: "var(--graphite-2)",
+                border: "1px solid var(--line)",
+                color: "var(--text)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--violet-400)";
+                e.currentTarget.style.background = "var(--graphite-3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--line)";
+                e.currentTarget.style.background = "var(--graphite-2)";
+              }}
+            >
+              <IconChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Category Chips with Scrollbar, Mouse Wheel & Drag Support */}
         <div
+          ref={rateCardsScrollRef}
           className="category-scroll-strip"
           onWheel={(e) => {
-            if (e.deltaY !== 0) {
-              e.currentTarget.scrollLeft += e.deltaY;
+            if (e.deltaY !== 0 && rateCardsScrollRef.current) {
+              rateCardsScrollRef.current.scrollLeft += e.deltaY;
             }
           }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUpOrLeave}
+          onMouseLeave={handleMouseUpOrLeave}
           style={{
             display: "flex",
             gap: 8,
             overflowX: "auto",
             paddingBottom: 8,
             paddingTop: 2,
+            cursor: isDragging ? "grabbing" : "grab",
             userSelect: "none",
           }}
         >
@@ -196,7 +317,13 @@ export function TechnicianRateCards({
               <button
                 key={cat.slug}
                 type="button"
-                onClick={() => setSelectedCategory(cat.slug)}
+                onClick={(e) => {
+                  if (hasMovedRef.current) {
+                    e.preventDefault();
+                    return;
+                  }
+                  setSelectedCategory(cat.slug);
+                }}
                 style={{
                   padding: "8px 14px",
                   borderRadius: "var(--r-sm)",
