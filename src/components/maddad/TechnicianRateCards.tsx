@@ -81,11 +81,15 @@ export function TechnicianRateCards({
 
   const categoriesTab = [
     { slug: "all", nameEn: "All Services", nameUr: "تمام سروسز", icon: "🌐" },
-    { slug: "electrical", nameEn: "⚡ Electrical", nameUr: "الیکٹریکل", icon: "⚡" },
-    { slug: "plumbing", nameEn: "🚰 Plumbing", nameUr: "پلمبنگ", icon: "🚰" },
-    { slug: "appliances", nameEn: "❄️ AC & Cooling", nameUr: "اے سی و کولنگ", icon: "❄️" },
-    { slug: "beauty-salon", nameEn: "💅 Salon & Mehndi", nameUr: "سیلون و مہندی", icon: "💅" },
-    { slug: "home-care", nameEn: "🧹 Maids & Cleaning", nameUr: "ملازمہ و صفائی", icon: "🧹" },
+    { slug: "electrical", nameEn: "Electrical & Wiring", nameUr: "الیکٹریکل و وائرنگ", icon: "⚡" },
+    { slug: "plumbing", nameEn: "Plumbing & Sanitary", nameUr: "پلمبنگ و سینیٹری", icon: "🚿" },
+    { slug: "appliances", nameEn: "AC & Appliances", nameUr: "اے سی و ہوم اپلائنسز", icon: "❄️" },
+    { slug: "beauty-salon", nameEn: "Home Salon & Mehndi", nameUr: "ہوم سیلون و مہندی", icon: "💄" },
+    { slug: "home-care", nameEn: "Maids & Deep Cleaning", nameUr: "صفائی و گھریلو ملازمہ", icon: "🧹" },
+    { slug: "home-repairs", nameEn: "Home Repairs & Handyman", nameUr: "گھریلو مرمت و ہینڈی مین", icon: "🛠️" },
+    { slug: "carpentry", nameEn: "Carpentry & Woodwork", nameUr: "کارپینٹری و فرنیچر مرمت", icon: "🪚" },
+    { slug: "painting", nameEn: "Painting & Renovation", nameUr: "پینٹنگ و تزئین", icon: "🎨" },
+    { slug: "jobs-work", nameEn: "Skilled Gigs & Jobs", nameUr: "ہنر مند کام و جابز", icon: "👔" },
   ];
 
   const filteredProviders = useMemo(() => {
@@ -170,7 +174,22 @@ export function TechnicianRateCards({
         }}
       >
         {/* Category Chips */}
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+        <div
+          className="category-scroll-strip"
+          onWheel={(e) => {
+            if (e.deltaY !== 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            paddingBottom: 8,
+            paddingTop: 2,
+            userSelect: "none",
+          }}
+        >
           {categoriesTab.map((cat) => {
             const active = selectedCategory === cat.slug;
             return (
@@ -192,6 +211,7 @@ export function TechnicianRateCards({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
+                  flexShrink: 0,
                 }}
               >
                 <span>{cat.icon}</span>
