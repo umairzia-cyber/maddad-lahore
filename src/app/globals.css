@@ -2912,3 +2912,25 @@ body {
   position: static !important;
 }
 
+/* ---------- Category Scroll Strip ---------- */
+.category-scroll-strip {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(167, 139, 250, 0.4) rgba(255, 255, 255, 0.04);
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+.category-scroll-strip::-webkit-scrollbar {
+  height: 6px;
+}
+.category-scroll-strip::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+}
+.category-scroll-strip::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 250, 0.35);
+  border-radius: 4px;
+}
+.category-scroll-strip::-webkit-scrollbar-thumb:hover {
+  background: var(--violet-400);
+}
+

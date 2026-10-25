@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   IconArrowRight,
   IconBanknote,
@@ -33,6 +33,8 @@ import {
   IconStar,
   IconPhone,
   IconWhatsApp,
+  IconChevronLeft,
+  IconChevronRight,
 } from "../icons";
 import { submitBidAction, submitInquiryAction, getCustomerBidsAction } from "@/app/actions";
 import type { AppUser, AreaOption, PublicJobItem } from "./types";
@@ -151,6 +153,52 @@ export function Hero({
     ur: string;
     icon: string;
   } | null>(null);
+
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startScrollLeft, setStartScrollLeft] = useState(0);
+  const hasMovedRef = useRef(false);
+
+  const scrollCategory = (direction: "left" | "right") => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    const delta = 280;
+    el.scrollBy({
+      left: direction === "left" ? -delta : delta,
+      behavior: "smooth",
+    });
+  };
+
+  const handleCategoryWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.deltaY !== 0 && categoryScrollRef.current) {
+      categoryScrollRef.current.scrollLeft += e.deltaY;
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    setIsDragging(true);
+    hasMovedRef.current = false;
+    setStartX(e.pageX - el.offsetLeft);
+    setStartScrollLeft(el.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const el = categoryScrollRef.current;
+    if (!el) return;
+    const x = e.pageX - el.offsetLeft;
+    if (Math.abs(x - startX) > 4) {
+      hasMovedRef.current = true;
+    }
+    el.scrollLeft = startScrollLeft - (x - startX) * 1.5;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+  };
 
   const curatedCategories = [
     { slug: "electrical", en: "Electrical & Wiring", ur: "الیکٹریکل و وائرنگ", icon: "⚡" },
@@ -364,16 +412,110 @@ export function Hero({
       </div>
 
       {/* Directory Category Strip */}
-      <div style={{ borderTop: "1px solid var(--line-soft)", paddingTop: 20, marginTop: 24 }}>
-        <div style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-3)", fontWeight: 700, marginBottom: 12 }}>
-          {locale === "ur" ? "مشہور کیٹیگریز" : "Browse by Category"}
+      <div style={{ borderTop: "1px solid var(--line-soft)", paddingTop: 20, marginTop: 24, position: "relative" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-3)", fontWeight: 700 }}>
+              {locale === "ur" ? "مشہور کیٹیگریز" : "Browse by Category"}
+            </span>
+            <span style={{ fontSize: "0.75rem", color: "var(--violet-300)", opacity: 0.85, fontWeight: 500 }}>
+              {locale === "ur" ? "← مزید کیٹیگریز کے لیے اسکرول کریں" : "(Scroll to see more →)"}
+            </span>
+          </div>
+
+          {/* Quick Scroll Arrow Controls */}
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => scrollCategory("left")}
+              aria-label={locale === "ur" ? "بائیں اسکرول کریں" : "Scroll left"}
+              title={locale === "ur" ? "بائیں اسکرول کریں" : "Scroll left"}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                background: "var(--graphite-1)",
+                border: "1px solid var(--line)",
+                color: "var(--text)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--violet-400)";
+                e.currentTarget.style.background = "var(--graphite-2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--line)";
+                e.currentTarget.style.background = "var(--graphite-1)";
+              }}
+            >
+              <IconChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollCategory("right")}
+              aria-label={locale === "ur" ? "دائیں اسکرول کریں" : "Scroll right"}
+              title={locale === "ur" ? "دائیں اسکرول کریں" : "Scroll right"}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                background: "var(--graphite-1)",
+                border: "1px solid var(--line)",
+                color: "var(--text)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--violet-400)";
+                e.currentTarget.style.background = "var(--graphite-2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--line)";
+                e.currentTarget.style.background = "var(--graphite-1)";
+              }}
+            >
+              <IconChevronRight size={16} />
+            </button>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 6, scrollbarWidth: "none" }}>
+
+        {/* Scrollable Container with Custom Sleek Scrollbar, Mouse Wheel Support & Drag Support */}
+        <div
+          ref={categoryScrollRef}
+          onWheel={handleCategoryWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUpOrLeave}
+          onMouseLeave={handleMouseUpOrLeave}
+          className="category-scroll-strip"
+          style={{
+            display: "flex",
+            gap: 10,
+            overflowX: "auto",
+            paddingBottom: 10,
+            paddingTop: 4,
+            cursor: isDragging ? "grabbing" : "grab",
+            userSelect: "none",
+          }}
+        >
           {curatedCategories.map((cat) => (
             <button
               key={cat.slug}
               type="button"
-              onClick={() => setSelectedCategoryModal(cat)}
+              onClick={(e) => {
+                if (hasMovedRef.current) {
+                  e.preventDefault();
+                  return;
+                }
+                setSelectedCategoryModal(cat);
+              }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -388,6 +530,7 @@ export function Hero({
                 whiteSpace: "nowrap",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
+                flexShrink: 0,
               }}
             >
               <span>{cat.icon}</span>
