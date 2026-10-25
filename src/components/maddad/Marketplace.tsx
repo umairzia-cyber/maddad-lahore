@@ -182,10 +182,12 @@ export function Hero({
             style={
               locale === "ur"
                 ? {
-                    lineHeight: 2.1,
+                    fontFamily: "var(--font-urdu)",
+                    fontWeight: 750,
+                    lineHeight: 1.35,
                     letterSpacing: "normal",
-                    paddingBottom: 24,
-                    paddingTop: 6,
+                    paddingBottom: 12,
+                    paddingTop: 4,
                     marginBottom: 10,
                     overflow: "visible",
                     color: "#FFFFFF",
