@@ -168,19 +168,53 @@ export function Hero({
     <section className={`hero ${compact ? "hero-compact" : ""}`} aria-labelledby="hero-title">
       <div className="hero-split">
         {/* Left: Copy & Actions */}
-        <div className="hero-copy">
-          <span className="hero-eyebrow">
+        <div className="hero-copy" style={locale === "ur" ? { overflow: "visible", gap: 12 } : undefined}>
+          <span
+            className="hero-eyebrow"
+            style={locale === "ur" ? { letterSpacing: "normal", lineHeight: 1.6, paddingBottom: 2 } : undefined}
+          >
             {locale === "ur" ? "لاہور لوکل سروسز مارکیٹ پلیس" : "Lahore Local Services Marketplace"}
           </span>
 
-          <h1 id="hero-title" className="hero-title">
+          <h1
+            id="hero-title"
+            className="hero-title"
+            style={
+              locale === "ur"
+                ? {
+                    lineHeight: 1.8,
+                    letterSpacing: "normal",
+                    paddingBottom: 16,
+                    paddingTop: 4,
+                    marginBottom: 8,
+                    overflow: "visible",
+                    color: "#FFFFFF",
+                    background: "none",
+                    WebkitBackgroundClip: "unset",
+                    backgroundClip: "unset",
+                    display: "block",
+                  }
+                : undefined
+            }
+          >
             {locale === "ur"
               ? "لاہور میں ماہر پلمبر، الیکٹریشن یا کسی سروس کی ضرورت ہے؟"
               : "Need a repair, technician, or trusted service in Lahore?"}
           </h1>
 
           {!compact && (
-            <p className="hero-lead">
+            <p
+              className="hero-lead"
+              style={
+                locale === "ur"
+                  ? {
+                      lineHeight: 1.85,
+                      paddingBottom: 8,
+                      overflow: "visible",
+                    }
+                  : undefined
+              }
+            >
               {locale === "ur"
                 ? "چند منٹوں میں سروس کی درخواست دیں: گھریلو مرمت کروائیں، پلمبر، الیکٹریشن یا اے سی ٹیکنیشن بلوائیں، یا اپنی سروس پیش کر کے لاہور میں کام حاصل کریں — بغیر کسی کمیشن کے۔"
                 : "Request home repairs, hire independent technicians and service providers, or find skilled work across 20+ Lahore neighbourhoods with zero commission."}
@@ -220,7 +254,7 @@ export function Hero({
                 <h3 style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
                   {locale === "ur" ? "مسئلہ پوسٹ کریں اور بولیاں لیں" : "Post a Problem & Get Bids"}
                 </h3>
-                <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-2)", lineHeight: 1.4 }}>
+                <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-2)", lineHeight: locale === "ur" ? 1.65 : 1.4, paddingBottom: locale === "ur" ? 2 : 0 }}>
                   {locale === "ur"
                     ? "لیکیج یا فالٹ؟ 30 سیکنڈ میں پوسٹ کریں۔ مقامی کاریگر اپنی مسابقتی قیمتیں پیش کریں گے۔"
                     : "Got a leak or fault? Post in 30 seconds. Technicians in your radius bid competitive labour prices."}
@@ -262,7 +296,7 @@ export function Hero({
                 <h3 style={{ margin: "0 0 4px", fontSize: "1.05rem", fontWeight: 800, color: "#FFFFFF" }}>
                   {locale === "ur" ? "کاریگروں کے ریٹ کارڈز دیکھیں" : "Browse Technicians & Rates"}
                 </h3>
-                <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-2)", lineHeight: 1.4 }}>
+                <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-2)", lineHeight: locale === "ur" ? 1.65 : 1.4, paddingBottom: locale === "ur" ? 2 : 0 }}>
                   {locale === "ur"
                     ? "اے سی سروس، پنکھا فٹنگ، مہندی یا صفائی کا فکس ریٹ جانیں اور بغیر اشتہار دیے براہ راست رابطہ کریں۔"
                     : "See transparent rate-cards for AC wash, fan fit, mehndi, or deep cleaning and hire directly."}

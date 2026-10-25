@@ -262,8 +262,11 @@ a:hover {
 [dir="rtl"] h2,
 [dir="rtl"] h3,
 [dir="rtl"] h4 {
-  line-height: 1.55;
-  padding-bottom: 2px;
+  line-height: 1.75;
+  padding-top: 4px;
+  padding-bottom: 8px;
+  letter-spacing: normal;
+  overflow: visible;
 }
 
 [dir="rtl"] .btn {
@@ -2162,9 +2165,54 @@ dialog.dialog::backdrop {
 [dir="rtl"] h1,
 [dir="rtl"] h2,
 [dir="rtl"] h3,
-[dir="rtl"] .hero-title {
-  line-height: 1.45;
+[dir="rtl"] h4 {
+  line-height: 1.75;
   font-family: var(--font-urdu), "Noto Sans Arabic", system-ui, sans-serif;
+  letter-spacing: normal;
+  overflow: visible;
+  padding-top: 4px;
+  padding-bottom: 8px;
+}
+
+[dir="rtl"] .hero,
+[dir="rtl"] .hero-copy,
+[dir="rtl"] .hero-split {
+  overflow: visible;
+}
+
+[dir="rtl"] .hero-eyebrow {
+  letter-spacing: normal;
+  line-height: 1.6;
+  padding-bottom: 2px;
+}
+
+[dir="rtl"] .hero-title {
+  line-height: 1.8 !important;
+  font-family: var(--font-urdu), "Noto Sans Arabic", system-ui, sans-serif;
+  letter-spacing: normal !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #ffffff !important;
+  padding-top: 4px !important;
+  padding-bottom: 16px !important;
+  margin-bottom: 8px !important;
+  overflow: visible !important;
+  display: block;
+}
+
+[dir="rtl"] .hero-title em {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: var(--violet-300) !important;
+}
+
+[dir="rtl"] .hero-lead {
+  font-family: var(--font-urdu), "Noto Sans Arabic", system-ui, sans-serif;
+  line-height: 1.85 !important;
+  padding-bottom: 8px !important;
+  overflow: visible !important;
 }
 
 [dir="rtl"] .hero-actions,
