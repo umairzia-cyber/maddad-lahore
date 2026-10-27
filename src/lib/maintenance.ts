@@ -29,7 +29,8 @@ export async function runMaintenance() {
   const purged = await purgeIdentityDocuments();
   await q(`DELETE FROM rate_limits WHERE window_start < now() - interval '2 days'`);
   await q(`DELETE FROM otp_codes WHERE expires_at < now() - interval '1 day'`);
-  const result = { expired: expired.length, expanded, purged };
+  const sessionsPurged = await q(`DELETE FROM sessions WHERE expires_at < now() RETURNING id`);
+  const result = { expired: expired.length, expanded, purged, sessionsPurged: sessionsPurged.length };
   log.info("maintenance_done", result);
   return result;
 }

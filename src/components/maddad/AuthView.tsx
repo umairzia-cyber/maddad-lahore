@@ -421,7 +421,7 @@ export function AuthView({
               )}
             </div>
 
-            {devCode && (
+            {Boolean(devCode && process.env.NODE_ENV !== "production") && (
               <div
                 style={{
                   background: "rgba(245, 158, 11, 0.12)",
@@ -438,7 +438,7 @@ export function AuthView({
                 <span>Development verification code: <strong>{devCode}</strong></span>
                 <button
                   type="button"
-                  onClick={() => setCode(devCode)}
+                  onClick={() => setCode(devCode || "")}
                   className="btn btn-ghost btn-sm"
                   style={{ color: "var(--amber-300)", padding: "2px 8px", fontSize: "0.75rem" }}
                 >

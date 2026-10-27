@@ -1,6 +1,12 @@
 import { Pool, PoolClient, QueryResultRow } from "pg";
 
-const g = globalThis as unknown as { __kaamPool?: Pool; __pgChecked?: boolean; __pgAvailable?: boolean };
+const g = globalThis as unknown as {
+  __kaamPool?: Pool;
+  __pgChecked?: boolean;
+  __pgAvailable?: boolean;
+  __pgLastChecked?: number;
+  __referenceDataDone?: boolean;
+};
 
 function createPool(): Pool {
   const url = process.env.DATABASE_URL || "postgres://kaam:kaam_local_dev_only@127.0.0.1:5432/kaam";
@@ -11,7 +17,9 @@ function createPool(): Pool {
 
   return new Pool({
     connectionString: url,
-    max: 10,
+    // Serverless-friendly pool size: prevents connection exhaustion on Supabase
+    max: 3,
+    idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 5000,
     ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
   });
@@ -26,11 +34,16 @@ export type Db = Pool | PoolClient;
 let availabilityPromise: Promise<boolean> | null = null;
 
 /**
- * Checks whether PostgreSQL is reachable with quick timeout.
- * Caches result so subsequent calls are instantaneous.
+ * Checks whether PostgreSQL is reachable.
+ * Caches positive results; re-tries failed connections after 5 seconds
+ * so transient network blips do not permanently lock out an instance.
  */
 export async function isPostgresAvailable(): Promise<boolean> {
-  if (g.__pgChecked) return g.__pgAvailable ?? false;
+  const now = Date.now();
+  if (g.__pgAvailable) return true;
+  if (g.__pgChecked && g.__pgLastChecked && now - g.__pgLastChecked < 5000) {
+    return false;
+  }
   if (availabilityPromise) return availabilityPromise;
 
   availabilityPromise = (async () => {
@@ -40,11 +53,13 @@ export async function isPostgresAvailable(): Promise<boolean> {
       client.release();
       g.__pgAvailable = true;
       g.__pgChecked = true;
+      g.__pgLastChecked = Date.now();
       await ensureReferenceData();
       return true;
     } catch {
       g.__pgAvailable = false;
       g.__pgChecked = true;
+      g.__pgLastChecked = Date.now();
       return false;
     } finally {
       availabilityPromise = null;
@@ -68,6 +83,7 @@ const LAHORE_AREAS: [string, string, number, number][] = [
 ];
 
 export async function ensureReferenceData(): Promise<void> {
+  if (g.__referenceDataDone) return;
   try {
     const cityRow = await one<{ id: number }>(
       `INSERT INTO cities (slug, name, active) VALUES ('lahore','Lahore',true)
@@ -119,12 +135,19 @@ export async function ensureReferenceData(): Promise<void> {
     await q(`CREATE TABLE IF NOT EXISTS listing_inquiries (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       listing_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-      sender_id UUID NOT NULL REFERENCES users(id),
+      sender_id UUID REFERENCES users(id),
+      sender_phone TEXT,
       inquiry_type inquiry_type NOT NULL DEFAULT 'question',
       offer_amount INTEGER,
       message TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`);
+
+    // Ensure backwards compatibility for sender_phone and nullable sender_id
+    await q(`ALTER TABLE listing_inquiries ADD COLUMN IF NOT EXISTS sender_phone TEXT`);
+    await q(`ALTER TABLE listing_inquiries ALTER COLUMN sender_id DROP NOT NULL`);
+
+    g.__referenceDataDone = true;
   } catch (err) {
     console.error("ensureReferenceData notice:", err);
   }

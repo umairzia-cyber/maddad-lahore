@@ -276,11 +276,20 @@ export interface JobLeadRecord {
   created_at?: string;
 }
 
+function maskPhoneForAnalytics(phone?: string | null): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/[^0-9]/g, "");
+  if (digits.length < 7) return "***";
+  return `+92${digits.slice(-10, -7)}***${digits.slice(-3)}`;
+}
+
 /**
  * Collects and stores newly posted job leads into the Supabase 'job_leads' table.
+ * Strips PII (masks phone, omits exact address) to uphold Maddadgaar's privacy commitment.
  */
 export async function collectJobLead(data: JobLeadRecord): Promise<{ ok: boolean; error?: string }> {
-  const client = getSupabaseClient();
+  // Use admin client if available to ensure service-role insertion
+  const client = getSupabaseAdminClient() || getSupabaseClient();
   if (!client) {
     return { ok: true };
   }
@@ -294,8 +303,10 @@ export async function collectJobLead(data: JobLeadRecord): Promise<{ ok: boolean
         area: data.area,
         budget_min: data.budgetMin || null,
         budget_max: data.budgetMax || null,
-        customer_phone: data.customerPhone || null,
-        address_text: data.addressText || null,
+        // PRIVACY ENFORCEMENT: Never store full unmasked customer phone in third-party lead table
+        customer_phone: maskPhoneForAnalytics(data.customerPhone),
+        // PRIVACY ENFORCEMENT: Only store coarse area centroid, never exact house/street address
+        address_text: data.area || "Lahore",
         created_at: new Date().toISOString(),
       },
     ]);
@@ -357,16 +368,17 @@ export interface BidActivityRecord {
 
 /**
  * Logs technician bidding activity into the Supabase 'bids_activity' table.
+ * Worker phone is masked to prevent off-platform harvesting.
  */
 export async function collectBidActivity(data: BidActivityRecord): Promise<{ ok: boolean; error?: string }> {
-  const client = getSupabaseClient();
+  const client = getSupabaseAdminClient() || getSupabaseClient();
   if (!client) return { ok: true };
 
   try {
     const { error } = await client.from("bids_activity").insert([
       {
         job_id: data.jobId,
-        worker_phone: data.workerPhone,
+        worker_phone: maskPhoneForAnalytics(data.workerPhone),
         amount: data.amount,
         timing_text: data.timingText,
         message: data.message || "",

@@ -17,3 +17,18 @@ export function normalizePkPhone(input: string): string | null {
 export function maskPhone(p: string): string {
   return p.length > 7 ? p.slice(0, 6) + "****" + p.slice(-3) : "****";
 }
+
+/**
+ * Masks Pakistani phone numbers in pre-hire chat or user text to protect privacy
+ * and prevent off-platform contact leakage.
+ */
+export function maskSensitiveContact(text: string): string {
+  return text
+    // 1. Spaced-out phone digits, e.g. "0 3 0 0 1 2 3 4 5 6 7" or "+92 3 0 0 1 2 3 4 5 6 7"
+    .replace(/(?:\+?92\s*|0\s*)3(?:\s*\d){9}/gi, "[Phone Masked / نمبر پوشیدہ]")
+    // 2. Standard formatting e.g. 0300-1234567, +923001234567, 0300 1234567
+    .replace(/(?:\+?92\s*|0)?3\d{2}[\s.-]?\d{7}/gi, "[Phone Masked / نمبر پوشیدہ]")
+    // 3. Generic 10-12 digit numbers
+    .replace(/\b\d{10,12}\b/g, "[Number Masked]");
+}
+

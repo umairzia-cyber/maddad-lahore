@@ -1,7 +1,8 @@
 import { mkdir, writeFile, readFile, rm } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
-import { storage } from "./config";
+import os from "os";
+import { storage, isProd } from "./config";
 import { AppError } from "./state";
 import {
   isSupabaseConfigured,
@@ -18,7 +19,12 @@ import {
  * 1. "local" (default): Private directory on server disk with traversal protection and 0o600 permissions.
  * 2. "supabase": Private cloud object storage using Supabase Storage buckets ('job-photos', 'worker-photos', 'identity').
  */
-const root = () => path.resolve(storage.localDir);
+const root = () => {
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    return path.join(os.tmpdir(), "maddad_storage_private");
+  }
+  return path.resolve(storage.localDir);
+};
 
 const MIME_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
@@ -52,12 +58,17 @@ export async function putPrivate(
   const key = `${bucket}/${filename}`;
 
   // If Supabase Storage is configured and chosen as the storage driver, upload to cloud bucket
-  if (storage.driver === "supabase" && isSupabaseConfigured()) {
-    try {
-      await uploadToSupabaseStorage(bucket, filename, data, mime);
-      return { key, mime };
-    } catch (err) {
-      console.warn("[Storage] Supabase storage upload failed, saving to local private fallback:", err);
+  if (storage.driver === "supabase") {
+    if (!isSupabaseConfigured()) {
+      if (isProd) throw new AppError("Cloud storage is required in production but not configured.");
+    } else {
+      try {
+        await uploadToSupabaseStorage(bucket, filename, data, mime);
+        return { key, mime };
+      } catch (err) {
+        console.error("[Storage] Supabase storage upload failed:", err);
+        if (isProd) throw new AppError("Photo upload to cloud storage failed. Please try again.");
+      }
     }
   }
 

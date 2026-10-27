@@ -1,4 +1,5 @@
 import { devOtpEnabled, isProd } from "../config";
+import { AppError } from "../state";
 
 export type OtpChannel = "whatsapp" | "sms";
 
@@ -38,13 +39,20 @@ class WhatsAppCloudProvider implements OtpProvider {
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        console.error("WhatsApp Cloud API notice:", errJson);
-        return { devCode: code, channel };
+        console.error("WhatsApp Cloud API delivery failure:", errJson);
+        if (devOtpEnabled()) {
+          return { devCode: code, channel };
+        }
+        throw new AppError("Could not deliver verification code via WhatsApp. Please check your number or try SMS.");
       }
       return { channel };
-    } catch (err) {
-      console.error("Failed to send WhatsApp OTP:", err);
-      return { devCode: code, channel };
+    } catch (err: any) {
+      if (err instanceof AppError) throw err;
+      console.error("WhatsApp Cloud API exception:", err);
+      if (devOtpEnabled()) {
+        return { devCode: code, channel };
+      }
+      throw new AppError("WhatsApp delivery service is currently unreachable. Please try again shortly.");
     }
   }
 }
@@ -78,13 +86,21 @@ class TwilioProvider implements OtpProvider {
         body: new URLSearchParams({ From: from, To: to, Body: body }).toString(),
       });
       if (!res.ok) {
-        console.error("Twilio send notice:", await res.text());
-        return { devCode: code, channel };
+        const errText = await res.text().catch(() => "");
+        console.error("Twilio send failure:", errText);
+        if (devOtpEnabled()) {
+          return { devCode: code, channel };
+        }
+        throw new AppError("Could not deliver verification SMS. Please check your mobile number.");
       }
       return { channel };
-    } catch (err) {
+    } catch (err: any) {
+      if (err instanceof AppError) throw err;
       console.error("Twilio exception:", err);
-      return { devCode: code, channel };
+      if (devOtpEnabled()) {
+        return { devCode: code, channel };
+      }
+      throw new AppError("SMS delivery service is currently unreachable. Please try again shortly.");
     }
   }
 }
@@ -92,11 +108,14 @@ class TwilioProvider implements OtpProvider {
 const devProvider: OtpProvider = {
   name: "development",
   async send(_phone, code, channel = "whatsapp") {
+    if (!devOtpEnabled()) {
+      throw new AppError("Verification provider is not configured for production delivery.");
+    }
     return { devCode: code, channel };
   },
 };
 
-export function getOtpProvider(): OtpProvider {
+export function getOtpProvider(): OtpProvider | null {
   const env = process.env;
   if (env.WHATSAPP_API_TOKEN && env.WHATSAPP_PHONE_NUMBER_ID) {
     return new WhatsAppCloudProvider(env.WHATSAPP_API_TOKEN, env.WHATSAPP_PHONE_NUMBER_ID);
@@ -104,5 +123,10 @@ export function getOtpProvider(): OtpProvider {
   if (env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN) {
     return new TwilioProvider(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN, env.TWILIO_WHATSAPP_FROM, env.TWILIO_PHONE_NUMBER);
   }
-  return devProvider;
+  // If we are in local dev and ENABLE_DEV_OTP is explicitly enabled:
+  if (devOtpEnabled()) {
+    return devProvider;
+  }
+  // Otherwise in production without providers, return null so caller throws AppError
+  return null;
 }

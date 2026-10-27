@@ -1,12 +1,25 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { q, one, tx, isPostgresAvailable } from "@/lib/db";
 import { SessionUser } from "@/lib/auth";
 import { acceptBid } from "@/lib/bids";
 import { getPrivateDetails, CustomerJob } from "@/lib/jobs";
+import { isProd, cronSecret } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  if (isProd) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
+  if (cronSecret) {
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.replace(/^Bearer\s+/i, "") || req.nextUrl.searchParams.get("secret");
+    if (!token || token !== cronSecret) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+  }
+
   const pg = await isPostgresAvailable();
   if (!pg) {
     return NextResponse.json({ error: "Postgres not available" }, { status: 500 });

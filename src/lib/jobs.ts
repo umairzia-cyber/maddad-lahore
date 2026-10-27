@@ -174,8 +174,8 @@ export async function browsePublicJobs(): Promise<PublicJob[]> {
   return q<PublicJob>(
     `SELECT ${PUBLIC_COLS},
        (SELECT count(*)::int FROM bids b WHERE b.job_id=j.id AND b.status IN ('active','accepted')) AS bid_count,
-       (SELECT min(b.amount)::int FROM bids b WHERE b.job_id=j.id AND b.status IN ('active','accepted')) AS min_bid,
-       (SELECT max(b.amount)::int FROM bids b WHERE b.job_id=j.id AND b.status IN ('active','accepted')) AS max_bid,
+       NULL::int AS min_bid,
+       NULL::int AS max_bid,
        NULL::text AS my_bid_status
      FROM jobs j JOIN service_categories c ON c.id=j.category_id JOIN service_areas a ON a.id=j.area_id
      WHERE j.status='open' AND j.hidden_at IS NULL AND j.expires_at > now()

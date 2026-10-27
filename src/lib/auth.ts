@@ -1,8 +1,10 @@
 import { createHmac, randomBytes, randomInt, timingSafeEqual, createHash } from "crypto";
 import { cookies, headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
-import { cache } from "react";
+import * as React from "react";
 import { one, q, tx, isPostgresAvailable } from "./db";
+
+const reactCache = typeof (React as any).cache === "function" ? (React as any).cache : <T extends (...args: any[]) => any>(fn: T): T => fn;
 import { adminPhones, isProd, sessionSecret } from "./config";
 import { getOtpProvider, OtpChannel } from "./otp/provider";
 import { rateLimit } from "./ratelimit";
@@ -52,6 +54,7 @@ export async function requestOtp(rawPhone: string, channel: OtpChannel = "whatsa
   }
   await rateLimit(`otp_req_phone:${phone}`, 3, 600);
   await rateLimit(`otp_req_ip:${clientIp()}`, 10, 600);
+  await rateLimit("otp_req_global", 120, 3600); // Global cap: max 120 OTP deliveries per hour to mitigate toll fraud
 
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
   if (!(await isPostgresAvailable())) {
@@ -140,6 +143,9 @@ export async function verifyOtp(rawPhone: string, code: string): Promise<void> {
 }
 
 export async function loginAsDemoUser(rawPhone: string): Promise<SessionUser> {
+  if (isProd && process.env.ENABLE_DEMO_ACCOUNTS !== "true") {
+    throw new AppError("Demo sign-in is disabled in production.", "forbidden");
+  }
   const phone = normalizePkPhone(rawPhone);
   if (!phone) throw new AppError("Invalid phone number.");
 
@@ -269,7 +275,7 @@ export async function logout(): Promise<void> {
   cookies().delete(COOKIE);
 }
 
-export const getUser = cache(async (): Promise<SessionUser | null> => {
+export const getUser = reactCache(async (): Promise<SessionUser | null> => {
   const t = cookies().get(COOKIE)?.value;
   if (!t) return null;
 

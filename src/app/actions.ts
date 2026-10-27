@@ -7,7 +7,7 @@ import {
 } from "@/lib/auth";
 import { AppError } from "@/lib/state";
 import { DEMO_ACCOUNTS, demoAccountsEnabled } from "@/lib/config";
-import { normalizePkPhone } from "@/lib/phone";
+import { normalizePkPhone, maskSensitiveContact } from "@/lib/phone";
 import { reportError } from "@/lib/logger";
 import { createDraft, publishJob, cancelJob, createAndPublishJob } from "@/lib/jobs";
 import { submitBid, withdrawBid, acceptBid, listBidsForCustomer, BidCard } from "@/lib/bids";
@@ -18,7 +18,7 @@ import {
   updateDisplayName, submitAppeal, deleteAccount,
 } from "@/lib/account";
 import { moderate, addReportNote, closeAppeal, decideIdentity, updateSettings, adminExpandJob } from "@/lib/admin";
-import { q, isPostgresAvailable } from "@/lib/db";
+import { q, one, isPostgresAvailable } from "@/lib/db";
 import { store } from "@/lib/store";
 import { collectSignup, collectJobLead, collectBidActivity } from "@/lib/supabase";
 
@@ -58,9 +58,6 @@ export async function signUpAction(_: FormState, f: FormData): Promise<FormState
     const name = str(f, "name").trim();
     const phone = str(f, "phone").trim();
     const channel = (str(f, "channel") || "whatsapp") as "whatsapp" | "sms";
-    const role = str(f, "role").trim() === "worker" ? "technician" : "customer";
-    const trade = str(f, "trade").trim();
-    const area = str(f, "area").trim();
 
     if (!name || name.length < 2) {
       throw new AppError("Please enter your real full name.");
@@ -70,9 +67,6 @@ export async function signUpAction(_: FormState, f: FormData): Promise<FormState
     }
 
     const r = await requestOtp(phone, channel);
-
-    // Collect lead/signup in Supabase
-    await collectSignup({ name, phone: r.phone, role, trade, area });
 
     return {
       phone: r.phone,
@@ -85,10 +79,15 @@ export async function signUpAction(_: FormState, f: FormData): Promise<FormState
 
 export async function verifyOtpAction(_: FormState, f: FormData): Promise<FormState> {
   return wrap(async () => {
-    await verifyOtp(str(f, "phone"), str(f, "code"));
+    const phone = str(f, "phone");
+    await verifyOtp(phone, str(f, "code"));
 
-    // If registration metadata was provided, initialize user profile
+    // If registration metadata was provided, initialize user profile honestly
     const name = str(f, "name").trim();
+    const role = str(f, "role").trim() === "worker" ? "technician" : "customer";
+    const trade = str(f, "trade").trim();
+    const area = str(f, "area").trim();
+
     if (name) {
       try {
         const u = await requireUser();
@@ -96,9 +95,8 @@ export async function verifyOtpAction(_: FormState, f: FormData): Promise<FormSt
         if (str(f, "role") === "worker") {
           const profileFd = new FormData();
           profileFd.set("bio", `${name} · Independent Technician in Lahore`);
-          profileFd.set("experience_years", "3");
+          // Honest onboarding: do not inject fake 3-years experience claim
           profileFd.set("accepting_bids", "on");
-          const trade = str(f, "trade");
           if (trade === "electrical") {
             profileFd.append("categories", "2");
           } else if (trade === "both") {
@@ -109,6 +107,9 @@ export async function verifyOtpAction(_: FormState, f: FormData): Promise<FormSt
           }
           await saveWorkerProfile(u, profileFd);
         }
+
+        // Collect signup lead only AFTER verified OTP authentication
+        await collectSignup({ name, phone, role, trade, area });
       } catch {
         // Non-blocking
       }
@@ -197,7 +198,8 @@ export async function createAndPublishJobAction(_: FormState, f: FormData): Prom
         budgetMin: Number(f.get("budgetMin")) || priceVal,
         budgetMax: Number(f.get("budgetMax")) || priceVal,
         customerPhone: u.phone,
-        addressText: str(f, "addressText") || str(f, "landmark"),
+        // PRIVACY GUARANTEE: Never leak customer exact street/house address to third-party lead storage
+        addressText: str(f, "landmark") ? `Near ${str(f, "landmark")}` : "Coarse Area Centroid Only",
       });
     } catch {
       // Non-blocking
@@ -218,13 +220,14 @@ export async function submitInquiryAction(_: FormState, f: FormData): Promise<Fo
     if (!message || message.length < 3) throw new AppError("Please write a message of at least 3 characters.");
 
     const u = await requireUser().catch(() => null);
-    const senderPhone = u?.phone || phoneInput;
-    if (!senderPhone) throw new AppError("Please provide your contact phone number.");
+    const senderPhone = u?.phone || (phoneInput ? normalizePkPhone(phoneInput) : null);
+    if (!senderPhone) throw new AppError("Please provide a valid Pakistani mobile number.");
 
     if (await isPostgresAvailable()) {
       await q(
-        `INSERT INTO listing_inquiries (job_id, sender_id, sender_phone, message, offer_price) VALUES ($1, $2, $3, $4, $5)`,
-        [jobId, u?.id || null, senderPhone, message, offerPrice]
+        `INSERT INTO listing_inquiries (listing_id, sender_id, sender_phone, message, offer_amount, inquiry_type)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [jobId, u?.id || null, senderPhone, message, offerPrice, offerPrice ? "offer" : "question"]
       );
       const [job] = await q<{ customer_id: string; title: string }>(`SELECT customer_id, title FROM jobs WHERE id=$1`, [jobId]);
       if (job) {
@@ -249,7 +252,12 @@ export type ChatMessageDto = {
   created_at: string;
 };
 
+
+
 export async function getJobMessagesAction(jobId: string): Promise<ChatMessageDto[]> {
+  const u = await requireUser().catch(() => null);
+  if (!u) return [];
+
   const isPg = await isPostgresAvailable();
   if (!isPg) {
     const list = store.getJobMessages(jobId);
@@ -260,26 +268,47 @@ export async function getJobMessagesAction(jobId: string): Promise<ChatMessageDt
   }
 
   try {
+    const job = await one<{ customer_id: string }>("SELECT customer_id FROM jobs WHERE id=$1", [jobId]);
+    if (!job) return [];
+
+    // Authorization guard: only customer, bidding/contacting workers, or admins can read job chat
+    const isCustomer = job.customer_id === u.id;
+    const isBidder = (await one("SELECT 1 FROM bids WHERE job_id=$1 AND worker_id=$2", [jobId, u.id])) !== null;
+    if (!isCustomer && !isBidder && !u.is_admin) {
+      return [];
+    }
+
     const rows = await q<{
       id: string;
       listing_id: string;
-      sender_id: string;
+      sender_id: string | null;
       message: string;
       created_at: Date;
+      display_name: string | null;
+      is_worker: boolean | null;
     }>(
-      `SELECT id, listing_id, sender_id, message, created_at FROM listing_inquiries WHERE listing_id=$1 ORDER BY created_at ASC`,
+      `SELECT i.id, i.listing_id, i.sender_id, i.message, i.created_at,
+              u.display_name, u.is_worker
+       FROM listing_inquiries i
+       LEFT JOIN users u ON u.id = i.sender_id
+       WHERE i.listing_id=$1
+       ORDER BY i.created_at ASC`,
       [jobId]
     );
+
     if (rows && rows.length > 0) {
-      return rows.map((r) => ({
-        id: r.id,
-        job_id: r.listing_id,
-        sender_id: r.sender_id,
-        sender_role: "worker",
-        sender_name: "Technician / Inquirer",
-        message: r.message,
-        created_at: new Date(r.created_at).toISOString(),
-      }));
+      return rows.map((r) => {
+        const isCust = r.sender_id === job.customer_id;
+        return {
+          id: r.id,
+          job_id: r.listing_id,
+          sender_id: r.sender_id || "guest",
+          sender_role: isCust ? "customer" : "worker",
+          sender_name: r.display_name || (isCust ? "Customer" : "Verified Technician"),
+          message: r.message,
+          created_at: new Date(r.created_at).toISOString(),
+        };
+      });
     }
   } catch {
     // fallback to store
@@ -297,27 +326,40 @@ export async function sendJobMessageAction(
   messageText: string
 ): Promise<{ ok?: boolean; error?: string; message?: ChatMessageDto }> {
   try {
-    const clean = (messageText || "").trim();
-    if (!clean || clean.length < 2) return { error: "Message must be at least 2 characters." };
+    const rawClean = (messageText || "").trim();
+    if (!rawClean || rawClean.length < 2) return { error: "Message must be at least 2 characters." };
 
-    const u = await requireUser().catch(() => null);
-    const senderId = u?.id || "guest-session";
-    const senderRole = u?.is_worker ? "worker" : "customer";
-    const senderName = u?.display_name || (senderRole === "customer" ? "Customer" : "Verified Technician");
+    const u = await requireActive();
+    // Server-side contact masking: enforces platform trust policy
+    const clean = maskSensitiveContact(rawClean);
 
     const isPg = await isPostgresAvailable();
-    if (isPg && u) {
-      try {
+    if (isPg) {
+      const job = await one<{ customer_id: string; title: string }>("SELECT customer_id, title FROM jobs WHERE id=$1", [jobId]);
+      if (job) {
         await q(
           `INSERT INTO listing_inquiries (listing_id, sender_id, message) VALUES ($1, $2, $3)`,
           [jobId, u.id, clean]
         );
-      } catch {
-        // non-blocking
+
+        // Notify counterpart
+        const recipientId = u.id === job.customer_id
+          ? (await one<{ worker_id: string }>("SELECT worker_id FROM bids WHERE job_id=$1 AND status='active' ORDER BY updated_at DESC LIMIT 1", [jobId]))?.worker_id
+          : job.customer_id;
+
+        if (recipientId) {
+          await q(
+            `INSERT INTO notifications (user_id, type, title, body, ref_type, ref_id)
+             VALUES ($1, 'chat_message', 'New message on job', $2, 'job', $3)`,
+            [recipientId, `${u.display_name || "A user"}: "${clean.slice(0, 60)}"`, jobId]
+          );
+        }
       }
     }
 
-    const saved = store.sendJobMessage(jobId, senderId, clean, senderRole, senderName);
+    const senderRole = u.is_worker ? "worker" : "customer";
+    const senderName = u.display_name || (senderRole === "customer" ? "Customer" : "Verified Technician");
+    const saved = store.sendJobMessage(jobId, u.id, clean, senderRole, senderName);
     return {
       ok: true,
       message: {

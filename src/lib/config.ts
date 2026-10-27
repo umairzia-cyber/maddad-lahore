@@ -38,8 +38,8 @@ export const DEMO_ACCOUNTS = [
 ] as const;
 
 /**
- * One-click demo accounts are available in development, or in production only when
- * ENABLE_DEMO_ACCOUNTS=true is set explicitly (for a clearly-labelled pilot).
+ * One-click demo accounts are available in development, or in preview/staging when
+ * ENABLE_DEMO_ACCOUNTS=true is set explicitly.
  */
 export function demoAccountsEnabled(): boolean {
   return !isProd || env.ENABLE_DEMO_ACCOUNTS === "true";
@@ -56,10 +56,20 @@ export function sessionSecret(): string {
   return s;
 }
 
+const DEMO_PHONE_LAST7 = DEMO_ACCOUNTS.map((d) => d.phone.replace(/[^0-9]/g, "").slice(-7));
+
 export const adminPhones = (env.ADMIN_PHONES || "")
   .split(",")
   .map((s) => s.trim())
-  .filter(Boolean);
+  .filter((p) => {
+    if (!p) return false;
+    // In production, prevent demo phone numbers (e.g. Fatima 0300 1234567) from gaining admin rights
+    if (isProd) {
+      const last7 = p.replace(/[^0-9]/g, "").slice(-7);
+      if (DEMO_PHONE_LAST7.includes(last7)) return false;
+    }
+    return true;
+  });
 
 export type IdentityPolicy = "open" | "pending_ok" | "verified_only";
 

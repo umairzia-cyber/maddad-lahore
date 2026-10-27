@@ -9,9 +9,31 @@ import { DEMO_ACCOUNTS, demoAccountsEnabled } from "@/lib/config";
 import UnifiedMaddadApp from "@/components/UnifiedMaddadApp";
 
 export const metadata: Metadata = {
-  title: "Maddadgaar Lahore – Post a plumbing or electrical job, compare bids",
+  title: "Maddadgaar Lahore – Verified Local Services & Skilled Home Repairs",
   description:
-    "Describe a small plumbing or electrical job in Lahore, get bids from independent technicians, and choose who to hire. You pay the technician directly.",
+    "Lahore's trusted marketplace for independent technicians. Compare transparent quotes for plumbing, electrical, solar, AC repair, carpentry, appliances, painting, and handyman services across Lahore.",
+  keywords: [
+    "Lahore services",
+    "electrician in Lahore",
+    "plumber Lahore",
+    "AC repair Lahore",
+    "solar installer Lahore",
+    "handyman Lahore",
+    "home maintenance Lahore",
+    "Maddadgaar",
+  ],
+  openGraph: {
+    title: "Maddadgaar Lahore – Post a Job, Compare Quotes, Hire Direct",
+    description:
+      "Connect directly with independent, verified technicians across Lahore with privacy-first contact protection.",
+    url: "https://maddadgaar.vercel.app/",
+    siteName: "Maddadgaar Lahore",
+    locale: "en_PK",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://maddadgaar.vercel.app/",
+  },
 };
 
 export default async function Home({ searchParams }: { searchParams?: { view?: string } }) {

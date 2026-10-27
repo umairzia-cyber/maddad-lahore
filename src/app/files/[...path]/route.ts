@@ -37,8 +37,8 @@ export async function GET(
         return new NextResponse("Unauthorized", { status: 401 });
       }
 
-      const photo = await one<{ storage_key: string; mime_type: string; status: string; customer_id: string }>(
-        `SELECT p.storage_key, p.mime_type, j.status, j.customer_id
+      const photo = await one<{ storage_key: string; mime_type: string; status: string; customer_id: string; job_id: string }>(
+        `SELECT p.storage_key, p.mime_type, j.status, j.customer_id, p.job_id
          FROM job_photos p
          JOIN jobs j ON j.id = p.job_id
          WHERE p.id = $1 AND j.hidden_at IS NULL`,
@@ -47,6 +47,15 @@ export async function GET(
 
       if (!photo) {
         return new NextResponse("Photo not found", { status: 404 });
+      }
+
+      const isOwner = user.id === photo.customer_id;
+      const isAdmin = user.is_admin;
+      const isBidder = (await one("SELECT 1 FROM bids WHERE job_id=$1 AND worker_id=$2", [photo.job_id, user.id])) !== null;
+      const isEligibleWorker = user.is_worker;
+
+      if (!isOwner && !isAdmin && !isBidder && !isEligibleWorker) {
+        return new NextResponse("Forbidden", { status: 403 });
       }
 
       const data = await getPrivate(photo.storage_key);
