@@ -116,7 +116,17 @@ function UnifiedAppContent({
   const [notifications, setNotifications] = useState(initialNotifications);
   const [activeJobModal, setActiveJobModal] = useState<PublicJobItem | null>(null);
   const [showDemoPersonas, setShowDemoPersonas] = useState(false);
+  const [isDebugMode, setIsDebugMode] = useState(false);
   const [authInitialPhone, setAuthInitialPhone] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get("debug") === "1" || sp.get("fixtures") === "1" || process.env.NODE_ENV === "development") {
+        setIsDebugMode(true);
+      }
+    }
+  }, []);
 
   const { toasts, push: showToast } = useToasts();
 
@@ -187,8 +197,8 @@ function UnifiedAppContent({
       {/* Toast notifications */}
       <ToastRegion toasts={toasts} />
 
-      {/* Controlled Test Personas Switcher (Collapsed by default in production) */}
-      {demoAccounts && demoAccounts.length > 0 && (
+      {/* Controlled Test Personas Switcher (Only visible in dev or with ?debug=1) */}
+      {isDebugMode && demoAccounts && demoAccounts.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           {!showDemoPersonas ? (
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
