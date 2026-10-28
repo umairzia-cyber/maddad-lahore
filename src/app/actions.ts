@@ -22,7 +22,7 @@ import { q, one, isPostgresAvailable } from "@/lib/db";
 import { store } from "@/lib/store";
 import { collectSignup, collectJobLead, collectBidActivity } from "@/lib/supabase";
 
-export type FormState = { error?: string; ok?: string; devCode?: string; phone?: string; jobId?: string } | null;
+export type FormState = { error?: string; ok?: string; devCode?: string; phone?: string; jobId?: string; next?: string } | null;
 
 /** Converts expected AppErrors to form messages; lets Next redirect/notFound signals through. */
 async function wrap(fn: () => Promise<FormState | void>): Promise<FormState> {
@@ -116,7 +116,12 @@ export async function verifyOtpAction(_: FormState, f: FormData): Promise<FormSt
     }
 
     revalidatePath("/", "layout");
-    redirect("/");
+    const nextUrl = str(f, "next").trim();
+    const safeNext = nextUrl.startsWith("/") && !nextUrl.startsWith("//") ? nextUrl : null;
+    if (str(f, "native_form") === "1") {
+      redirect(safeNext || "/");
+    }
+    return { ok: "Signed in successfully.", next: safeNext || undefined };
   });
 }
 export async function switchDemoUserAction(phone: string): Promise<FormState> {

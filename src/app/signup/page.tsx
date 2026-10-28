@@ -8,18 +8,27 @@ export const metadata: Metadata = {
   description: "Create an account on Maddadgaar Lahore to post plumbing & electrical jobs or bid as an independent technician.",
 };
 
-export default async function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams?: { role?: string; next?: string };
+}) {
   const user = await getUser();
 
   if (user) {
-    redirect("/dashboard");
+    const next = searchParams?.next;
+    const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+    redirect(safeNext);
   }
+
+  const initialRole = searchParams?.role === "worker" ? "worker" : "customer";
 
   return (
     <div style={{ padding: "16px 0 32px" }}>
       <AuthView
         currentUser={null}
         initialMode="signup"
+        initialRole={initialRole}
       />
     </div>
   );

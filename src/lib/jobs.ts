@@ -183,6 +183,28 @@ export async function browsePublicJobs(): Promise<PublicJob[]> {
   );
 }
 
+/** Fetch a single public job by ID if open and not hidden/expired. Safe for guests and search engines. */
+export async function getPublicJob(jobId: string): Promise<PublicJob | null> {
+  if (!(await isPostgresAvailable())) {
+    const sj = store.jobs.get(jobId);
+    if (!sj || sj.status !== "open" || sj.hidden_at || sj.expires_at < new Date()) return null;
+    const pj = store.getPublicJobs().find((j) => j.id === jobId);
+    return pj ? { ...pj, my_bid_status: null } : null;
+  }
+  return one<PublicJob>(
+    `SELECT ${PUBLIC_COLS},
+       (SELECT count(*)::int FROM bids b WHERE b.job_id=j.id AND b.status IN ('active','accepted')) AS bid_count,
+       NULL::int AS min_bid,
+       NULL::int AS max_bid,
+       NULL::text AS my_bid_status
+     FROM jobs j
+     JOIN service_categories c ON c.id=j.category_id
+     JOIN service_areas a ON a.id=j.area_id
+     WHERE j.id=$1 AND j.status='open' AND j.hidden_at IS NULL AND j.expires_at > now()`,
+    [jobId],
+  );
+}
+
 export async function browseJobsForWorker(user: SessionUser): Promise<PublicJob[]> {
   if (!(await isPostgresAvailable())) {
     return store.browseJobsForWorker(user.id);

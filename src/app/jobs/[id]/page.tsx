@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { requireUser } from "@/lib/auth";
-import { getCustomerJob, getEligibleJob, getPrivateDetails } from "@/lib/jobs";
+import { getUser } from "@/lib/auth";
+import { getCustomerJob, getEligibleJob, getPrivateDetails, getPublicJob } from "@/lib/jobs";
 import { listBidsForCustomer } from "@/lib/bids";
 import { getBookingByJob, codeForCustomer } from "@/lib/bookings";
 import { reviewStateForBooking } from "@/lib/reviews";
@@ -24,7 +24,16 @@ import {
 } from "../../actions";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  return { title: "Job details" };
+  const job = await getPublicJob(params.id).catch(() => null);
+  if (!job) return { title: "Job details · Maddadgaar Lahore" };
+  return {
+    title: `${job.title} (${job.category} in ${job.area}) · Maddadgaar Lahore`,
+    description: job.description.slice(0, 160),
+    openGraph: {
+      title: `${job.title} · Maddadgaar Lahore`,
+      description: `Job in ${job.area}, Lahore. Category: ${job.category}. Compare transparent quotes on Maddadgaar.`,
+    },
+  };
 }
 
 export default async function JobPage({ params }: { params: { id: string } }) {
@@ -33,24 +42,24 @@ export default async function JobPage({ params }: { params: { id: string } }) {
   const cookieLocale = cookies().get("maddad_locale")?.value;
   const locale = cookieLocale === "ur" ? "ur" : "en";
 
-  const user = await requireUser();
+  const user = await getUser();
   const jobId = params.id;
 
   // Check user role for this job
-  const customerJob = await getCustomerJob(user, jobId);
+  const customerJob = user ? await getCustomerJob(user, jobId) : null;
   const isCustomer = Boolean(customerJob);
 
-  const booking = await getBookingByJob(user, jobId);
-  const isSelectedWorker = Boolean(booking && booking.worker_id === user.id);
+  const booking = user ? await getBookingByJob(user, jobId) : null;
+  const isSelectedWorker = Boolean(booking && booking.worker_id === user?.id);
 
   let eligibleJob = null;
-  if (!isCustomer && !isSelectedWorker && user.is_worker) {
+  if (!isCustomer && !isSelectedWorker && user?.is_worker) {
     eligibleJob = await getEligibleJob(user, jobId);
   }
 
   // Admin view check
   let adminJob = null;
-  if (!isCustomer && !isSelectedWorker && !eligibleJob && user.is_admin) {
+  if (!isCustomer && !isSelectedWorker && !eligibleJob && user?.is_admin) {
     if (!(await isPostgresAvailable())) {
       const sj = store.jobs.get(jobId);
       if (sj) {
@@ -92,11 +101,16 @@ export default async function JobPage({ params }: { params: { id: string } }) {
     }
   }
 
-  if (!customerJob && !isSelectedWorker && !eligibleJob && !adminJob) {
+  // Public listing check (safe for guests, other customers, and non-matched workers)
+  const publicJob = !customerJob && !isSelectedWorker && !eligibleJob && !adminJob
+    ? await getPublicJob(jobId)
+    : null;
+
+  if (!customerJob && !isSelectedWorker && !eligibleJob && !adminJob && !publicJob) {
     notFound();
   }
 
-  const job = customerJob || eligibleJob || adminJob || {
+  const job = customerJob || eligibleJob || adminJob || publicJob || {
     id: booking!.job_id,
     title: booking!.title,
     description: "",
@@ -120,19 +134,19 @@ export default async function JobPage({ params }: { params: { id: string } }) {
       );
 
   // Private counterpart details (visible ONLY to customer and selected worker during active booking)
-  const priv = await getPrivateDetails(user, jobId);
-  const custCode = booking ? codeForCustomer(booking, user) : null;
+  const priv = user ? await getPrivateDetails(user, jobId) : null;
+  const custCode = booking && user ? codeForCustomer(booking, user) : null;
 
   // Bids comparison for customer
-  const bids = isCustomer && job.status === "open" ? await listBidsForCustomer(user, jobId) : [];
+  const bids = isCustomer && user && job.status === "open" ? await listBidsForCustomer(user, jobId) : [];
 
   // Review status if completed
-  const reviewState = booking && booking.status === "completed"
+  const reviewState = booking && user && booking.status === "completed"
     ? await reviewStateForBooking(user, booking.id)
     : null;
 
   // Existing worker bid (if viewer is worker)
-  const workerExistingBid = user.is_worker
+  const workerExistingBid = user?.is_worker
     ? (!(await isPostgresAvailable())
         ? (Array.from(store.bids.values()).find(b => b.job_id === jobId && b.worker_id === user.id && ["active", "accepted"].includes(b.status)) || null)
         : (
@@ -524,8 +538,59 @@ export default async function JobPage({ params }: { params: { id: string } }) {
         </section>
       )}
 
+      {/* Guest CTA: Sign in to bid */}
+      {!user && job.status === "open" && (
+        <section className="card" style={{ marginTop: 24, borderColor: "var(--accent)", background: "linear-gradient(180deg, rgba(56, 189, 248, 0.06) 0%, rgba(13, 17, 23, 0.95) 100%)" }}>
+          <div className="row" style={{ alignItems: "flex-start", gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ marginTop: 0, fontSize: "1.2rem", color: "var(--accent)" }}>
+                {locale === "ur" ? "کیا آپ الیکٹریشن یا پلمبر ہیں؟" : "Are you an independent electrician or plumber?"}
+              </h2>
+              <p style={{ margin: "4px 0 14px", color: "var(--fg-muted)", fontSize: "0.92rem", lineHeight: 1.5 }}>
+                {locale === "ur"
+                  ? "اس کام پر اپنی مزدوری کی بولی جمع کرانے کے لیے اپنے پاکستانی موبائل نمبر سے لاگ ان کریں۔ کوئی کمیشن یا کٹوتی نہیں۔"
+                  : "Sign in with your Pakistani mobile number to submit a transparent labour quote for this job and contact the customer directly. 0% platform commission."}
+              </p>
+              <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+                <Link
+                  href={`/login?next=/jobs/${jobId}`}
+                  className="btn btn-primary"
+                  style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  {locale === "ur" ? "بولی لگانے کے لیے لاگ ان کریں" : "Sign in to submit a bid"} &rarr;
+                </Link>
+                <Link
+                  href={`/signup?role=worker&next=/jobs/${jobId}`}
+                  className="btn btn-ghost"
+                  style={{ textDecoration: "none" }}
+                >
+                  {locale === "ur" ? "بطور ٹیکنیشن رجسٹر ہوں" : "Register as technician"}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Logged in customer viewing someone else's job */}
+      {user && !user.is_worker && !isCustomer && job.status === "open" && (
+        <section className="card" style={{ marginTop: 24, background: "var(--graphite-1)" }}>
+          <h3 style={{ marginTop: 0 }}>
+            {locale === "ur" ? "کیا آپ کو بھی ایسے کام میں مدد درکار ہے؟" : "Need help with a similar task in Lahore?"}
+          </h3>
+          <p className="hint" style={{ marginTop: 4 }}>
+            {locale === "ur"
+              ? "اپنا کام مفت میں پوسٹ کریں اور تصدیق شدہ کاریگروں سے براہ راست ریٹس وصول کریں۔"
+              : "Post your plumbing or electrical job on Maddadgaar for free and receive competitive quotes from verified local technicians."}
+          </p>
+          <Link href="/post" className="btn btn-primary btn-sm" style={{ textDecoration: "none", display: "inline-block", marginTop: 8 }}>
+            {locale === "ur" ? "نیا کام پوسٹ کریں" : "Post a job for free"}
+          </Link>
+        </section>
+      )}
+
       {/* Eligible Worker: Bidding section */}
-      {!isCustomer && user.is_worker && job.status === "open" && (
+      {!isCustomer && user?.is_worker && job.status === "open" && (
         <section aria-labelledby="bid-form-section" style={{ marginTop: 24 }}>
           <h2 id="bid-form-section">
             {workerExistingBid ? "Your Submitted Bid" : "Submit a Bid for this Job"}

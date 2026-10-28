@@ -26,6 +26,7 @@ import { useI18n } from "./I18nContext";
 interface AuthViewProps {
   currentUser: AppUser | null;
   initialMode?: "signup" | "signin";
+  initialRole?: "customer" | "worker";
   initialPhone?: string;
   onNavigateMarketplace?: () => void;
   showToast?: (msg: string) => void;
@@ -52,6 +53,7 @@ const LAHORE_AREAS = [
 export function AuthView({
   currentUser,
   initialMode = "signup",
+  initialRole = "customer",
   initialPhone,
   onNavigateMarketplace,
   showToast,
@@ -84,7 +86,7 @@ export function AuthView({
     }
     return "";
   });
-  const [role, setRole] = useState<"customer" | "worker">("customer");
+  const [role, setRole] = useState<"customer" | "worker">(initialRole);
   const [trade, setTrade] = useState<"plumbing" | "electrical" | "both">("plumbing");
   const [area, setArea] = useState<string>("Gulberg");
   const [agreedTerms, setAgreedTerms] = useState(true);
@@ -210,6 +212,12 @@ export function AuthView({
       fd.set("area", area);
     }
 
+    const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+    const nextParam = searchParams?.get("next");
+    if (nextParam) {
+      fd.set("next", nextParam);
+    }
+
     const res = await verifyOtpAction(null, fd);
     setBusy(false);
 
@@ -220,8 +228,17 @@ export function AuthView({
       const hasPendingPost =
         typeof window !== "undefined" &&
         sessionStorage.getItem("maddad_post_after_auth") === "true";
+      const destUrl = res?.next || nextParam;
+      const safeNext = destUrl && destUrl.startsWith("/") && !destUrl.startsWith("//") ? destUrl : null;
+
       if (hasPendingPost) {
         window.location.href = "/?view=post";
+      } else if (safeNext) {
+        window.location.href = safeNext;
+      } else if (typeof window !== "undefined" && window.location.pathname.startsWith("/login")) {
+        window.location.href = "/dashboard";
+      } else if (typeof window !== "undefined" && window.location.pathname.startsWith("/signup")) {
+        window.location.href = "/dashboard";
       } else {
         window.location.reload();
       }

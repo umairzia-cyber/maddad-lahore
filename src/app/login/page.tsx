@@ -11,21 +11,25 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { mode?: string };
+  searchParams?: { mode?: string; next?: string; role?: string };
 }) {
   const user = await getUser();
 
   if (user) {
-    redirect("/dashboard");
+    const next = searchParams?.next;
+    const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+    redirect(safeNext);
   }
 
   const initialMode = searchParams?.mode === "signup" ? "signup" : "signin";
+  const initialRole = searchParams?.role === "worker" ? "worker" : "customer";
 
   return (
     <div style={{ padding: "16px 0 32px" }}>
       <AuthView
         currentUser={null}
         initialMode={initialMode}
+        initialRole={initialRole}
       />
     </div>
   );

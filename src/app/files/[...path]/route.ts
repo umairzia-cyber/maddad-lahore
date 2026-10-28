@@ -32,11 +32,6 @@ export async function GET(
 
   try {
     if (kind === "job-photo") {
-      // Must be authenticated to view job photos, and job must not be hidden
-      if (!user) {
-        return new NextResponse("Unauthorized", { status: 401 });
-      }
-
       const photo = await one<{ storage_key: string; mime_type: string; status: string; customer_id: string; job_id: string }>(
         `SELECT p.storage_key, p.mime_type, j.status, j.customer_id, p.job_id
          FROM job_photos p
@@ -49,13 +44,16 @@ export async function GET(
         return new NextResponse("Photo not found", { status: 404 });
       }
 
-      const isOwner = user.id === photo.customer_id;
-      const isAdmin = user.is_admin;
-      const isBidder = (await one("SELECT 1 FROM bids WHERE job_id=$1 AND worker_id=$2", [photo.job_id, user.id])) !== null;
-      const isEligibleWorker = user.is_worker;
+      const isOpenJob = photo.status === "open";
+      const isOwner = Boolean(user && user.id === photo.customer_id);
+      const isAdmin = Boolean(user && user.is_admin);
+      const isBidder = user ? (await one("SELECT 1 FROM bids WHERE job_id=$1 AND worker_id=$2", [photo.job_id, user.id])) !== null : false;
+      const isEligibleWorker = Boolean(user && user.is_worker);
 
-      if (!isOwner && !isAdmin && !isBidder && !isEligibleWorker) {
-        return new NextResponse("Forbidden", { status: 403 });
+      // Open jobs have photos viewable by visitors/workers to evaluate work (EXIF location is stripped at upload).
+      // Non-open (awarded, completed, cancelled) jobs are restricted to participants and moderators.
+      if (!isOpenJob && !isOwner && !isAdmin && !isBidder && !isEligibleWorker) {
+        return new NextResponse(user ? "Forbidden" : "Unauthorized", { status: user ? 403 : 401 });
       }
 
       const data = await getPrivate(photo.storage_key);
