@@ -98,6 +98,16 @@ export function AuthView({
   }, [initialPhone]);
 
   // OTP Verification state
+  const [isDebugMode, setIsDebugMode] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get("debug") === "1" || sp.get("fixtures") === "1" || process.env.NODE_ENV === "development") {
+        setIsDebugMode(true);
+      }
+    }
+  }, []);
   const [code, setCode] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [devCode, setDevCode] = useState<string | null>(null);
@@ -1102,99 +1112,101 @@ export function AuthView({
           </form>
         )}
 
-        {/* 1-Click Controlled Pilot Test Accounts */}
-        <div
-          style={{
-            marginTop: 20,
-            padding: "14px",
-            background: "rgba(124, 58, 237, 0.08)",
-            border: "1px dashed var(--violet-400)",
-            borderRadius: "var(--radius-md)",
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontWeight: 800, fontSize: "0.83rem", color: "var(--violet-200)" }}>
-              Controlled Pilot Test Personas (1-Click Sign In)
-            </span>
-            <span className="pill pill-violet" style={{ fontSize: "0.68rem" }}>Pilot Mode</span>
+        {/* 1-Click Controlled Pilot Test Accounts (Visible only in development or with ?debug=1) */}
+        {isDebugMode && (
+          <div
+            style={{
+              marginTop: 20,
+              padding: "14px",
+              background: "rgba(124, 58, 237, 0.08)",
+              border: "1px dashed var(--violet-400)",
+              borderRadius: "var(--radius-md)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontWeight: 800, fontSize: "0.83rem", color: "var(--violet-200)" }}>
+                Controlled Pilot Test Personas (1-Click Sign In)
+              </span>
+              <span className="pill pill-violet" style={{ fontSize: "0.68rem" }}>Pilot Mode</span>
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-3)", lineHeight: 1.4 }}>
+              Click any persona to log in instantly and test live persistent database flows:
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  await switchDemoUserAction("0300 1112233");
+                  window.location.href = "/";
+                }}
+                className="btn btn-secondary btn-sm"
+                style={{ justifyContent: "flex-start", padding: "8px 10px" }}
+              >
+                <IconUser size={15} style={{ color: "var(--violet-400)" }} />
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.78rem" }}>Tariq (Customer)</div>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>0300 1112233</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  await switchDemoUserAction("0300 7778899");
+                  window.location.href = "/";
+                }}
+                className="btn btn-secondary btn-sm"
+                style={{ justifyContent: "flex-start", padding: "8px 10px" }}
+              >
+                <IconWrench size={15} style={{ color: "var(--emerald-400)" }} />
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.78rem" }}>Akram (Plumber)</div>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>0300 7778899</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  await switchDemoUserAction("0300 4445566");
+                  window.location.href = "/";
+                }}
+                className="btn btn-secondary btn-sm"
+                style={{ justifyContent: "flex-start", padding: "8px 10px" }}
+              >
+                <IconZap size={15} style={{ color: "var(--amber-400)" }} />
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.78rem" }}>Rashid (Electrician)</div>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>0300 4445566</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  await switchDemoUserAction("0300 1234567");
+                  window.location.href = "/";
+                }}
+                className="btn btn-secondary btn-sm"
+                style={{ justifyContent: "flex-start", padding: "8px 10px" }}
+              >
+                <IconShield size={15} style={{ color: "var(--cyan-400)" }} />
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.78rem" }}>Fatima (Moderator)</div>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>0300 1234567</div>
+                </div>
+              </button>
+            </div>
           </div>
-          <div style={{ fontSize: "0.75rem", color: "var(--text-3)", lineHeight: 1.4 }}>
-            Click any persona to log in instantly and test live persistent database flows:
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                await switchDemoUserAction("0300 1112233");
-                window.location.href = "/";
-              }}
-              className="btn btn-secondary btn-sm"
-              style={{ justifyContent: "flex-start", padding: "8px 10px" }}
-            >
-              <IconUser size={15} style={{ color: "var(--violet-400)" }} />
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 700, fontSize: "0.78rem" }}>Tariq (Customer)</div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>0300 1112233</div>
-              </div>
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                await switchDemoUserAction("0300 7778899");
-                window.location.href = "/";
-              }}
-              className="btn btn-secondary btn-sm"
-              style={{ justifyContent: "flex-start", padding: "8px 10px" }}
-            >
-              <IconWrench size={15} style={{ color: "var(--emerald-400)" }} />
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 700, fontSize: "0.78rem" }}>Akram (Plumber)</div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>0300 7778899</div>
-              </div>
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                await switchDemoUserAction("0300 4445566");
-                window.location.href = "/";
-              }}
-              className="btn btn-secondary btn-sm"
-              style={{ justifyContent: "flex-start", padding: "8px 10px" }}
-            >
-              <IconZap size={15} style={{ color: "var(--amber-400)" }} />
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 700, fontSize: "0.78rem" }}>Rashid (Electrician)</div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>0300 4445566</div>
-              </div>
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                await switchDemoUserAction("0300 1234567");
-                window.location.href = "/";
-              }}
-              className="btn btn-secondary btn-sm"
-              style={{ justifyContent: "flex-start", padding: "8px 10px" }}
-            >
-              <IconShield size={15} style={{ color: "var(--cyan-400)" }} />
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 700, fontSize: "0.78rem" }}>Fatima (Moderator)</div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>0300 1234567</div>
-              </div>
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* Guest Browse Link */}
         <div style={{ marginTop: 18, textAlign: "center", borderTop: "1px solid var(--graphite-800)", paddingTop: 14 }}>
